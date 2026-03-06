@@ -330,16 +330,16 @@
 - [x] Deleted: `app/`, `bootstrap/`, `config/`, `database/`, `lang/`, `resources/`, `routes/`, `storage/`, `public/`, `Modules/` — all removed 6 Mar 2026
 - [x] Deleted Laravel root files: `artisan`, `composer.json`, `composer.lock`, `phpunit.xml`, `.env`, `cgi-bin/`
 - [x] Kept: `database-exports/`, `scripts/`, `ultimate-pos-api/`, `ultimate-pos-web/`
-- [ ] Update root README to point to NestJS + Angular
+- [x] Update root README to point to NestJS + Angular — `README.md` rewritten 6 Mar 2026
 - [ ] Remove PHP from server (only if no other PHP apps)
 
 ### Phase D — Repository Cleanup
 - [x] `vendor/` deleted (263 MB)
 - [x] `tmp/` deleted
 - [x] `Modules/` deleted
-- [ ] Update `.gitignore` — remove PHP patterns, add NestJS/Angular patterns (no git repo yet)
-- [ ] Initialise git repository, add initial commit
-- [ ] Squash legacy commits / tag not applicable (no prior git history)
+- [x] `.gitignore` created — NestJS/Angular patterns, excludes `node_modules/`, `dist/`, `.env`, `uploads/`, `backups/`
+- [x] Git repository initialised — `git init`, 563 files committed, tagged `v2.0.0-nestjs` (6 Mar 2026)
+- [x] No legacy commits to squash (first commit)
 
 ---
 
@@ -378,7 +378,7 @@
 | Data migration | 🟡 85% | `scripts/migrate-legacy-data.ts` full 11-step migration: businesses, users, contacts, products, sales, purchases, payments, stockAdjustments, saleLines ✅, purchaseLines ✅, inventory/StockEntry ✅; run on staging to validate counts |
 | Seed data | ✅ 100% | `prisma/seed.ts` complete — admin/manager, business, location, tax rates, invoice layout/scheme, expense categories, units |
 | Production .env | ❌ 0% | No real secrets configured; `environment.production.ts` not created |
-| Laravel cleanup | ✅ 95% | Phases A+C+D complete: all Laravel directories and files deleted 6 Mar 2026; Phase B (Nginx redirect) N/A for local dev; remaining: update root README, init git repo |
+| Laravel cleanup | ✅ 100% | All phases complete: Laravel deleted, README rewritten, `.gitignore` created, git repo initialised with tag `v2.0.0-nestjs` (6 Mar 2026) |
 | Swagger docs | ✅ 100% | `/api/docs` live + `@ApiTags` on all controllers + `@ApiOperation`/`@ApiResponse`/`@ApiQuery`/`@ApiParam` on all endpoints (~50 operations) |
 | Redis/memory caching | ✅ 100% | Dashboard (5 min) + POS products (1 min) + products list (1 min) + cache invalidation on write |
 | Pagination safety | ✅ 100% | `Math.min(limit, 100)` enforced in 7 controllers (sales, purchases, expenses, payments, accounting, cash-register, crm) |
