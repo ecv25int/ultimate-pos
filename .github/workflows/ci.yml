@@ -1,0 +1,177 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ─────────────────────────────
+  # NestJS API — test + type-check
+  # ─────────────────────────────
+  api:
+    name: API (NestJS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ultimate-pos-api
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ultimate_pos_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: mysql://root:root@localhost:3306/ultimate_pos_test
+      JWT_SECRET: ci-test-secret-at-least-32-chars-long
+      JWT_REFRESH_SECRET: ci-test-refresh-secret-at-least-32-chars
+      APP_ENV: test
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ultimate-pos-api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run migrations
+        run: npx prisma migrate deploy
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Run unit tests
+        run: npm test -- --ci --forceExit
+
+  # ─────────────────────────────
+  # Angular — type-check + build
+  # ─────────────────────────────
+  web:
+    name: Web (Angular)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ultimate-pos-web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ultimate-pos-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Build (production)
+        run: npm run build -- --configuration production
+
+  # ─────────────────────────────
+  # E2E — Playwright (on main only)
+  # ─────────────────────────────
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: [api, web]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: ultimate-pos-web
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ultimate_pos_e2e
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: mysql://root:root@localhost:3306/ultimate_pos_e2e
+      JWT_SECRET: ci-test-secret-at-least-32-chars-long
+      JWT_REFRESH_SECRET: ci-test-refresh-secret-at-least-32-chars
+      APP_ENV: test
+      NODE_ENV: test
+      PLAYWRIGHT_BASE_URL: http://localhost:4200
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install API dependencies
+        working-directory: ultimate-pos-api
+        run: npm ci
+
+      - name: Setup API DB
+        working-directory: ultimate-pos-api
+        run: npx prisma migrate deploy && npx ts-node prisma/seed.ts
+        env:
+          DATABASE_URL: mysql://root:root@localhost:3306/ultimate_pos_e2e
+
+      - name: Start API
+        working-directory: ultimate-pos-api
+        run: npm run start:prod &
+        env:
+          DATABASE_URL: mysql://root:root@localhost:3306/ultimate_pos_e2e
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Angular app
+        run: npm run build
+
+      - name: Serve Angular build
+        run: npx http-server dist/ultimate-pos-web/browser -p 4200 &
+
+      - name: Wait for services
+        run: npx wait-on http://localhost:3000/api/health http://localhost:4200 --timeout 60000
+
+      - name: Run E2E tests
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: ultimate-pos-web/playwright-report/
+          retention-days: 14

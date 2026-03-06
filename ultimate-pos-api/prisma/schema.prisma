@@ -1,0 +1,1976 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  CASHIER
+  USER
+}
+
+enum DurationType {
+  days
+  months
+  years
+}
+
+// ============================================
+// Core Models - Sprint 1: Authentication
+// ============================================
+
+model User {
+  id                    Int       @id @default(autoincrement())
+  username              String    @unique @db.VarChar(191)
+  email                 String?   @unique @db.VarChar(191)
+  password              String    @db.VarChar(255)
+  firstName             String?   @map("first_name") @db.VarChar(50)
+  lastName              String?   @map("last_name") @db.VarChar(50)
+  userType              String    @default("user") @map("user_type") @db.VarChar(20)
+  businessId            Int?      @map("business_id")
+  isActive              Boolean   @default(true) @map("is_active")
+  failedAttempts        Int       @default(0) @map("failed_attempts")
+  lockedUntil           DateTime? @map("locked_until")
+  isEmailVerified       Boolean   @default(false) @map("is_email_verified")
+  emailVerificationToken String?  @map("email_verification_token") @db.VarChar(255)
+  passwordResetToken    String?   @map("password_reset_token") @db.VarChar(255)
+  passwordResetExpires  DateTime? @map("password_reset_expires")
+  locale                String    @default("en") @db.VarChar(10)
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  
+  business          Business? @relation(fields: [businessId], references: [id])
+  notifications     Notification[]
+  
+  @@map("users")
+  @@index([businessId])
+  @@index([email])
+  @@index([username])
+  @@index([passwordResetToken])
+  @@index([emailVerificationToken])
+}
+
+
+model Business {
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(255)
+  currency        String    @default("USD") @db.VarChar(3)
+  timezone        String    @default("UTC") @db.VarChar(50)
+  country         String?   @db.VarChar(100)
+  state           String?   @db.VarChar(100)
+  city            String?   @db.VarChar(100)
+  zipCode         String?   @map("zip_code") @db.VarChar(20)
+  address         String?   @db.Text
+  phone           String?   @db.VarChar(20)
+  email           String?   @db.VarChar(191)
+  website         String?   @db.VarChar(255)
+  logo            String?   @db.VarChar(255)
+  taxNumber       String?   @map("tax_number") @db.VarChar(100)
+  isActive        Boolean   @default(true) @map("is_active")
+  cashDrawerHost  String?   @map("cash_drawer_host") @db.VarChar(255)
+  // Serial COM port (e.g. 'COM3', '/dev/ttyUSB0') or TCP host/IP for network printer
+  cashDrawerPort  Int?      @map("cash_drawer_port")
+  // TCP port when using network mode (default 9100); null = serial mode
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  users               User[]
+  categories          Category[]
+  brands              Brand[]
+  units               Unit[]
+  products            Product[]
+  contacts            Contact[]
+  stockEntries        StockEntry[]
+  taxRates            TaxRate[]
+  sales               Sale[]
+  purchases           Purchase[]
+  expenseCategories   ExpenseCategory[]
+  expenses            Expense[]
+  cashRegisters       CashRegister[]
+  notifications       Notification[]
+  payments            Payment[]
+  stockTransfers      StockTransfer[]
+  accountTypes        AccountType[]
+  accounts            Account[]
+  resTables           ResTable[]
+  bookings            Booking[]
+  crmCampaigns        CrmCampaign[]
+  crmSchedules        CrmSchedule[]
+  crmCallLogs         CrmCallLog[]
+  mfgIngredientGroups MfgIngredientGroup[]
+  repairStatuses      RepairStatus[]
+  repairDeviceModels  RepairDeviceModel[]
+  repairJobSheets     RepairJobSheet[]
+  assets              Asset[]
+  assetTransactions   AssetTransaction[]
+  leaveTypes          EssentialsLeaveType[]
+  leaves              EssentialsLeave[]
+  payrolls            EssentialsPayroll[]
+  essentialsDocs      EssentialsDocument[]
+  essentialsReminders EssentialsReminder[]
+  hmsRoomTypes        HmsRoomType[]
+  hmsExtras           HmsExtra[]
+  subscriptions       Subscription[]
+  woocommerceSyncLogs WoocommerceSyncLog[]
+  pjtProjects         PjtProject[]
+  businessLocations     BusinessLocation[]
+  invoiceLayouts        InvoiceLayout[]
+  invoiceSchemes        InvoiceScheme[]
+  variationTemplates    VariationTemplate[]
+  customerGroups        CustomerGroup[]
+  sellingPriceGroups    SellingPriceGroup[]
+  discounts             Discount[]
+  warranties            Warranty[]
+  notificationTemplates NotificationTemplate[]
+  stockAdjustments      StockAdjustment[]
+  barcodeLabels         BarcodeLabel[]
+  auditLogs             AuditLog[]
+  pushSubscriptions     PushSubscription[]
+  scheduledReports      ScheduledReport[]
+
+  @@map("business")
+  @@index([name])
+}
+
+// ============================================
+// Product Management Models - Sprint 2
+// ============================================
+
+model Category {
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(255)
+  businessId      Int       @map("business_id")
+  shortCode       String?   @map("short_code") @db.VarChar(50)
+  parentId        Int?      @map("parent_id")
+  createdBy       Int       @map("created_by")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  parent          Category? @relation("CategorySubcategories", fields: [parentId], references: [id])
+  subcategories   Category[] @relation("CategorySubcategories")
+  products        Product[] @relation("CategoryProducts")
+  subCategoryProducts Product[] @relation("SubCategoryProducts")
+  
+  @@map("categories")
+  @@index([businessId])
+  @@index([parentId])
+  @@index([createdBy])
+}
+
+model Brand {
+  id              Int       @id @default(autoincrement())
+  businessId      Int       @map("business_id")
+  name            String    @db.VarChar(255)
+  description     String?   @db.Text
+  createdBy       Int       @map("created_by")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  products        Product[]
+  
+  @@map("brands")
+  @@index([businessId])
+  @@index([createdBy])
+}
+
+model Unit {
+  id              Int       @id @default(autoincrement())
+  businessId      Int       @map("business_id")
+  actualName      String    @map("actual_name") @db.VarChar(255)
+  shortName       String    @map("short_name") @db.VarChar(50)
+  allowDecimal    Boolean   @default(false) @map("allow_decimal")
+  baseUnitId      Int?      @map("base_unit_id")
+  baseUnitMultiplier Decimal? @map("base_unit_multiplier") @db.Decimal(20, 4)
+  createdBy       Int       @map("created_by")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  baseUnit        Unit?     @relation("UnitConversion", fields: [baseUnitId], references: [id])
+  subUnits        Unit[]    @relation("UnitConversion")
+  products        Product[]
+  
+  @@map("units")
+  @@index([businessId])
+  @@index([baseUnitId])
+  @@index([createdBy])
+}
+
+model Product {
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(255)
+  businessId      Int       @map("business_id")
+  type            String    @default("single") @db.VarChar(10) // 'single' or 'variable'
+  unitId          Int       @map("unit_id")
+  brandId         Int?      @map("brand_id")
+  categoryId      Int?      @map("category_id")
+  subCategoryId   Int?      @map("sub_category_id")
+  sku             String    @db.VarChar(255)
+  barcodeType     String    @default("C128") @map("barcode_type") @db.VarChar(20)
+  enableStock       Boolean   @default(false) @map("enable_stock")
+  alertQuantity     Decimal   @default(0) @map("alert_quantity") @db.Decimal(22, 4)
+  warrantyId        Int?      @map("warranty_id")
+  imageUrl          String?   @map("image_url") @db.VarChar(500)
+  createdBy         Int       @map("created_by")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  unit              Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  brand             Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  category          Category? @relation("CategoryProducts", fields: [categoryId], references: [id], onDelete: Cascade)
+  subCategory       Category? @relation("SubCategoryProducts", fields: [subCategoryId], references: [id], onDelete: Cascade)
+  warranty          Warranty? @relation(fields: [warrantyId], references: [id], onDelete: SetNull)
+  stockEntries      StockEntry[]
+  saleLines         SaleLine[]
+  purchaseLines     PurchaseLine[]
+  stockTransfers    StockTransfer[]
+  productVariations ProductVariation[]
+  variations        Variation[]
+
+  @@map("products")
+  @@index([warrantyId])
+  @@index([name])
+  @@index([sku])              // barcode / POS product lookup
+  @@index([type])            // filter single vs variable
+  @@index([businessId])
+  @@index([unitId])
+  @@index([brandId])
+  @@index([categoryId])
+  @@index([subCategoryId])
+  @@index([createdBy])
+}
+
+// ============================================
+// Contact Management Models - Sprint 4
+// ============================================
+
+model Contact {
+  id                    Int       @id @default(autoincrement())
+  businessId            Int       @map("business_id")
+  type                  String    @db.VarChar(20)              // 'customer' | 'supplier' | 'both'
+  supplierBusinessName  String?   @map("supplier_business_name") @db.VarChar(255)
+  name                  String    @db.VarChar(255)
+  email                 String?   @db.VarChar(191)
+  taxNumber             String?   @map("tax_number") @db.VarChar(100)
+  city                  String?   @db.VarChar(100)
+  state                 String?   @db.VarChar(100)
+  country               String?   @db.VarChar(100)
+  landmark              String?   @db.VarChar(255)
+  mobile                String    @db.VarChar(30)
+  landline              String?   @db.VarChar(30)
+  alternateNumber       String?   @map("alternate_number") @db.VarChar(30)
+  payTermNumber         Int?      @map("pay_term_number")
+  payTermType           String?   @map("pay_term_type") @db.VarChar(10)    // 'days' | 'months'
+  creditLimit           Decimal?  @map("credit_limit") @db.Decimal(22, 4)
+  balance               Decimal   @default(0) @map("balance") @db.Decimal(22, 4)
+  isDefault             Boolean   @default(false) @map("is_default")
+  contactStatus         String    @default("active") @map("contact_status") @db.VarChar(20)
+  shippingAddress       String?   @map("shipping_address") @db.Text
+  position              String?   @db.VarChar(255)
+  customerGroupId       Int?      @map("customer_group_id")
+  createdBy             Int       @map("created_by")
+  deletedAt             DateTime? @map("deleted_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  business              Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerGroup         CustomerGroup? @relation(fields: [customerGroupId], references: [id], onDelete: SetNull)
+  sales                 Sale[]
+  purchases             Purchase[]
+  bookings              Booking[]
+  crmSchedules          CrmSchedule[]
+  crmCallLogs           CrmCallLog[]
+  repairJobSheets       RepairJobSheet[]
+
+  @@map("contacts")
+  @@index([customerGroupId])
+  @@index([businessId])
+  @@index([type])
+  @@index([name])            // search by name
+  @@index([email])           // lookup by email
+  @@index([contactStatus])
+  @@index([createdBy])
+  @@index([mobile])
+}
+
+// ============================================
+// Inventory Management Models - Sprint 5
+// ============================================
+
+model StockEntry {
+  id              Int       @id @default(autoincrement())
+  businessId      Int       @map("business_id")
+  productId       Int       @map("product_id")
+  entryType       String    @map("entry_type") @db.VarChar(30)
+  // 'opening_stock' | 'purchase_in' | 'adjustment_in' | 'adjustment_out' | 'sale_out' | 'sale_return'
+  quantity        Decimal   @db.Decimal(22, 4)   // positive = stock in, negative = stock out
+  unitCost        Decimal?  @map("unit_cost") @db.Decimal(22, 4)
+  referenceNo     String?   @map("reference_no") @db.VarChar(100)
+  note            String?   @db.Text
+  createdBy       Int       @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("stock_entries")
+
+  @@index([businessId])
+  @@index([productId])
+  @@index([entryType])
+  @@index([createdBy])
+  @@index([createdAt])
+}
+
+// ============================================
+// Sales Models - Sprint 6
+// ============================================
+
+model Sale {
+  id              Int       @id @default(autoincrement())
+  businessId      Int       @map("business_id")
+  contactId       Int?      @map("contact_id")
+  invoiceNo       String    @map("invoice_no") @db.VarChar(60)
+  status          String    @default("final") @db.VarChar(20)
+  // 'draft' | 'final' | 'pending' | 'completed'
+  paymentStatus   String    @default("due") @map("payment_status") @db.VarChar(20)
+  // 'due' | 'partial' | 'paid' | 'overdue'
+  taxAmount       Decimal   @default(0) @map("tax_amount") @db.Decimal(22, 4)
+  discountAmount  Decimal   @default(0) @map("discount_amount") @db.Decimal(22, 4)
+  discountType    String    @default("fixed") @map("discount_type") @db.VarChar(10)
+  // 'fixed' | 'percentage'
+  shippingAmount  Decimal   @default(0) @map("shipping_amount") @db.Decimal(22, 4)
+  totalAmount     Decimal   @default(0) @map("total_amount") @db.Decimal(22, 4)
+  paidAmount      Decimal   @default(0) @map("paid_amount") @db.Decimal(22, 4)
+  note            String?   @db.Text
+  transactionDate DateTime  @default(now()) @map("transaction_date")
+  type            String    @default("sale") @db.VarChar(20)
+  // 'sale' | 'sale_return'
+  returnOfId            Int?      @map("return_of_id")
+  sellingPriceGroupId   Int?      @map("selling_price_group_id")
+  createdBy             Int       @map("created_by")
+  deletedAt             DateTime? @map("deleted_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  business            Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  contact             Contact?          @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  returnOf            Sale?             @relation("SaleReturns", fields: [returnOfId], references: [id])
+  returns             Sale[]            @relation("SaleReturns")
+  sellingPriceGroup   SellingPriceGroup? @relation(fields: [sellingPriceGroupId], references: [id], onDelete: SetNull)
+  lines               SaleLine[]
+  payments            Payment[]
+
+  @@map("sales")
+  @@index([sellingPriceGroupId])
+  @@index([businessId])
+  @@index([contactId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([invoiceNo])
+  @@index([transactionDate])
+  @@index([businessId, transactionDate])  // composite for date-range report queries
+}
+
+model SaleLine {
+  id              Int       @id @default(autoincrement())
+  saleId          Int       @map("sale_id")
+  productId       Int       @map("product_id")
+  quantity        Decimal   @db.Decimal(22, 4)
+  unitPrice       Decimal   @map("unit_price") @db.Decimal(22, 4)
+  discountAmount  Decimal   @default(0) @map("discount_amount") @db.Decimal(22, 4)
+  taxAmount       Decimal   @default(0) @map("tax_amount") @db.Decimal(22, 4)
+  lineTotal       Decimal   @default(0) @map("line_total") @db.Decimal(22, 4)
+  variationId     Int?      @map("variation_id")
+  note            String?   @db.VarChar(255)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  sale            Sale             @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product         Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variation       Variation?       @relation(fields: [variationId], references: [id], onDelete: SetNull)
+  warranties      SellLineWarranty[]
+
+  @@map("sale_lines")
+  @@index([variationId])
+  @@index([saleId])
+  @@index([productId])
+}
+
+// ============================================
+// Purchase Orders Models - Sprint 7
+// ============================================
+
+model Purchase {
+  id              Int       @id @default(autoincrement())
+  businessId      Int       @map("business_id")
+  contactId       Int?      @map("contact_id")     // supplier
+  refNo           String?   @map("ref_no") @db.VarChar(60)
+  status          String    @default("received") @db.VarChar(20)
+  // 'ordered' | 'pending' | 'received' | 'cancelled'
+  paymentStatus   String    @default("due") @map("payment_status") @db.VarChar(20)
+  // 'due' | 'partial' | 'paid'
+  taxAmount       Decimal   @default(0) @map("tax_amount") @db.Decimal(22, 4)
+  discountAmount  Decimal   @default(0) @map("discount_amount") @db.Decimal(22, 4)
+  shippingAmount  Decimal   @default(0) @map("shipping_amount") @db.Decimal(22, 4)
+  totalAmount     Decimal   @default(0) @map("total_amount") @db.Decimal(22, 4)
+  paidAmount      Decimal   @default(0) @map("paid_amount") @db.Decimal(22, 4)
+  note            String?   @db.Text
+  purchaseDate    DateTime  @default(now()) @map("purchase_date")
+  type            String    @default("purchase") @db.VarChar(20)
+  // 'purchase' | 'purchase_return'
+  returnOfId      Int?      @map("return_of_id")
+  createdBy       Int       @map("created_by")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  contact         Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  returnOf        Purchase? @relation("PurchaseReturns", fields: [returnOfId], references: [id])
+  returns         Purchase[] @relation("PurchaseReturns")
+  lines           PurchaseLine[]
+  payments        Payment[]
+
+  @@map("purchases")
+  @@index([businessId])
+  @@index([contactId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([purchaseDate])
+  @@index([refNo])            // search by purchase reference number
+  @@index([type])             // purchase vs purchase_return
+  @@index([businessId, purchaseDate])  // composite for date-range report queries
+}
+
+model PurchaseLine {
+  id              Int       @id @default(autoincrement())
+  purchaseId      Int       @map("purchase_id")
+  productId       Int       @map("product_id")
+  quantity        Decimal   @db.Decimal(22, 4)
+  unitCostBefore  Decimal   @default(0) @map("unit_cost_before") @db.Decimal(22, 4)
+  unitCostAfter   Decimal   @default(0) @map("unit_cost_after") @db.Decimal(22, 4)
+  discountAmount  Decimal   @default(0) @map("discount_amount") @db.Decimal(22, 4)
+  taxAmount       Decimal   @default(0) @map("tax_amount") @db.Decimal(22, 4)
+  lineTotal       Decimal   @default(0) @map("line_total") @db.Decimal(22, 4)
+  note            String?   @db.VarChar(255)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  purchase        Purchase  @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("purchase_lines")
+  @@index([purchaseId])
+  @@index([productId])
+}
+
+// ============================================
+// Expense Models - Sprint 8
+// ============================================
+
+model ExpenseCategory {
+  id          Int       @id @default(autoincrement())
+  businessId  Int       @map("business_id")
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  createdBy   Int       @map("created_by")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  expenses    Expense[]
+
+  @@map("expense_categories")
+  @@index([businessId])
+}
+
+model Expense {
+  id                Int              @id @default(autoincrement())
+  businessId        Int              @map("business_id")
+  expenseCategoryId Int?             @map("expense_category_id")
+  refNo             String?          @map("ref_no") @db.VarChar(60)
+  amount            Decimal          @default(0) @db.Decimal(22, 4)
+  taxAmount         Decimal          @default(0) @map("tax_amount") @db.Decimal(22, 4)
+  totalAmount       Decimal          @default(0) @map("total_amount") @db.Decimal(22, 4)
+  note              String?          @db.Text
+  expenseDate       DateTime         @default(now()) @map("expense_date")
+  createdBy         Int              @map("created_by")
+  deletedAt         DateTime?        @map("deleted_at")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  business          Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category          ExpenseCategory? @relation(fields: [expenseCategoryId], references: [id], onDelete: SetNull)
+
+  @@map("expenses")
+  @@index([businessId])
+  @@index([expenseCategoryId])
+  @@index([expenseDate])
+}
+
+// ============================================
+// Cash Register Models - Sprint 8
+// ============================================
+
+model CashRegister {
+  id              Int                      @id @default(autoincrement())
+  businessId      Int                      @map("business_id")
+  userId          Int                      @map("user_id")
+  status          String                   @default("open") @db.VarChar(10)
+  // 'open' | 'closed'
+  openingAmount   Decimal                  @default(0) @map("opening_amount") @db.Decimal(22, 4)
+  closingAmount   Decimal                  @default(0) @map("closing_amount") @db.Decimal(22, 4)
+  openNote        String?                  @map("open_note") @db.Text
+  closingNote     String?                  @map("closing_note") @db.Text
+  openedAt        DateTime                 @default(now()) @map("opened_at")
+  closedAt        DateTime?                @map("closed_at")
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
+
+  business        Business                 @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  transactions    CashRegisterTransaction[]
+
+  @@map("cash_registers")
+  @@index([businessId])
+  @@index([userId])
+  @@index([status])
+}
+
+model CashRegisterTransaction {
+  id               Int          @id @default(autoincrement())
+  cashRegisterId   Int          @map("cash_register_id")
+  transactionType  String       @map("transaction_type") @db.VarChar(20)
+  // 'cash_in' | 'cash_out' | 'sale' | 'refund' | 'opening' | 'closing'
+  amount           Decimal      @db.Decimal(22, 4)
+  note             String?      @db.Text
+  referenceNo      String?      @map("reference_no") @db.VarChar(100)
+  createdBy        Int          @map("created_by")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  cashRegister     CashRegister @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+
+  @@map("cash_register_transactions")
+  @@index([cashRegisterId])
+  @@index([transactionType])
+  @@index([createdAt])        // date-range cash register reports
+}
+
+// ============================================
+// Tax Rate Models - Sprint 9
+// ============================================
+
+model TaxRate {
+  id          Int       @id @default(autoincrement())
+  businessId  Int       @map("business_id")
+  name        String    @db.VarChar(100)
+  rate        Decimal   @db.Decimal(5, 2)          // e.g. 20.00 means 20%
+  type        String    @default("percentage") @db.VarChar(20)  // 'percentage' | 'fixed'
+  isDefault   Boolean   @default(false) @map("is_default")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdBy   Int       @map("created_by")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  // Group tax relations (self-referential via pivot)
+  groupSubTaxesAsGroup GroupSubTax[] @relation("GroupTaxRelation")
+  groupSubTaxesAsTax   GroupSubTax[] @relation("SubTaxRelation")
+
+  @@map("tax_rates")
+  @@index([businessId])
+  @@index([isDefault])
+  @@index([isActive])
+}
+
+model GroupSubTax {
+  groupTaxId  Int  @map("group_tax_id")
+  taxId       Int  @map("tax_id")
+
+  groupTax  TaxRate  @relation("GroupTaxRelation", fields: [groupTaxId], references: [id], onDelete: Cascade)
+  subTax    TaxRate  @relation("SubTaxRelation",   fields: [taxId],      references: [id], onDelete: Cascade)
+
+  @@id([groupTaxId, taxId])
+  @@map("group_sub_taxes")
+  @@index([groupTaxId])
+  @@index([taxId])
+}
+
+// ============================================
+// Payment Processing - Sprint 13
+// ============================================
+
+model Payment {
+  id            Int       @id @default(autoincrement())
+  businessId    Int       @map("business_id")
+  saleId        Int?      @map("sale_id")
+  purchaseId    Int?      @map("purchase_id")
+  amount        Decimal   @db.Decimal(22, 4)
+  method        String    @default("cash") @db.VarChar(30)
+  // 'cash' | 'card' | 'bank_transfer' | 'check' | 'other'
+  referenceNo   String?   @map("reference_no") @db.VarChar(100)
+  note          String?   @db.Text
+  paymentDate   DateTime  @default(now()) @map("payment_date")
+  createdBy     Int       @map("created_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sale        Sale?     @relation(fields: [saleId], references: [id], onDelete: SetNull)
+  purchase    Purchase? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+
+  @@map("payments")
+  @@index([businessId])
+  @@index([saleId])
+  @@index([purchaseId])
+  @@index([paymentDate])
+}
+
+// ============================================
+// Stock Transfers - Sprint 13
+// ============================================
+
+model StockTransfer {
+  id            Int       @id @default(autoincrement())
+  businessId    Int       @map("business_id")
+  productId     Int       @map("product_id")
+  quantity      Decimal   @db.Decimal(22, 4)   // always positive
+  fromLocation  String    @map("from_location") @db.VarChar(255)
+  toLocation    String    @map("to_location") @db.VarChar(255)
+  referenceNo   String?   @map("reference_no") @db.VarChar(100)
+  note          String?   @db.Text
+  status        String    @default("completed") @db.VarChar(20)
+  // 'pending' | 'completed' | 'cancelled'
+  createdBy     Int       @map("created_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("stock_transfers")
+  @@index([businessId])
+  @@index([productId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================
+// Notifications - Sprint 11
+// ============================================
+
+model Notification {
+  id          Int       @id @default(autoincrement())
+  businessId  Int       @map("business_id")
+  userId      Int       @map("user_id")          // recipient
+  type        String    @db.VarChar(50)           // 'low_stock' | 'sale' | 'purchase' | 'info' | 'warning' | 'error'
+  title       String    @db.VarChar(255)
+  message     String    @db.Text
+  isRead      Boolean   @default(false) @map("is_read")
+  link        String?   @db.VarChar(255)          // optional navigation link
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+  @@index([businessId])
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// ============================================
+// Accounting Module - P4 Sprint 14
+// ============================================
+
+model AccountType {
+  id                   Int           @id @default(autoincrement())
+  businessId           Int           @map("business_id")
+  name                 String        @db.VarChar(100)
+  // Root types: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense'
+  rootType             String        @map("root_type") @db.VarChar(20)
+  parentAccountTypeId  Int?          @map("parent_account_type_id")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  business    Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  parent      AccountType?  @relation("AccountTypeChildren", fields: [parentAccountTypeId], references: [id], onDelete: SetNull)
+  children    AccountType[] @relation("AccountTypeChildren")
+  accounts    Account[]
+
+  @@map("account_types")
+  @@index([businessId])
+  @@index([parentAccountTypeId])
+}
+
+model Account {
+  id            Int       @id @default(autoincrement())
+  businessId    Int       @map("business_id")
+  accountTypeId Int       @map("account_type_id")
+  name          String    @db.VarChar(200)
+  accountNumber String    @map("account_number") @db.VarChar(50)
+  note          String?   @db.Text
+  isClosed      Boolean   @default(false) @map("is_closed")
+  accountDetails String?  @map("account_details") @db.Text   // JSON blob for extra fields
+  createdBy     Int       @map("created_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  accountType  AccountType   @relation(fields: [accountTypeId], references: [id])
+  transactions AccountTransaction[]
+
+  @@map("accounts")
+  @@index([businessId])
+  @@index([accountTypeId])
+  @@index([isClosed])
+}
+
+model AccountTransaction {
+  id                    Int       @id @default(autoincrement())
+  accountId             Int       @map("account_id")
+  // 'debit' | 'credit'
+  type                  String    @db.VarChar(10)
+  // 'opening_balance' | 'fund_transfer' | 'deposit' | 'journal' | 'sale' | 'purchase' | 'payment'
+  subType               String?   @map("sub_type") @db.VarChar(30)
+  amount                Decimal   @db.Decimal(22, 4)
+  referenceNo           String?   @map("reference_no") @db.VarChar(100)
+  operationDate         DateTime  @map("operation_date")
+  note                  String?   @db.Text
+  // Links to other objects (optional)
+  linkedTransactionId   Int?      @map("linked_transaction_id")
+  createdBy             Int       @map("created_by")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  account     Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("account_transactions")
+  @@index([accountId])
+  @@index([type])
+  @@index([operationDate])
+  @@index([createdAt])
+}
+
+// ============================================
+// Restaurant Module - P4 Sprint 15
+// ============================================
+
+model ResTable {
+  id          Int       @id @default(autoincrement())
+  businessId  Int       @map("business_id")
+  locationId  Int       @map("location_id")
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  // 'available' | 'occupied' | 'reserved' | 'cleaning'
+  status      String    @default("available") @db.VarChar(20)
+  capacity    Int       @default(4)
+  createdBy   Int       @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  business  Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  bookings  Booking[]
+
+  @@map("res_tables")
+  @@index([businessId])
+  @@index([locationId])
+  @@index([status])
+}
+
+model Booking {
+  id            Int       @id @default(autoincrement())
+  businessId    Int       @map("business_id")
+  locationId    Int       @map("location_id")
+  contactId     Int       @map("contact_id")
+  tableId       Int?      @map("table_id")
+  waiterId      Int?      @map("waiter_id")
+  correspondentId Int?    @map("correspondent_id")
+  bookingStart  DateTime  @map("booking_start")
+  bookingEnd    DateTime  @map("booking_end")
+  // 'booked' | 'completed' | 'cancelled' | 'waiting'
+  bookingStatus String    @default("booked") @map("booking_status") @db.VarChar(20)
+  bookingNote   String?   @map("booking_note") @db.Text
+  guestCount    Int       @default(1) @map("guest_count")
+  createdBy     Int       @map("created_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  business  Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  table     ResTable?  @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  contact   Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@map("bookings")
+  @@index([businessId])
+  @@index([locationId])
+  @@index([contactId])
+  @@index([bookingStart])
+  @@index([bookingStatus])
+}
+
+// ============================================
+// CRM Module - P4 Sprint 16
+// ============================================
+
+model CrmCampaign {
+  id           Int       @id @default(autoincrement())
+  businessId   Int       @map("business_id")
+  name         String    @db.VarChar(255)
+  // 'email' | 'sms'
+  campaignType String    @default("email") @map("campaign_type") @db.VarChar(10)
+  subject      String?   @db.VarChar(255)
+  emailBody    String?   @map("email_body") @db.Text
+  smsBody      String?   @map("sms_body") @db.Text
+  sentOn       DateTime? @map("sent_on")
+  // JSON array of contact IDs
+  contactIds   String    @map("contact_ids") @db.Text
+  // 'draft' | 'sent' | 'scheduled'
+  status       String    @default("draft") @db.VarChar(20)
+  createdBy    Int       @map("created_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  business  Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("crm_campaigns")
+  @@index([businessId])
+  @@index([campaignType])
+  @@index([status])
+}
+
+model CrmSchedule {
+  id          Int       @id @default(autoincrement())
+  businessId  Int       @map("business_id")
+  contactId   Int       @map("contact_id")
+  title       String    @db.VarChar(255)
+  // 'pending' | 'completed' | 'cancelled'
+  status      String    @default("pending") @db.VarChar(20)
+  startDatetime DateTime @map("start_datetime")
+  endDatetime DateTime  @map("end_datetime")
+  description String?   @db.Text
+  // 'call' | 'sms' | 'meeting' | 'email'
+  scheduleType String   @default("meeting") @map("schedule_type") @db.VarChar(20)
+  createdBy   Int       @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  business  Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  contact   Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@map("crm_schedules")
+  @@index([businessId])
+  @@index([contactId])
+  @@index([scheduleType])
+  @@index([startDatetime])
+}
+
+model CrmCallLog {
+  id          Int       @id @default(autoincrement())
+  businessId  Int       @map("business_id")
+  contactId   Int?      @map("contact_id")
+  userId      Int?      @map("user_id")
+  // 'inbound' | 'outbound' | 'missed'
+  callType    String    @default("outbound") @map("call_type") @db.VarChar(20)
+  mobileNumber String   @map("mobile_number") @db.VarChar(30)
+  startTime   DateTime? @map("start_time")
+  endTime     DateTime? @map("end_time")
+  // duration in seconds
+  duration    Int?
+  note        String?   @db.Text
+  createdBy   Int       @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  business  Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  contact   Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@map("crm_call_logs")
+  @@index([businessId])
+  @@index([contactId])
+  @@index([callType])
+  @@index([createdAt])
+}
+
+// ============================================
+// Manufacturing Module - P4 Sprint 17
+// ============================================
+
+model MfgIngredientGroup {
+  id          Int      @id @default(autoincrement())
+  businessId  Int      @map("business_id")
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  business    Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  ingredients MfgRecipeIngredient[]
+
+  @@map("mfg_ingredient_groups")
+  @@index([businessId])
+}
+
+model MfgRecipe {
+  id               Int      @id @default(autoincrement())
+  // businessId via product — no direct business_id in original schema, we add for easier lookup
+  productId        Int      @map("product_id")
+  variationId      Int      @map("variation_id")
+  instructions     String?  @db.Text
+  wastePercent     Decimal  @default(0) @map("waste_percent") @db.Decimal(10, 2)
+  ingredientsCost  Decimal  @default(0) @map("ingredients_cost") @db.Decimal(22, 4)
+  extraCost        Decimal  @default(0) @map("extra_cost") @db.Decimal(22, 4)
+  totalQuantity    Decimal  @default(0) @map("total_quantity") @db.Decimal(22, 4)
+  finalPrice       Decimal  @map("final_price") @db.Decimal(22, 4)
+  subUnitId        Int?     @map("sub_unit_id")
+  createdBy        Int      @map("created_by")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  variation   Variation           @relation("MfgRecipeVariation", fields: [variationId], references: [id], onDelete: Cascade)
+  ingredients MfgRecipeIngredient[]
+
+  @@map("mfg_recipes")
+  @@index([productId])
+  @@index([variationId])
+}
+
+model MfgRecipeIngredient {
+  id                    Int      @id @default(autoincrement())
+  mfgRecipeId           Int      @map("mfg_recipe_id")
+  variationId           Int      @map("variation_id")
+  quantity              Decimal  @default(0) @db.Decimal(22, 4)
+  subUnitId             Int?     @map("sub_unit_id")
+  mfgIngredientGroupId  Int?     @map("mfg_ingredient_group_id")
+  wastePercent          Decimal  @default(0) @map("waste_percent") @db.Decimal(10, 2)
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  recipe          MfgRecipe          @relation(fields: [mfgRecipeId], references: [id], onDelete: Cascade)
+  variation       Variation          @relation("MfgIngredientVariation", fields: [variationId], references: [id], onDelete: Cascade)
+  ingredientGroup MfgIngredientGroup? @relation(fields: [mfgIngredientGroupId], references: [id], onDelete: SetNull)
+
+  @@map("mfg_recipe_ingredients")
+  @@index([mfgRecipeId])
+  @@index([variationId])
+}
+
+// ============================================
+// Repair Module - P4 Sprint 17
+// ============================================
+
+model RepairStatus {
+  id         Int      @id @default(autoincrement())
+  businessId Int      @map("business_id")
+  name       String   @db.VarChar(255)
+  color      String?  @db.VarChar(20)
+  sortOrder  Int?     @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  business  Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobSheets RepairJobSheet[]
+
+  @@map("repair_statuses")
+  @@index([businessId])
+}
+
+model RepairDeviceModel {
+  id            Int      @id @default(autoincrement())
+  businessId    Int      @map("business_id")
+  name          String   @db.VarChar(255)
+  repairChecklist String? @map("repair_checklist") @db.Text
+  brandId       Int?     @map("brand_id")
+  deviceId      Int?     @map("device_id")
+  createdBy     Int      @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  business  Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobSheets RepairJobSheet[]
+
+  @@map("repair_device_models")
+  @@index([businessId])
+}
+
+model RepairJobSheet {
+  id                  Int       @id @default(autoincrement())
+  businessId          Int       @map("business_id")
+  locationId          Int?      @map("location_id")
+  contactId           Int       @map("contact_id")
+  jobSheetNo          String    @map("job_sheet_no") @db.VarChar(100)
+  // 'carry_in' | 'pick_up' | 'on_site'
+  serviceType         String    @default("carry_in") @map("service_type") @db.VarChar(20)
+  pickUpOnSiteAddr    String?   @map("pick_up_on_site_addr") @db.Text
+  brandId             Int?      @map("brand_id")
+  deviceId            Int?      @map("device_id")
+  deviceModelId       Int?      @map("device_model_id")
+  checklist           String?   @db.Text
+  securityPwd         String?   @map("security_pwd") @db.VarChar(255)
+  securityPattern     String?   @map("security_pattern") @db.VarChar(255)
+  serialNo            String    @map("serial_no") @db.VarChar(255)
+  statusId            Int       @map("status_id")
+  deliveryDate        DateTime? @map("delivery_date")
+  productConfiguration String?  @map("product_configuration") @db.Text
+  defects             String?   @db.Text
+  productCondition    String?   @map("product_condition") @db.Text
+  serviceStaff        Int?      @map("service_staff")
+  commentBySs         String?   @map("comment_by_ss") @db.Text
+  estimatedCost       Decimal?  @map("estimated_cost") @db.Decimal(22, 4)
+  parts               String?   @db.Text
+  createdBy           Int       @map("created_by")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  business     Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  contact      Contact           @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  status       RepairStatus      @relation(fields: [statusId], references: [id])
+  deviceModel  RepairDeviceModel? @relation(fields: [deviceModelId], references: [id], onDelete: SetNull)
+
+  @@map("repair_job_sheets")
+  @@index([businessId])
+  @@index([contactId])
+  @@index([statusId])
+  @@index([jobSheetNo])
+}
+
+// ============================================
+// Asset Management Module - P4 Sprint 17
+// ============================================
+
+model Asset {
+  id           Int      @id @default(autoincrement())
+  businessId   Int      @map("business_id")
+  assetCode    String   @map("asset_code") @db.VarChar(100)
+  name         String   @db.VarChar(255)
+  quantity     Decimal  @db.Decimal(22, 4)
+  model        String?  @db.VarChar(255)
+  serialNo     String?  @map("serial_no") @db.VarChar(255)
+  categoryId   Int?     @map("category_id")
+  locationId   Int?     @map("location_id")
+  purchaseDate DateTime? @map("purchase_date")
+  purchaseType String?  @map("purchase_type") @db.VarChar(100)
+  unitPrice    Decimal  @map("unit_price") @db.Decimal(22, 4)
+  depreciation Decimal? @db.Decimal(22, 4)
+  isAllocatable Boolean @default(false) @map("is_allocatable")
+  description  String?  @db.Text
+  createdBy    Int      @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  business     Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  transactions AssetTransaction[]
+  warranties   AssetWarranty[]
+  maintenances AssetMaintenance[]
+
+  @@map("assets")
+  @@index([businessId])
+  @@index([assetCode])
+}
+
+model AssetTransaction {
+  id                  Int      @id @default(autoincrement())
+  businessId          Int      @map("business_id")
+  assetId             Int?     @map("asset_id")
+  // 'allocate' | 'return' | 'transfer' etc.
+  transactionType     String   @map("transaction_type") @db.VarChar(50)
+  refNo               String   @map("ref_no") @db.VarChar(100)
+  receiver            Int?     // user id
+  quantity            Decimal  @db.Decimal(22, 4)
+  transactionDatetime DateTime @map("transaction_datetime")
+  allocatedUpto       DateTime? @map("allocated_upto")
+  reason              String?  @db.Text
+  parentId            Int?     @map("parent_id")
+  createdBy           Int      @map("created_by")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  business  Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  asset     Asset?   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  parent    AssetTransaction?   @relation(name: "AssetTransactionChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children  AssetTransaction[]  @relation(name: "AssetTransactionChildren")
+
+  @@map("asset_transactions")
+  @@index([businessId])
+  @@index([assetId])
+}
+
+model AssetWarranty {
+  id             Int      @id @default(autoincrement())
+  assetId        Int      @map("asset_id")
+  startDate      DateTime @map("start_date")
+  endDate        DateTime @map("end_date")
+  additionalCost Decimal  @default(0) @map("additional_cost") @db.Decimal(22, 4)
+  additionalNote String?  @map("additional_note") @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@map("asset_warranties")
+  @@index([assetId])
+}
+
+model AssetMaintenance {
+  id           BigInt   @id @default(autoincrement())
+  businessId   Int      @map("business_id")
+  assetId      Int      @map("asset_id")
+  maitenanceId String?  @map("maitenance_id") @db.VarChar(100)
+  status       String?  @db.VarChar(50)
+  priority     String?  @db.VarChar(50)
+  createdBy    Int      @map("created_by")
+  assignedTo   Int?     @map("assigned_to")
+  details      String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@map("asset_maintenances")
+  @@index([businessId])
+  @@index([assetId])
+  @@index([status])
+  @@index([priority])
+}
+
+// ============================================
+// P5: Project Management
+// ============================================
+
+model PjtProject {
+  id          Int       @id @default(autoincrement())
+  businessId  Int       @map("business_id")
+  name        String
+  contactId   Int?      @map("contact_id")
+  status      String    @default("not_started") @db.VarChar(30)
+  leadId      Int?      @map("lead_id")
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  description String?   @db.Text
+  settings    String?   @db.Text
+  createdBy   Int       @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  business Business         @relation(fields: [businessId], references: [id])
+  members  PjtProjectMember[]
+  tasks    PjtTask[]
+  timeLogs PjtTimeLog[]
+
+  @@map("pjt_projects")
+  @@index([businessId])
+  @@index([status])
+}
+
+model PjtProjectMember {
+  id        Int @id @default(autoincrement())
+  projectId Int @map("project_id")
+  userId    Int @map("user_id")
+
+  project PjtProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("pjt_project_members")
+  @@index([projectId])
+  @@index([userId])
+}
+
+model PjtTask {
+  id          Int       @id @default(autoincrement())
+  businessId  Int       @map("business_id")
+  projectId   Int       @map("project_id")
+  taskId      String    @map("task_id") @db.VarChar(100)
+  subject     String
+  startDate   DateTime? @map("start_date")
+  dueDate     DateTime? @map("due_date")
+  priority    String    @default("low") @db.VarChar(20)
+  description String?   @db.Text
+  status      String    @default("not_started") @db.VarChar(30)
+  createdBy   Int       @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  project  PjtProject       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  timeLogs PjtTimeLog[]
+  comments PjtTaskComment[]
+
+  @@map("pjt_project_tasks")
+  @@index([projectId])
+  @@index([businessId])
+  @@index([status])
+}
+
+model PjtTimeLog {
+  id         Int       @id @default(autoincrement())
+  businessId Int       @map("business_id")
+  projectId  Int       @map("project_id")
+  taskId     Int?      @map("task_id")
+  userId     Int       @map("user_id")
+  startTime  DateTime  @map("start_time")
+  endTime    DateTime? @map("end_time")
+  duration   Decimal?  @db.Decimal(8, 2)
+  note       String?   @db.Text
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  project PjtProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task    PjtTask?   @relation(fields: [taskId], references: [id])
+
+  @@map("pjt_project_time_logs")
+  @@index([projectId])
+  @@index([taskId])
+  @@index([userId])
+}
+
+model PjtTaskComment {
+  id        Int      @id @default(autoincrement())
+  taskId    Int      @map("task_id")
+  userId    Int      @map("user_id")
+  comment   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  task PjtTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("pjt_project_task_comments")
+  @@index([taskId])
+}
+
+// ============================================
+// P5: Essentials (HRM)
+// ============================================
+
+model EssentialsLeaveType {
+  id                 Int      @id @default(autoincrement())
+  leaveType          String   @map("leave_type")
+  maxLeaveCount      Int?     @map("max_leave_count")
+  leaveCountInterval String?  @map("leave_count_interval") @db.VarChar(20)
+  businessId         Int      @map("business_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  business Business         @relation(fields: [businessId], references: [id])
+  leaves   EssentialsLeave[]
+
+  @@map("essentials_leave_types")
+  @@index([businessId])
+}
+
+model EssentialsLeave {
+  id                    Int       @id @default(autoincrement())
+  essentialsLeaveTypeId Int?      @map("essentials_leave_type_id")
+  businessId            Int       @map("business_id")
+  userId                Int       @map("user_id")
+  startDate             DateTime  @map("start_date") @db.Date
+  endDate               DateTime  @map("end_date") @db.Date
+  refNo                 String?   @map("ref_no")
+  status                String?   @db.VarChar(20)
+  reason                String?   @db.Text
+  statusNote            String?   @map("status_note") @db.Text
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  leaveType EssentialsLeaveType? @relation(fields: [essentialsLeaveTypeId], references: [id])
+  business  Business             @relation(fields: [businessId], references: [id])
+
+  @@map("essentials_leaves")
+  @@index([businessId])
+  @@index([userId])
+  @@index([essentialsLeaveTypeId])
+}
+
+model EssentialsPayroll {
+  id                    Int      @id @default(autoincrement())
+  userId                Int      @map("user_id")
+  businessId            Int      @map("business_id")
+  refNo                 String?  @map("ref_no")
+  month                 Int
+  year                  Int
+  duration              Decimal  @db.Decimal(8, 2)
+  durationUnit          String   @map("duration_unit") @db.VarChar(20)
+  amountPerUnitDuration Decimal  @default(0) @map("amount_per_unit_duration") @db.Decimal(22, 4)
+  allowances            String?  @db.Text
+  deductions            String?  @db.Text
+  grossAmount           Decimal  @default(0) @map("gross_amount") @db.Decimal(22, 4)
+  createdBy             Int      @map("created_by")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id])
+
+  @@map("essentials_payrolls")
+  @@index([businessId])
+  @@index([userId])
+}
+
+model EssentialsDocument {
+  id          Int      @id @default(autoincrement())
+  businessId  Int      @map("business_id")
+  userId      Int      @map("user_id")
+  type        String?  @db.VarChar(100)
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id])
+
+  @@map("essentials_documents")
+  @@index([businessId])
+  @@index([userId])
+}
+
+model EssentialsReminder {
+  id         Int      @id @default(autoincrement())
+  businessId Int      @map("business_id")
+  userId     Int      @map("user_id")
+  name       String
+  date       DateTime @db.Date
+  time       DateTime @db.Time(0)
+  repeat     String   @db.VarChar(20)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id])
+
+  @@map("essentials_reminders")
+  @@index([businessId])
+  @@index([userId])
+}
+
+// ============================================
+// P5: HMS (Hotel Management)
+// ============================================
+
+model HmsRoomType {
+  id           Int       @id @default(autoincrement())
+  type         String
+  noOfAdult    Int       @map("no_of_adult")
+  noOfChild    Int       @map("no_of_child")
+  maxOccupancy Int       @map("max_occupancy")
+  amenities    String?
+  description  String?   @db.Text
+  businessId   Int       @map("business_id")
+  createdBy    Int       @map("created_by")
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  business     Business         @relation(fields: [businessId], references: [id])
+  rooms        HmsRoom[]
+  bookingLines HmsBookingLine[]
+
+  @@map("hms_room_types")
+  @@index([businessId])
+}
+
+model HmsRoom {
+  id            Int       @id @default(autoincrement())
+  hmsRoomTypeId Int       @map("hms_room_type_id")
+  roomNumber    String    @map("room_number")
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  roomType     HmsRoomType      @relation(fields: [hmsRoomTypeId], references: [id])
+  bookingLines HmsBookingLine[]
+
+  @@map("hms_rooms")
+  @@index([hmsRoomTypeId])
+}
+
+model HmsExtra {
+  id         Int      @id @default(autoincrement())
+  name       String
+  price      Decimal  @default(0) @db.Decimal(22, 4)
+  pricePer   String   @map("price_per")
+  businessId Int      @map("business_id")
+  createdBy  Int      @map("created_by")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id])
+
+  @@map("hms_extras")
+  @@index([businessId])
+}
+
+model HmsBookingLine {
+  id            Int      @id @default(autoincrement())
+  transactionId Int      @map("transaction_id")
+  hmsRoomId     Int      @map("hms_room_id")
+  hmsRoomTypeId Int      @map("hms_room_type_id")
+  adults        Int
+  childrens     Int
+  price         Decimal  @default(0) @db.Decimal(22, 4)
+  totalPrice    Decimal  @default(0) @map("total_price") @db.Decimal(22, 4)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  room     HmsRoom     @relation(fields: [hmsRoomId], references: [id])
+  roomType HmsRoomType @relation(fields: [hmsRoomTypeId], references: [id])
+
+  @@map("hms_booking_lines")
+  @@index([transactionId])
+  @@index([hmsRoomId])
+}
+
+// ============================================
+// P5: Superadmin / Multi-tenant
+// ============================================
+
+model Package {
+  id            Int       @id @default(autoincrement())
+  name          String
+  description   String    @db.Text
+  locationCount Int       @map("location_count")
+  userCount     Int       @map("user_count")
+  productCount  Int       @map("product_count")
+  invoiceCount  Int       @map("invoice_count")
+  interval      String    @db.VarChar(20)
+  intervalCount Int       @map("interval_count")
+  trialDays     Int       @map("trial_days")
+  price         Decimal   @db.Decimal(22, 4)
+  createdBy     Int       @map("created_by")
+  sortOrder     Int       @default(0) @map("sort_order")
+  isActive      Boolean   @map("is_active")
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  subscriptions Subscription[]
+
+  @@map("packages")
+}
+
+model Subscription {
+  id                   Int       @id @default(autoincrement())
+  businessId           Int       @map("business_id")
+  packageId            Int       @map("package_id")
+  startDate            DateTime? @map("start_date") @db.Date
+  trialEndDate         DateTime? @map("trial_end_date") @db.Date
+  endDate              DateTime? @map("end_date") @db.Date
+  packagePrice         Decimal   @map("package_price") @db.Decimal(22, 4)
+  packageDetails       String    @map("package_details") @db.LongText
+  createdId            Int       @map("created_id")
+  paidVia              String?   @map("paid_via")
+  paymentTransactionId String?   @map("payment_transaction_id")
+  status               String    @default("waiting") @db.VarChar(20)
+  deletedAt            DateTime? @map("deleted_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  package  Package  @relation(fields: [packageId], references: [id])
+
+  @@map("subscriptions")
+  @@index([businessId])
+  @@index([packageId])
+}
+
+// ============================================
+// Business Locations (P0)
+// ============================================
+
+model BusinessLocation {
+  id           Int      @id @default(autoincrement())
+  businessId   Int      @map("business_id")
+  name         String   @db.VarChar(255)
+  landmarkCity String?  @map("landmark_city") @db.VarChar(100)
+  state        String?  @db.VarChar(100)
+  country      String?  @db.VarChar(100)
+  zipCode      String?  @map("zip_code") @db.VarChar(20)
+  mobile       String?  @db.VarChar(20)
+  alternateNumber String? @map("alternate_number") @db.VarChar(20)
+  email        String?  @db.VarChar(191)
+  website      String?  @db.VarChar(255)
+  featuredProducts Int  @default(0) @map("featured_products")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  business  Business                   @relation(fields: [businessId], references: [id])
+  discounts Discount[]
+  variationLocationDetails VariationLocationDetails[]
+  stockAdjustments StockAdjustment[]
+
+  @@map("business_locations")
+  @@index([businessId])
+}
+
+// ============================================
+// Invoice Layouts (P2)
+// ============================================
+
+model InvoiceLayout {
+  id                  Int      @id @default(autoincrement())
+  businessId          Int      @map("business_id")
+  name                String   @db.VarChar(255)
+  headerText          String?  @map("header_text") @db.Text
+  footerText          String?  @map("footer_text") @db.Text
+  invoiceHeading      String?  @map("invoice_heading") @db.VarChar(255)
+  invoiceNoLabel      String?  @map("invoice_no_label") @db.VarChar(100)
+  dateLabel           String?  @map("date_label") @db.VarChar(100)
+  dueDateLabel        String?  @map("due_date_label") @db.VarChar(100)
+  highlightColor      String?  @map("highlight_color") @db.VarChar(20)
+  subHeading1         String?  @map("sub_heading_1") @db.VarChar(255)
+  subHeading2         String?  @map("sub_heading_2") @db.VarChar(255)
+  subHeading3         String?  @map("sub_heading_3") @db.VarChar(255)
+  subHeading4         String?  @map("sub_heading_4") @db.VarChar(255)
+  subHeading5         String?  @map("sub_heading_5") @db.VarChar(255)
+  showBusinessName    Boolean  @default(true) @map("show_business_name")
+  showLocationName    Boolean  @default(true) @map("show_location_name")
+  showMobileNumber    Boolean  @default(true) @map("show_mobile_number")
+  showEmail           Boolean  @default(false) @map("show_email")
+  showTax1            Boolean  @default(true) @map("show_tax_1")
+  showTax2            Boolean  @default(false) @map("show_tax_2")
+  showTaxTotal        Boolean  @default(true) @map("show_tax_total")
+  showLogo            Boolean  @default(true) @map("show_logo")
+  showBarcode         Boolean  @default(true) @map("show_barcode")
+  showPaymentMethods  Boolean  @default(false) @map("show_payment_methods")
+  isDefault           Boolean  @default(false) @map("is_default")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id])
+  invoiceSchemes InvoiceScheme[]
+
+  @@map("invoice_layouts")
+  @@index([businessId])
+}
+
+// ============================================
+// Invoice Schemes (P2)
+// ============================================
+
+model InvoiceScheme {
+  id              Int      @id @default(autoincrement())
+  businessId      Int      @map("business_id")
+  name            String   @db.VarChar(255)
+  schemeType      String   @default("sale") @map("scheme_type") @db.VarChar(50)
+  prefix          String?  @db.VarChar(50)
+  invoiceLayoutId Int?     @map("invoice_layout_id")
+  startNumber     Int      @default(1) @map("start_number")
+  totalDigits     Int      @default(4) @map("total_digits")
+  isDefault       Boolean  @default(false) @map("is_default")
+  invoiceCount    Int      @default(0) @map("invoice_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  business      Business       @relation(fields: [businessId], references: [id])
+  invoiceLayout InvoiceLayout? @relation(fields: [invoiceLayoutId], references: [id])
+
+  @@map("invoice_schemes")
+  @@index([businessId])
+}
+
+// ============================================
+// P5: WooCommerce Integration
+// ============================================
+
+model WoocommerceSyncLog {
+  id            Int      @id @default(autoincrement())
+  businessId    Int      @map("business_id")
+  syncType      String   @map("sync_type")
+  operationType String?  @map("operation_type") @db.VarChar(20)
+  data          String?  @db.LongText
+  details       String?  @db.LongText
+  createdBy     Int      @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id])
+
+  @@map("woocommerce_sync_logs")
+  @@index([businessId])
+  @@index([syncType])
+}
+
+// ============================================
+// P1: Product Variations
+// ============================================
+
+model VariationTemplate {
+  id         Int      @id @default(autoincrement())
+  businessId Int      @map("business_id")
+  name       String   @db.VarChar(255)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  business       Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  variationValues VariationValueTemplate[]
+
+  @@map("variation_templates")
+  @@index([businessId])
+}
+
+model VariationValueTemplate {
+  id                  Int      @id @default(autoincrement())
+  variationTemplateId Int      @map("variation_template_id")
+  name                String   @db.VarChar(255)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  variationTemplate VariationTemplate @relation(fields: [variationTemplateId], references: [id], onDelete: Cascade)
+
+  @@map("variation_value_templates")
+  @@index([variationTemplateId])
+}
+
+model ProductVariation {
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
+  name      String   @db.VarChar(255)
+  isDummy   Boolean  @default(true) @map("is_dummy")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variations Variation[]
+
+  @@map("product_variations")
+  @@index([productId])
+}
+
+model Variation {
+  id                   Int       @id @default(autoincrement())
+  productId            Int       @map("product_id")
+  productVariationId   Int       @map("product_variation_id")
+  name                 String    @db.VarChar(255)
+  subSku               String?   @map("sub_sku") @db.VarChar(255)
+  defaultPurchasePrice Decimal?  @map("default_purchase_price") @db.Decimal(22, 4)
+  dppIncTax            Decimal   @default(0) @map("dpp_inc_tax") @db.Decimal(22, 4)
+  profitPercent        Decimal   @default(0) @map("profit_percent") @db.Decimal(22, 4)
+  defaultSellPrice     Decimal?  @map("default_sell_price") @db.Decimal(22, 4)
+  sellPriceIncTax      Decimal?  @map("sell_price_inc_tax") @db.Decimal(22, 4)
+  deletedAt            DateTime? @map("deleted_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  product          Product                  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productVariation ProductVariation         @relation(fields: [productVariationId], references: [id], onDelete: Cascade)
+  locationDetails  VariationLocationDetails[]
+  groupPrices      VariationGroupPrice[]
+  saleLines        SaleLine[]
+  mfgRecipes       MfgRecipe[]              @relation("MfgRecipeVariation")
+  mfgIngredients   MfgRecipeIngredient[]    @relation("MfgIngredientVariation")
+  adjustmentLines  StockAdjustmentLine[]
+
+  @@map("variations")
+  @@index([productId])
+  @@index([productVariationId])
+  @@index([subSku])           // barcode / POS SKU lookup
+}
+
+model VariationLocationDetails {
+  id                 Int     @id @default(autoincrement())
+  productId          Int     @map("product_id")
+  productVariationId Int     @map("product_variation_id")
+  variationId        Int     @map("variation_id")
+  locationId         Int     @map("location_id")
+  qtyAvailable       Decimal @default(0) @map("qty_available") @db.Decimal(22, 4)
+
+  variation Variation        @relation(fields: [variationId], references: [id], onDelete: Cascade)
+  location  BusinessLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@map("variation_location_details")
+  @@index([productId])
+  @@index([variationId])
+  @@index([locationId])
+}
+
+model VariationGroupPrice {
+  id           Int     @id @default(autoincrement())
+  variationId  Int     @map("variation_id")
+  priceGroupId Int     @map("price_group_id")
+  priceIncTax  Decimal @map("price_inc_tax") @db.Decimal(22, 4)
+
+  variation        Variation        @relation(fields: [variationId], references: [id], onDelete: Cascade)
+  sellingPriceGroup SellingPriceGroup @relation(fields: [priceGroupId], references: [id], onDelete: Cascade)
+
+  @@map("variation_group_prices")
+  @@index([variationId])
+  @@index([priceGroupId])
+}
+
+// ============================================
+// P2: Customer Groups, Selling Price Groups, Discounts
+// ============================================
+
+model CustomerGroup {
+  id         Int      @id @default(autoincrement())
+  businessId Int      @map("business_id")
+  name       String   @db.VarChar(255)
+  amount     Float    @default(0) @db.Float
+  createdBy  Int      @map("created_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  business  Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  contacts  Contact[]
+
+  @@map("customer_groups")
+  @@index([businessId])
+}
+
+model SellingPriceGroup {
+  id          Int       @id @default(autoincrement())
+  businessId  Int       @map("business_id")
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  isActive    Boolean   @default(true) @map("is_active")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  business     Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sales        Sale[]
+  groupPrices  VariationGroupPrice[]
+
+  @@map("selling_price_groups")
+  @@index([businessId])
+}
+
+model Discount {
+  id              Int       @id @default(autoincrement())
+  businessId      Int       @map("business_id")
+  name            String    @db.VarChar(255)
+  brandId         Int?      @map("brand_id")
+  categoryId      Int?      @map("category_id")
+  locationId      Int?      @map("location_id")
+  priority        Int?
+  discountType    String?   @map("discount_type") @db.VarChar(20)
+  discountAmount  Decimal   @default(0) @map("discount_amount") @db.Decimal(22, 4)
+  startsAt        DateTime? @map("starts_at")
+  endsAt          DateTime? @map("ends_at")
+  isActive        Boolean   @default(true) @map("is_active")
+  applicableInSpg Boolean   @default(false) @map("applicable_in_spg")
+  applicableInCg  Boolean   @default(false) @map("applicable_in_cg")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  business  Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  location  BusinessLocation? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  @@map("discounts")
+  @@index([businessId])
+  @@index([locationId])
+}
+
+// ============================================
+// P2: Warranty
+// ============================================
+
+model Warranty {
+  id           Int          @id @default(autoincrement())
+  businessId   Int          @map("business_id")
+  name         String       @db.VarChar(255)
+  description  String?      @db.Text
+  duration     Int
+  durationType DurationType @map("duration_type")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  business      Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  products      Product[]
+  sellLineWarranties SellLineWarranty[]
+
+  @@map("warranties")
+  @@index([businessId])
+}
+
+model SellLineWarranty {
+  id          Int @id @default(autoincrement())
+  saleLineId  Int @map("sale_line_id")
+  warrantyId  Int @map("warranty_id")
+
+  saleLine SaleLine @relation(fields: [saleLineId], references: [id], onDelete: Cascade)
+  warranty Warranty @relation(fields: [warrantyId], references: [id], onDelete: Cascade)
+
+  @@map("sell_line_warranties")
+  @@index([saleLineId])
+  @@index([warrantyId])
+}
+
+// ============================================
+// P3: Notification Templates
+// ============================================
+
+model NotificationTemplate {
+  id           Int      @id @default(autoincrement())
+  businessId   Int      @map("business_id")
+  templateFor  String   @map("template_for") @db.VarChar(100)
+  emailBody    String?  @map("email_body") @db.Text
+  smsBody      String?  @map("sms_body") @db.Text
+  subject      String?  @db.VarChar(255)
+  autoSend     Boolean  @default(false) @map("auto_send")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("notification_templates")
+  @@index([businessId])
+  @@index([templateFor])
+}
+
+// ============================================
+// P2: Stock Adjustments
+// ============================================
+
+model StockAdjustment {
+  id             Int       @id @default(autoincrement())
+  businessId     Int       @map("business_id")
+  locationId     Int?      @map("location_id")
+  referenceNo    String?   @map("reference_no") @db.VarChar(100)
+  adjustmentType String    @default("normal") @map("adjustment_type") @db.VarChar(30)
+  totalAmount    Decimal   @default(0) @map("total_amount") @db.Decimal(22, 4)
+  note           String?   @db.Text
+  status         String    @default("received") @db.VarChar(30)
+  finalised      Boolean   @default(false)
+  finalisedAt    DateTime? @map("finalised_at")
+  createdBy      Int       @map("created_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  business Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  location BusinessLocation? @relation(fields: [locationId], references: [id])
+  lines    StockAdjustmentLine[]
+
+  @@map("stock_adjustments")
+  @@index([businessId])
+  @@index([locationId])
+  @@index([createdBy])
+  @@index([createdAt])
+}
+
+model StockAdjustmentLine {
+  id           Int     @id @default(autoincrement())
+  adjustmentId Int     @map("adjustment_id")
+  variationId  Int?    @map("variation_id")
+  quantity     Decimal @db.Decimal(22, 4)
+  unitPrice    Decimal @default(0) @map("unit_price") @db.Decimal(22, 4)
+
+  adjustment StockAdjustment @relation(fields: [adjustmentId], references: [id], onDelete: Cascade)
+  variation  Variation?      @relation(fields: [variationId], references: [id])
+
+  @@map("stock_adjustment_lines")
+  @@index([adjustmentId])
+  @@index([variationId])
+}
+
+// ============================================
+// P3: Barcode Labels
+// ============================================
+
+model BarcodeLabel {
+  id          Int      @id @default(autoincrement())
+  businessId  Int      @map("business_id")
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  stickerType String   @default("name_price") @map("sticker_type") @db.VarChar(50)
+  barcodeType String   @default("C128") @map("barcode_type") @db.VarChar(20)
+  width       Decimal? @db.Decimal(8, 2)
+  height      Decimal? @db.Decimal(8, 2)
+  paperWidth  Decimal? @map("paper_width") @db.Decimal(8, 2)
+  paperHeight Decimal? @map("paper_height") @db.Decimal(8, 2)
+  fontSize    Int?     @map("font_size")
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("barcode_labels")
+  @@index([businessId])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  businessId Int      @map("business_id")
+  userId     Int?     @map("user_id")
+  action     String   @db.VarChar(20)
+  // 'CREATE' | 'UPDATE' | 'DELETE' | 'VIEW'
+  entity     String   @db.VarChar(50)
+  entityId   Int?     @map("entity_id")
+  meta       Json?
+  ip         String?  @db.VarChar(45)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+  @@index([businessId])
+  @@index([businessId, entity])
+  @@index([businessId, createdAt])
+}
+
+model PushSubscription {
+  id         Int      @id @default(autoincrement())
+  businessId Int      @map("business_id")
+  userId     Int      @map("user_id")
+  endpoint   String   @db.VarChar(2048)
+  p256dh     String   @db.VarChar(255)
+  auth       String   @db.VarChar(255)
+  userAgent  String?  @map("user_agent") @db.VarChar(500)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("push_subscriptions")
+  @@unique([userId, endpoint(length: 255)])
+  @@index([businessId])
+  @@index([userId])
+}
+
+model ScheduledReport {
+  id          Int      @id @default(autoincrement())
+  businessId  Int      @map("business_id")
+  createdBy   Int      @map("created_by")
+  name        String   @db.VarChar(100)
+  reportType  String   @map("report_type") @db.VarChar(50)
+  // 'sales_summary' | 'profit_loss' | 'inventory' | 'expenses' | 'contacts'
+  frequency   String   @db.VarChar(20)
+  // 'daily' | 'weekly' | 'monthly'
+  recipients  Json
+  // string[] of email addresses
+  isActive    Boolean  @default(true) @map("is_active")
+  lastRunAt   DateTime? @map("last_run_at")
+  nextRunAt   DateTime? @map("next_run_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("scheduled_reports")
+  @@index([businessId])
+  @@index([businessId, isActive])
+}

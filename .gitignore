@@ -1,0 +1,49 @@
+# ── Node / NestJS ────────────────────────────────────────────────────────────
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+
+# ── NestJS specific ──────────────────────────────────────────────────────────
+ultimate-pos-api/dist/
+ultimate-pos-api/.env
+ultimate-pos-api/node_modules/
+
+# ── Angular ──────────────────────────────────────────────────────────────────
+ultimate-pos-web/dist/
+ultimate-pos-web/.angular/
+ultimate-pos-web/node_modules/
+
+# ── Prisma ───────────────────────────────────────────────────────────────────
+# Keep schema.prisma and migrations tracked; ignore generated client
+ultimate-pos-api/node_modules/.prisma/
+
+# ── Uploads (user content — store in S3 in production) ───────────────────────
+ultimate-pos-api/public/uploads/
+
+# ── Backups ──────────────────────────────────────────────────────────────────
+ultimate-pos-api/backups/
+*.sql.gz
+
+# ── OS / Editor ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# ── Test coverage ────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+*.pid
+*.seed
+.cache/

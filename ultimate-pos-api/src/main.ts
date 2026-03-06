@@ -1,0 +1,62 @@
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import helmet from 'helmet';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Security headers
+  app.use(helmet());
+
+  // Enable CORS
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
+    credentials: true,
+  });
+
+  // Global prefix
+  app.setGlobalPrefix('api');
+
+  // Global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  // Swagger / OpenAPI docs
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Ultimate POS API')
+      .setDescription('REST API for Ultimate POS — NestJS + Prisma')
+      .setVersion('1.0')
+      .addBearerAuth(
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        'JWT',
+      )
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document, {
+      swaggerOptions: { persistAuthorization: true },
+    });
+
+    // GET /api/docs-json — returns the raw OpenAPI spec for Postman import
+    const httpAdapter = app.getHttpAdapter();
+    httpAdapter.get('/api/docs-json', (_req: any, res: any) => {
+      res.setHeader('Content-Type', 'application/json');
+      res.send(document);
+    });
+
+    console.log(`📖 Swagger docs: http://localhost:${process.env.PORT || 3000}/api/docs`);
+    console.log(`📄 OpenAPI spec: http://localhost:${process.env.PORT || 3000}/api/docs-json`);
+  }
+
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`🚀 Application is running on: http://localhost:${port}/api`);
+}
+bootstrap();
