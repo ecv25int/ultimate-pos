@@ -42,28 +42,40 @@ export class InventoryService {
 
   // ── Stock overview: all stock-enabled products with their current qty ────────
   async getStockOverview(businessId: number, search?: string) {
-    const products = await this.prisma.product.findMany({
-      where: {
-        businessId,
-        enableStock: true,
-        ...(search ? { name: { contains: search } } : {}),
-      },
-      include: {
-        category: { select: { id: true, name: true } },
-        brand:    { select: { id: true, name: true } },
-        unit:     { select: { id: true, actualName: true, shortName: true } },
-        stockEntries: {
-          select: { quantity: true },
+    // Fetch products and aggregate stock quantities in parallel — two queries
+    // instead of loading every stock entry row into memory.
+    const [products, stockAgg] = await Promise.all([
+      this.prisma.product.findMany({
+        where: {
+          businessId,
+          enableStock: true,
+          ...(search ? { name: { contains: search } } : {}),
         },
-      },
-      orderBy: { name: 'asc' },
-    });
+        select: {
+          id: true,
+          name: true,
+          sku: true,
+          type: true,
+          alertQuantity: true,
+          category: { select: { id: true, name: true } },
+          brand:    { select: { id: true, name: true } },
+          unit:     { select: { id: true, actualName: true, shortName: true } },
+        },
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.stockEntry.groupBy({
+        by: ['productId'],
+        where: { businessId },
+        _sum: { quantity: true },
+      }),
+    ]);
+
+    const stockMap = new Map(
+      stockAgg.map((s) => [s.productId, Number(s._sum.quantity ?? 0)]),
+    );
 
     return products.map((p) => {
-      const currentStock = p.stockEntries.reduce(
-        (sum, e) => sum + Number(e.quantity),
-        0,
-      );
+      const currentStock = stockMap.get(p.id) ?? 0;
       return {
         id: p.id,
         name: p.name,
@@ -122,32 +134,53 @@ export class InventoryService {
 
   // ── Summary stats for dashboard ─────────────────────────────────────────────
   async getSummary(businessId: number) {
-    const stockEnabledProducts = await this.prisma.product.findMany({
-      where: { businessId, enableStock: true },
-      include: { stockEntries: { select: { quantity: true } } },
-    });
+    // Single groupBy for stock quantities — avoids loading all StockEntry rows
+    const [products, stockAgg, lastCostRows] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { businessId, enableStock: true },
+        select: { id: true, alertQuantity: true },
+      }),
+      this.prisma.stockEntry.groupBy({
+        by: ['productId'],
+        where: { businessId },
+        _sum: { quantity: true },
+      }),
+      // Last known unit cost per product (1 query instead of 1 per product)
+      this.prisma.$queryRaw<{ product_id: number; unit_cost: number }[]>`
+        SELECT product_id, unit_cost
+        FROM stock_entries
+        WHERE business_id = ${businessId}
+          AND unit_cost IS NOT NULL
+          AND id IN (
+            SELECT MAX(id)
+            FROM stock_entries
+            WHERE business_id = ${businessId} AND unit_cost IS NOT NULL
+            GROUP BY product_id
+          )
+      `,
+    ]);
 
-    let totalProducts = stockEnabledProducts.length;
+    const stockMap = new Map(
+      stockAgg.map((s) => [s.productId, Number(s._sum.quantity ?? 0)]),
+    );
+    const costMap = new Map(
+      lastCostRows.map((r) => [Number(r.product_id), Number(r.unit_cost)]),
+    );
+
     let lowStockCount = 0;
     let outOfStockCount = 0;
     let totalStockValue = 0;
 
-    for (const p of stockEnabledProducts) {
-      const qty = p.stockEntries.reduce((s, e) => s + Number(e.quantity), 0);
+    for (const p of products) {
+      const qty = stockMap.get(p.id) ?? 0;
       if (qty <= 0) outOfStockCount++;
       else if (qty <= Number(p.alertQuantity)) lowStockCount++;
 
-      // Estimate stock value from last purchase cost
-      const lastPurchase = await this.prisma.stockEntry.findFirst({
-        where: { productId: p.id, businessId, unitCost: { not: null } },
-        orderBy: { createdAt: 'desc' },
-        select: { unitCost: true },
-      });
-      if (lastPurchase?.unitCost) {
-        totalStockValue += Math.max(qty, 0) * Number(lastPurchase.unitCost);
-      }
+      const cost = costMap.get(p.id);
+      if (cost) totalStockValue += Math.max(qty, 0) * cost;
     }
 
+    const totalProducts = products.length;
     return {
       totalProducts,
       lowStockCount,

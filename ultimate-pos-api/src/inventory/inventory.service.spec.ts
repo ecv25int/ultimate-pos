@@ -46,7 +46,9 @@ const mockPrismaService = {
     findMany:  jest.fn(),
     count:     jest.fn(),
     delete:    jest.fn(),
+    groupBy:   jest.fn(),
   },
+  $queryRaw: jest.fn(),
 };
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -119,25 +121,33 @@ describe('InventoryService', () => {
     it('returns products with correct currentStock and isLowStock flag', async () => {
       const mockProducts = [
         {
-          ...mockProduct,
+          id: PRODUCT_ID,
+          name: 'Widget A',
+          sku: 'WGT-001',
+          type: 'single',
+          alertQuantity: '5.0000',
           category: { id: 1, name: 'Electronics' },
           brand:    { id: 1, name: 'Acme' },
           unit:     { id: 1, actualName: 'Piece', shortName: 'PC' },
-          stockEntries: [{ quantity: '10.0000' }, { quantity: '20.0000' }], // sum = 30
         },
         {
-          ...mockProduct,
           id: 6,
           name: 'Low Stock Widget',
+          sku: 'WGT-002',
+          type: 'single',
           alertQuantity: '5.0000',
           category: null,
           brand:    null,
           unit:     { id: 1, actualName: 'Piece', shortName: 'PC' },
-          stockEntries: [{ quantity: '3.0000' }], // sum = 3 ≤ alertQty 5 → low stock
         },
       ];
 
       mockPrismaService.product.findMany.mockResolvedValue(mockProducts);
+      // groupBy returns aggregated quantities per product
+      mockPrismaService.stockEntry.groupBy.mockResolvedValue([
+        { productId: PRODUCT_ID, _sum: { quantity: '30.0000' } }, // sum = 30
+        { productId: 6,          _sum: { quantity: '3.0000' } },  // sum = 3 ≤ alertQty 5
+      ]);
 
       const result = await service.getStockOverview(BUSINESS_ID);
 
@@ -150,6 +160,7 @@ describe('InventoryService', () => {
 
     it('returns empty array when no stock-enabled products exist', async () => {
       mockPrismaService.product.findMany.mockResolvedValue([]);
+      mockPrismaService.stockEntry.groupBy.mockResolvedValue([]);
       const result = await service.getStockOverview(BUSINESS_ID);
       expect(result).toEqual([]);
     });
@@ -219,24 +230,23 @@ describe('InventoryService', () => {
 
   describe('getSummary', () => {
     it('categorizes products into adequate, low-stock, and out-of-stock correctly', async () => {
-      const mockStockProducts = [
-        {
-          id: 1, alertQuantity: '5.0000',
-          stockEntries: [{ quantity: '30.0000' }], // adequate
-        },
-        {
-          id: 2, alertQuantity: '5.0000',
-          stockEntries: [{ quantity: '3.0000' }],  // low stock
-        },
-        {
-          id: 3, alertQuantity: '5.0000',
-          stockEntries: [{ quantity: '-5.0000' }, { quantity: '5.0000' }], // sum=0, out of stock
-        },
-      ];
-
-      mockPrismaService.product.findMany.mockResolvedValue(mockStockProducts);
-      // Mock stockEntry.findFirst for stock value calculation
-      mockPrismaService.stockEntry.findFirst.mockResolvedValue(null);
+      // product.findMany returns minimal select shape
+      mockPrismaService.product.findMany.mockResolvedValue([
+        { id: 1, alertQuantity: '5.0000' }, // adequate (qty 30)
+        { id: 2, alertQuantity: '5.0000' }, // low stock (qty 3)
+        { id: 3, alertQuantity: '5.0000' }, // out of stock (qty 0)
+      ]);
+      // stockEntry.groupBy returns aggregated quantities
+      mockPrismaService.stockEntry.groupBy.mockResolvedValue([
+        { productId: 1, _sum: { quantity: '30.0000' } },
+        { productId: 2, _sum: { quantity: '3.0000' } },
+        { productId: 3, _sum: { quantity: '0.0000' } },
+      ]);
+      // $queryRaw returns last unit cost per product
+      mockPrismaService.$queryRaw.mockResolvedValue([
+        { product_id: 1, unit_cost: 10 },
+        { product_id: 2, unit_cost: 5 },
+      ]);
 
       const result = await service.getSummary(BUSINESS_ID);
 

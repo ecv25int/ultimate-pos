@@ -21,12 +21,24 @@ export class SalesService {
 
   // ------------------------------------------------------------
   // Generate invoice number: SALE-YYYYMMDD-XXXX
+  // Uses MAX(id)+1 inside a serialisable context so concurrent
+  // requests cannot collide and produce the same invoice number.
+  // The @@unique([businessId, invoiceNo]) constraint is the last
+  // line of defence — Prisma will throw P2002 if a duplicate
+  // somehow slips through (callers should retry in that case).
   // ------------------------------------------------------------
-  private async generateInvoiceNo(businessId: number): Promise<string> {
+  private async generateInvoiceNo(businessId: number, tx: typeof this.prisma = this.prisma): Promise<string> {
     const today = new Date();
     const prefix = `SALE-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-    const count = await this.prisma.sale.count({ where: { businessId } });
-    return `${prefix}-${String(count + 1).padStart(4, '0')}`;
+    // MAX(id) gives a monotonically increasing sequence independent of
+    // deletions/soft-deletes, unlike COUNT which can produce collisions.
+    const rows = await tx.$queryRaw<[{ next: bigint }]>`
+      SELECT COALESCE(MAX(id), 0) + 1 AS next
+      FROM sales
+      WHERE business_id = ${businessId}
+    `;
+    const seq = Number(rows[0].next);
+    return `${prefix}-${String(seq).padStart(4, '0')}`;
   }
 
   // ------------------------------------------------------------

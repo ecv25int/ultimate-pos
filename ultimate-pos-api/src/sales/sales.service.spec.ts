@@ -60,6 +60,7 @@ const mockPrismaService = {
     findFirst: jest.fn(),
     update: jest.fn(),
   },
+  $queryRaw: jest.fn(),
 };
 
 const mockCacheManager = {
@@ -119,7 +120,7 @@ describe('SalesService', () => {
     };
 
     it('creates a sale and returns it', async () => {
-      mockPrismaService.sale.count.mockResolvedValue(0);
+      mockPrismaService.$queryRaw.mockResolvedValue([{ next: BigInt(1) }]);
       mockPrismaService.sale.create.mockResolvedValue(mockSale);
 
       const result = await service.create(BUSINESS_ID, USER_ID, createDto as any);
@@ -135,17 +136,17 @@ describe('SalesService', () => {
     });
 
     it('sets paymentStatus to PAID when paidAmount >= total', async () => {
-      mockPrismaService.sale.count.mockResolvedValue(0);
+      mockPrismaService.$queryRaw.mockResolvedValue([{ next: BigInt(1) }]);
       mockPrismaService.sale.create.mockResolvedValue({ ...mockSale, paymentStatus: 'paid' });
 
-      const result = await service.create(BUSINESS_ID, USER_ID, createDto as any);
+      await service.create(BUSINESS_ID, USER_ID, createDto as any);
 
       const createCall = mockPrismaService.sale.create.mock.calls[0][0];
       expect(createCall.data.paymentStatus).toBe('paid');
     });
 
     it('sets paymentStatus to PARTIAL when partially paid', async () => {
-      mockPrismaService.sale.count.mockResolvedValue(0);
+      mockPrismaService.$queryRaw.mockResolvedValue([{ next: BigInt(1) }]);
       mockPrismaService.sale.create.mockResolvedValue({ ...mockSale, paymentStatus: 'partial' });
 
       await service.create(BUSINESS_ID, USER_ID, {

@@ -172,6 +172,7 @@ model Category {
   @@index([businessId])
   @@index([parentId])
   @@index([createdBy])
+  @@index([deletedAt])   // soft-delete filter optimisation
 }
 
 model Brand {
@@ -190,6 +191,7 @@ model Brand {
   @@map("brands")
   @@index([businessId])
   @@index([createdBy])
+  @@index([deletedAt])   // soft-delete filter optimisation
 }
 
 model Unit {
@@ -214,6 +216,7 @@ model Unit {
   @@index([businessId])
   @@index([baseUnitId])
   @@index([createdBy])
+  @@index([deletedAt])   // soft-delete filter optimisation
 }
 
 model Product {
@@ -312,6 +315,7 @@ model Contact {
   @@index([contactStatus])
   @@index([createdBy])
   @@index([mobile])
+  @@index([deletedAt])   // soft-delete filter optimisation
 }
 
 // ============================================
@@ -384,6 +388,7 @@ model Sale {
   payments            Payment[]
 
   @@map("sales")
+  @@unique([businessId, invoiceNo])   // prevent duplicates from concurrent invoice generation
   @@index([sellingPriceGroupId])
   @@index([businessId])
   @@index([contactId])
@@ -392,6 +397,7 @@ model Sale {
   @@index([invoiceNo])
   @@index([transactionDate])
   @@index([businessId, transactionDate])  // composite for date-range report queries
+  @@index([deletedAt])   // soft-delete filter optimisation
 }
 
 model SaleLine {
@@ -455,6 +461,7 @@ model Purchase {
   payments        Payment[]
 
   @@map("purchases")
+  @@unique([businessId, refNo])   // prevent duplicates from concurrent PO number generation
   @@index([businessId])
   @@index([contactId])
   @@index([status])
@@ -463,6 +470,7 @@ model Purchase {
   @@index([refNo])            // search by purchase reference number
   @@index([type])             // purchase vs purchase_return
   @@index([businessId, purchaseDate])  // composite for date-range report queries
+  @@index([deletedAt])   // soft-delete filter optimisation
 }
 
 model PurchaseLine {
@@ -506,6 +514,7 @@ model ExpenseCategory {
 
   @@map("expense_categories")
   @@index([businessId])
+  @@index([deletedAt])
 }
 
 model Expense {
@@ -530,6 +539,7 @@ model Expense {
   @@index([businessId])
   @@index([expenseCategoryId])
   @@index([expenseDate])
+  @@index([deletedAt])
 }
 
 // ============================================
@@ -607,6 +617,7 @@ model TaxRate {
   @@index([businessId])
   @@index([isDefault])
   @@index([isActive])
+  @@index([deletedAt])
 }
 
 model GroupSubTax {
@@ -1388,6 +1399,7 @@ model HmsRoomType {
 
   @@map("hms_room_types")
   @@index([businessId])
+  @@index([deletedAt])
 }
 
 model HmsRoom {
@@ -1403,6 +1415,7 @@ model HmsRoom {
 
   @@map("hms_rooms")
   @@index([hmsRoomTypeId])
+  @@index([deletedAt])
 }
 
 model HmsExtra {
@@ -1468,6 +1481,7 @@ model Package {
   subscriptions Subscription[]
 
   @@map("packages")
+  @@index([deletedAt])
 }
 
 model Subscription {
@@ -1493,6 +1507,7 @@ model Subscription {
   @@map("subscriptions")
   @@index([businessId])
   @@index([packageId])
+  @@index([deletedAt])
 }
 
 // ============================================
@@ -1687,6 +1702,7 @@ model Variation {
   @@index([productId])
   @@index([productVariationId])
   @@index([subSku])           // barcode / POS SKU lookup
+  @@index([deletedAt])
 }
 
 model VariationLocationDetails {
@@ -1756,6 +1772,7 @@ model SellingPriceGroup {
 
   @@map("selling_price_groups")
   @@index([businessId])
+  @@index([deletedAt])
 }
 
 model Discount {

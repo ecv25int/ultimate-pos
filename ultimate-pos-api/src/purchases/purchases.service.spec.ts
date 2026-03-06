@@ -56,6 +56,7 @@ const mockPrismaService = {
   stockEntry: {
     create: jest.fn().mockResolvedValue({}),
   },
+  $queryRaw: jest.fn(),
 };
 
 const mockCacheManager = {
@@ -106,7 +107,7 @@ describe('PurchasesService', () => {
     };
 
     it('creates a purchase and returns it', async () => {
-      mockPrismaService.purchase.count.mockResolvedValue(0);
+      mockPrismaService.$queryRaw.mockResolvedValue([{ next: BigInt(1) }]);
       mockPrismaService.purchase.create.mockResolvedValue(mockPurchase);
 
       const result = await service.create(BUSINESS_ID, USER_ID, createDto as any);
@@ -122,7 +123,7 @@ describe('PurchasesService', () => {
     });
 
     it('sets paymentStatus to PAID when paidAmount >= total', async () => {
-      mockPrismaService.purchase.count.mockResolvedValue(0);
+      mockPrismaService.$queryRaw.mockResolvedValue([{ next: BigInt(1) }]);
       mockPrismaService.purchase.create.mockResolvedValue({ ...mockPurchase, paymentStatus: 'paid' });
 
       await service.create(BUSINESS_ID, USER_ID, createDto as any);
@@ -132,7 +133,7 @@ describe('PurchasesService', () => {
     });
 
     it('sets paymentStatus to PARTIAL when partially paid', async () => {
-      mockPrismaService.purchase.count.mockResolvedValue(0);
+      mockPrismaService.$queryRaw.mockResolvedValue([{ next: BigInt(1) }]);
       mockPrismaService.purchase.create.mockResolvedValue({ ...mockPurchase, paymentStatus: 'partial' });
 
       await service.create(BUSINESS_ID, USER_ID, {

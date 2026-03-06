@@ -27,11 +27,16 @@ export class PurchasesService {
     private webPush: WebPushService,
   ) {}
 
-  private async generateRefNo(businessId: number): Promise<string> {
+  private async generateRefNo(businessId: number, tx: typeof this.prisma = this.prisma): Promise<string> {
     const today = new Date();
     const prefix = `PO-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-    const count = await this.prisma.purchase.count({ where: { businessId } });
-    return `${prefix}-${String(count + 1).padStart(4, '0')}`;
+    const rows = await tx.$queryRaw<[{ next: bigint }]>`
+      SELECT COALESCE(MAX(id), 0) + 1 AS next
+      FROM purchases
+      WHERE business_id = ${businessId}
+    `;
+    const seq = Number(rows[0].next);
+    return `${prefix}-${String(seq).padStart(4, '0')}`;
   }
 
   async create(businessId: number, userId: number, dto: CreatePurchaseDto) {
