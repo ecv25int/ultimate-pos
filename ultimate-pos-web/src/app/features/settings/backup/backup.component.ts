@@ -65,8 +65,10 @@ interface BackupMeta {
               <mat-spinner diameter="18" style="display:inline-block;margin-right:8px"></mat-spinner>
               Creating backup…
             } @else {
-              <mat-icon>cloud_download</mat-icon>
-              Download Backup Now
+              <ng-container>
+                <mat-icon>cloud_download</mat-icon>
+                Download Backup Now
+              </ng-container>
             }
           </button>
         </mat-card-content>

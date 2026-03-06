@@ -50,7 +50,6 @@ import { SkeletonLoaderComponent } from '../../../shared/components/skeleton-loa
     MatSelectModule,
     MatExpansionModule,
     SkeletonLoaderComponent,
-    ConfirmDialogComponent,
   ],
   template: `
     <div class="products-container">

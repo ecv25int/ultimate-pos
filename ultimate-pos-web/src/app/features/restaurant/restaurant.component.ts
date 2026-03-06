@@ -61,13 +61,13 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
     </mat-card>
     <mat-card class="stat-card available">
       <mat-card-content>
-        <div class="stat-value">{{ dashboard.byStatus['available'] ?? 0 }}</div>
+        <div class="stat-value">{{ dashboard.byStatus['available'] }}</div>
         <div class="stat-label">Available</div>
       </mat-card-content>
     </mat-card>
     <mat-card class="stat-card occupied">
       <mat-card-content>
-        <div class="stat-value">{{ dashboard.byStatus['occupied'] ?? 0 }}</div>
+        <div class="stat-value">{{ dashboard.byStatus['occupied'] }}</div>
         <div class="stat-label">Occupied</div>
       </mat-card-content>
     </mat-card>

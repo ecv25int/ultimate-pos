@@ -111,7 +111,6 @@ export class ContactImportPreviewDialog {
     MatTooltipModule,
     MatSelectModule,
     SkeletonLoaderComponent,
-    ConfirmDialogComponent,
   ],
   template: `
     <div class="contacts-container">

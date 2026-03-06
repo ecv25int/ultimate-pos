@@ -165,7 +165,7 @@ const FREQUENCIES = [
                   <div class="report-meta">
                     <span class="badge type-badge">{{ labelFor(report.reportType, reportTypes) }}</span>
                     <span class="badge freq-badge">{{ labelFor(report.frequency, frequencies) }}</span>
-                    <span class="recipients-summary">→ {{ report.recipients?.length ?? 0 }} recipient(s)</span>
+                    <span class="recipients-summary">→ {{ report.recipients.length }} recipient(s)</span>
                   </div>
                   <div class="report-dates">
                     @if (report.lastRunAt) {

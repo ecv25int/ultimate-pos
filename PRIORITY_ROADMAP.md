@@ -76,10 +76,10 @@ All sprints (1–38) complete. Full NestJS + Angular migration done.
 
 ## Optional — Post-Stable Features
 
-- [ ] NestJS response compression — `compression` npm middleware; add `app.use(compression())` in `main.ts`; reduces JSON payloads ~60-80%
-- [ ] Prisma connection pool — add `?connection_limit=10&pool_timeout=20` to `DATABASE_URL` in production `.env`; default is unbounded which exhausts MySQL under load
-- [ ] Nginx HTTP/2 — add `http2` to the `listen 8443 ssl;` directive (already on HTTPS, zero-cost addition; enables multiplexing)
-- [ ] Angular `@for` migration — 2 legacy `*ngFor` remaining in `barcode-print.component.ts` (rest of app already on modern control flow)
+- [x] NestJS response compression — `compression` middleware active in `main.ts` (~60-80% smaller JSON payloads)
+- [x] Prisma connection pool — `?connection_limit=10&pool_timeout=20` added to `DATABASE_URL` in `.env.example`
+- [x] Nginx HTTP/2 — `http2` directive added to `listen 8443 ssl;` (enables multiplexing, zero-cost)
+- [x] Angular `@for` migration — all `*ngFor` fully migrated; `barcode-print.component.ts` last 2 instances converted in previous session
 
 ### Payment Gateways
 - [ ] Stripe — `stripe` npm; `POST /payments/stripe/charge` + webhook with signature verification

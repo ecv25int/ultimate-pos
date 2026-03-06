@@ -307,7 +307,7 @@ import { DashboardReport, RevenuePoint, TopProduct, StockReport } from '../../co
                     <td>{{ item.category?.name || '—' }}</td>
                     <td class="text-right">{{ item.currentStock }} {{ item.unit?.abbreviation || '' }}</td>
                     <td class="text-right">{{ item.alertQuantity || 5 }}</td>
-                    <td class="text-right">\${{ ((item.currentStock ?? 0) * +(item.purchasePrice ?? 0)) | number:'1.2-2' }}</td>
+                    <td class="text-right">\${{ (item.currentStock * +(item.purchasePrice ?? 0)) | number:'1.2-2' }}</td>
                     <td><span class="badge" [ngClass]="stockStatus(item)">{{ stockStatusLabel(item) }}</span></td>
                   </tr>
                 </tbody>

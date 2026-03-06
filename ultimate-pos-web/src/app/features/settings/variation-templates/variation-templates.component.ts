@@ -61,7 +61,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
               <td>{{ t.name }}</td>
               <td>
                 <span class="tag" *ngFor="let v of t.variationValues">{{ v.name }}</span>
-                <span *ngIf="!t.variationValues?.length">—</span>
+                <span *ngIf="!t.variationValues.length">—</span>
               </td>
               <td>
                 <button class="action-link" (click)="startEdit(t)">Edit</button>
