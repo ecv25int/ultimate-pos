@@ -10,9 +10,23 @@ async function bootstrap() {
   // Security headers
   app.use(helmet());
 
-  // Enable CORS
+  // Enable CORS — allow direct Angular dev server + Nginx proxied origins
+  const allowedOrigins = [
+    process.env.FRONTEND_URL || 'http://localhost:4200',
+    'http://localhost:4200',
+    'https://localhost:8443',
+    'https://ultimatepos.local:8443',
+    'http://ultimatepos.local:8080',
+  ];
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow requests with no origin (curl, Postman, server-to-server)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin ${origin} not allowed`));
+      }
+    },
     credentials: true,
   });
 
