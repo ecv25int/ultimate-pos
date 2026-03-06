@@ -4,6 +4,12 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
+// BigInt values (used by AssetMaintenance.id) cannot be serialized by JSON.stringify
+// by default. Patch the prototype once at startup so NestJS responses work correctly.
+(BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
+  return this.toString();
+};
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 

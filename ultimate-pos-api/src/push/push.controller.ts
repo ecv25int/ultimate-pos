@@ -35,7 +35,7 @@ export class PushController {
     const userAgent = req.headers['user-agent'] as string | undefined;
     await this.webPush.subscribe(
       req.user.businessId,
-      req.user.userId,
+      req.user.id,
       { endpoint: dto.endpoint, keys: dto.keys },
       userAgent,
     );
@@ -45,7 +45,7 @@ export class PushController {
   /** DELETE /push/unsubscribe — remove a browser PushSubscription */
   @Delete('unsubscribe')
   async unsubscribe(@Request() req: any, @Body() dto: PushUnsubscribeDto) {
-    await this.webPush.unsubscribe(req.user.userId, dto.endpoint);
+    await this.webPush.unsubscribe(req.user.id, dto.endpoint);
     return { unsubscribed: true };
   }
 

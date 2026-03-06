@@ -14,12 +14,16 @@ import { MailModule } from '../mail/mail.module';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'default-secret',
-        signOptions: {
-          expiresIn: '15m' as const, // 15 minutes for access token
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) throw new Error('JWT_SECRET environment variable is not set');
+        return {
+          secret,
+          signOptions: {
+            expiresIn: '15m' as const, // 15 minutes for access token
+          },
+        };
+      },
     }),
     MailModule,
   ],

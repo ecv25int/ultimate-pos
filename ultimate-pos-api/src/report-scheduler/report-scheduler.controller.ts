@@ -67,7 +67,7 @@ export class ReportSchedulerController {
 
   @Post()
   create(@Request() req: any, @Body() dto: CreateScheduledReportDto) {
-    return this.service.create(req.user.businessId, req.user.userId, dto);
+    return this.service.create(req.user.businessId, req.user.id, dto);
   }
 
   @Patch(':id')

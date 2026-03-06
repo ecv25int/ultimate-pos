@@ -221,8 +221,8 @@ export class AuthService {
     };
 
     const jwtRefreshSecret =
-      this.configService.get<string>('JWT_REFRESH_SECRET') ||
-      'default-refresh-secret';
+      this.configService.get<string>('JWT_REFRESH_SECRET');
+    if (!jwtRefreshSecret) throw new Error('JWT_REFRESH_SECRET environment variable is not set');
 
     const accessExpiresIn = rememberMe ? '30d' : (this.configService.get<string>('JWT_EXPIRATION') || '15m');
     const refreshExpiresIn = rememberMe ? '90d' : '7d';

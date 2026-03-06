@@ -117,7 +117,9 @@ export class WebPushService implements OnModuleInit {
   }
 
   /**
-   * Send to all users in a business (e.g. low-stock alert for all admins/managers).
+   * Send to all users in a business whose userType matches one of the given roles.
+   * E.g. low-stock alert for all ADMIN and MANAGER users.
+   * If roles is empty, sends to all users in the business.
    */
   async sendToBusiness(
     businessId: number,
@@ -126,10 +128,26 @@ export class WebPushService implements OnModuleInit {
   ): Promise<void> {
     if (!this.vapidConfigured) return;
 
+    // Resolve the user IDs that match the required roles
+    const userIdFilter =
+      roles.length > 0
+        ? (
+            await this.prisma.user.findMany({
+              where: { businessId, userType: { in: roles }, isActive: true },
+              select: { id: true },
+            })
+          ).map((u) => u.id)
+        : undefined; // undefined = no userId restriction
+
     const subs = await this.prisma.pushSubscription.findMany({
-      where: { businessId },
+      where: {
+        businessId,
+        ...(userIdFilter !== undefined ? { userId: { in: userIdFilter } } : {}),
+      },
       select: { id: true, endpoint: true, p256dh: true, auth: true },
     });
+
+    if (subs.length === 0) return;
 
     const body = JSON.stringify(payload);
     const stale: number[] = [];
