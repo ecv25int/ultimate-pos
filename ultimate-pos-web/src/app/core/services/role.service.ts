@@ -59,7 +59,11 @@ export class RoleService {
   }
 
   isAdmin(): boolean {
-    return this.hasRole(UserRole.ADMIN);
+    return this.hasAnyRole([UserRole.ADMIN, UserRole.SUPERADMIN]);
+  }
+
+  isSuperAdmin(): boolean {
+    return this.hasRole(UserRole.SUPERADMIN);
   }
 
   isManager(): boolean {

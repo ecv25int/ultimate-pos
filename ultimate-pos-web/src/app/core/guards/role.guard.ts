@@ -16,7 +16,7 @@ export function roleGuard(allowedRoles: UserRole[]): CanActivateFn {
       return false;
     }
 
-    if (allowedRoles.includes(user.userType as UserRole)) {
+    if (allowedRoles.includes(user.userType as UserRole) || user.userType === UserRole.SUPERADMIN) {
       return true;
     }
 
