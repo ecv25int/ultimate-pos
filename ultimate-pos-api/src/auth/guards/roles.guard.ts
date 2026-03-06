@@ -23,6 +23,11 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
+    // Superadmin bypasses all role restrictions
+    if (user.userType === UserRole.SUPERADMIN) {
+      return true;
+    }
+
     return requiredRoles.some((role) => user.userType === role);
   }
 }
