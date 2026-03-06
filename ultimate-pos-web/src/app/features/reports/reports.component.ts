@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -410,22 +410,25 @@ export class ReportsComponent implements OnInit {
   // Stock tab
   stockReport: StockReport | null = null;
 
-  constructor(private reportsService: ReportsService) {}
+  constructor(
+    private reportsService: ReportsService,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
     this.loadDashboard();
-    this.reportsService.getStockReport().subscribe({ next: sr => this.stockReport = sr });
+    this.reportsService.getStockReport().subscribe({ next: sr => { this.stockReport = sr; this.cdr.detectChanges(); } });
   }
 
   loadDashboard() {
-    this.reportsService.getDashboard().subscribe({ next: d => this.dashboard = d });
+    this.reportsService.getDashboard().subscribe({ next: d => { this.dashboard = d; this.cdr.detectChanges(); } });
     this.loadRevenue();
-    this.reportsService.getTopProducts(10).subscribe({ next: tp => this.topProducts = tp });
+    this.reportsService.getTopProducts(10).subscribe({ next: tp => { this.topProducts = tp; this.cdr.detectChanges(); } });
   }
 
   loadRevenue() {
     const days = this.revenueGroupBy === 'day' ? 30 : 365;
-    this.reportsService.getRevenue(this.revenueGroupBy, days).subscribe({ next: d => this.revenueData = d });
+    this.reportsService.getRevenue(this.revenueGroupBy, days).subscribe({ next: d => { this.revenueData = d; this.cdr.detectChanges(); } });
   }
 
   loadSales() {
