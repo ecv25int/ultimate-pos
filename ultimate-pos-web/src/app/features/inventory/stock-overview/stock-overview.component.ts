@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -268,6 +268,7 @@ export class StockOverviewComponent implements OnInit {
   constructor(
     private inventoryService: InventoryService,
     private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -288,6 +289,7 @@ export class StockOverviewComponent implements OnInit {
         this.items = items;
         this.applyFilter();
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.snackBar.open('Failed to load inventory data', 'Close', { duration: 3000 });
