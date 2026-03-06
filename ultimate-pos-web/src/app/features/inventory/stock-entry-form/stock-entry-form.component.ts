@@ -191,10 +191,13 @@ export class StockEntryFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Load stock-enabled products
+    // Load all products (stock entry is valid for any product)
     this.productService.getAllProducts().subscribe({
       next: (all: Product[]) => {
-        this.products = all.filter((p: Product) => p.enableStock);
+        this.products = all;
+      },
+      error: () => {
+        this.snackBar.open('Failed to load products', 'Close', { duration: 4000 });
       },
     });
 
