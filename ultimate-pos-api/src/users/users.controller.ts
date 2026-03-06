@@ -43,7 +43,7 @@ export class UsersController {
       search,
       userType,
       page: page ? parseInt(page) : undefined,
-      limit: limit ? parseInt(limit) : undefined,
+      limit: limit ? Math.min(parseInt(limit), 100) : undefined,
     });
   }
 

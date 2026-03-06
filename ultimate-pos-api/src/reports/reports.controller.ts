@@ -66,7 +66,7 @@ export class ReportsController {
   ) {
     return this.reportsService.getTopProducts(
       req.user.businessId,
-      limit ? +limit : 10,
+      limit ? Math.min(+limit, 100) : 10,
     );
   }
 

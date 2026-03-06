@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 
 // Module-level state shared across all functional interceptor calls
 let isRefreshing = false;
-let refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+const refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
 /** Clone the request and attach the given Bearer token. */
 function withToken(req: HttpRequest<unknown>, token: string): HttpRequest<unknown> {

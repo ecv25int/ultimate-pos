@@ -1,6 +1,6 @@
 # Ultimate POS — Priority Roadmap
 
-> Last updated: 6 March 2026
+> Last updated: 8 March 2026
 > **Status: All P0–P5 modules implemented and verified. NestJS + Angular 21 fully operational.**
 
 ---
@@ -48,7 +48,8 @@ All sprints (1–38) complete. Full NestJS + Angular migration done.
 ## Infrastructure & Quality — Completed
 
 - [x] GitHub repo + CI pipeline (`.github/workflows/ci.yml` — 3 jobs: api, web, e2e)
-- [x] ESLint + Prettier + TypeScript strict mode
+- [x] ESLint + Prettier + TypeScript strict mode — API: `eslint.config.mjs` + `.prettierrc`; Angular: `eslint.config.js` + `.prettierrc` + `ng lint` (0 errors, 707 style warnings) + `format`/`format:check` scripts
+- [x] Security hardening (8 Mar 2026) — JWT secrets throw on missing (no more `|| 'default-secret'`); BigInt.prototype.toJSON patch; req.user.id fixed in push + report-scheduler controllers; sendToBusiness() role filter fixed
 - [x] Docker Compose — MySQL + Redis services
 - [x] Nginx reverse proxy — HTTP :8080 redirects to HTTPS :8443 (mkcert local cert)
 - [x] Redis running via Homebrew service (`brew services start redis`)
@@ -141,4 +142,4 @@ All sprints (1–38) complete. Full NestJS + Angular migration done.
 
 ---
 
-*Last Updated: 6 March 2026*
+*Last Updated: 8 March 2026*

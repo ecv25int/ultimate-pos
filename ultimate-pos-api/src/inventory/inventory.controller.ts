@@ -48,7 +48,7 @@ export class InventoryController {
     return this.inventoryService.getAdjustments(
       req.user.businessId,
       Number(page) || 1,
-      Number(limit) || 30,
+      Math.min(Number(limit) || 30, 100),
       productId ? Number(productId) : undefined,
     );
   }
@@ -63,7 +63,7 @@ export class InventoryController {
     return this.inventoryService.getProductHistory(
       productId,
       req.user.businessId,
-      limit ? parseInt(limit, 10) : 50,
+      limit ? Math.min(parseInt(limit, 10), 100) : 50,
     );
   }
 

@@ -38,7 +38,7 @@ export class StockTransfersController {
       productId: productId ? Number(productId) : undefined,
       status,
       page: Number(page) || 1,
-      limit: Number(limit) || 30,
+      limit: Math.min(Number(limit) || 30, 100),
     });
   }
 

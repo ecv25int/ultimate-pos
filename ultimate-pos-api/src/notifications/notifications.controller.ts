@@ -52,7 +52,7 @@ export class NotificationsController {
       req.user.businessId,
       unreadOnly === 'true',
       Number(page) || 1,
-      Number(limit) || 20,
+      Math.min(Number(limit) || 20, 100),
     );
   }
 

@@ -91,7 +91,7 @@ import {
         <div class="empty-state">
           <mat-icon class="empty-icon">notifications_none</mat-icon>
           <h3>No notifications</h3>
-          <p>{{ unreadOnly ? 'No unread notifications.' : 'You\'re all caught up!' }}</p>
+          <p>{{ unreadOnly ? 'No unread notifications.' : "You're all caught up!" }}</p>
         </div>
       } @else {
         <mat-card class="list-card">

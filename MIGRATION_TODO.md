@@ -1,6 +1,6 @@
 # Ultimate POS — Migration TODO & Next Steps
 
-> Last updated: 7 March 2026  
+> Last updated: 8 March 2026  
 > Status: NestJS API + Angular 21 frontend fully scaffolded and **verified working**. All P0–P5 modules implemented, TypeScript compiling clean. Redis/memory caching live. 67/67 NestJS unit tests passing. Angular build succeeds (0 errors). Dev servers running on ports 3000 (API) and 4200 (Angular).
 >
 > **Progress snapshot (7 Mar 2026)**  
@@ -192,7 +192,7 @@
   ```
 - [x] Angular lazy loading — all feature routes use `loadComponent` / `loadChildren` lazy patterns ✅ (verified)
 - [x] Angular `OnPush` change detection on heavy list components
-- [x] API response pagination — enforce `limit` max 100 on all list endpoints — `Math.min(..., 100)` applied in 7 controllers: sales, purchases, expenses, payments, accounting, cash-register, crm
+- [x] API response pagination — enforce `limit` max 100 on all list endpoints — `Math.min(..., 100)` applied in **12 controllers**: sales, purchases, expenses, payments, accounting, cash-register, crm, inventory (×2 routes), users, notifications, reports, stock-transfers
 
 ### 11. Security
 - [x] Rate limiting — `@nestjs/throttler` on auth endpoints (register:5, login:10, forgot-password:3, reset-password:5 per min); global default 120/min
@@ -201,6 +201,10 @@
 - [x] Input sanitization — `SanitizeMiddleware` strips HTML tags from all string values in request body (recursive, covers nested objects/arrays); registered globally in `app.module.ts` via `configure(consumer)`
 - [x] SQL injection proof — Prisma parameterizes all queries (no raw SQL in service layer) ✅
 - [x] Secrets scanning — `.env` is in `.gitignore` ✅
+- [x] JWT secrets validated at startup — `auth.module.ts` + `jwt.strategy.ts` + `auth.service.ts` each `throw new Error(...)` if `JWT_SECRET` / `JWT_REFRESH_SECRET` are missing (removed `|| 'default-secret'` fallbacks)
+- [x] BigInt JSON serialization — `BigInt.prototype.toJSON` patch in `main.ts` prevents `JSON.stringify` crash on models with BigInt primary keys (e.g. `AssetMaintenance`)
+- [x] `req.user.id` consistency — fixed `push.controller.ts` (subscribe/unsubscribe) + `report-scheduler.controller.ts` (create) where `req.user.userId` was used instead of `req.user.id` (JwtStrategy returns `{ id }`, not `{ userId }`)
+- [x] `sendToBusiness()` role filter — `web-push.service.ts` now queries `User` by `userType + businessId` then filters `PushSubscription` by resolved IDs (roles param was previously dead code)
 - [x] HTTPS enforcement — Nginx HTTPS on **port 8443** (mkcert self-signed, trusted after `mkcert -install`); HTTP 8080 → HTTPS 8443 redirect; cert at `/opt/homebrew/etc/nginx/certs/`; NestJS CORS updated to allow `https://localhost:8443` + `https://ultimatepos.local:8443`; production commented block in Nginx config uses Let's Encrypt
 
 ### 12. API Documentation
@@ -208,6 +212,12 @@
 - [x] `@ApiTags()` on all 7 controllers (auth, products, sales, purchases, contacts, reports, pos)
 - [x] Add `@ApiOperation()`, `@ApiBearerAuth()` decorators to individual endpoints
 - [x] Export OpenAPI spec as JSON — `GET /api/docs-json` live in `main.ts`; import URL into Postman ✅
+
+### 13-A. Developer Experience Improvements (8 Mar 2026)
+- [x] ESLint + Prettier — `eslint.config.mjs` + `.prettierrc` active in `ultimate-pos-api/`; `eslint.config.js` + `.prettierrc` + `ng lint` + `format`/`format:check` scripts added to `ultimate-pos-web/` (`ng lint` exits with 0 errors)
+- [x] `postinstall: npx prisma generate` — added to `ultimate-pos-api/package.json`; ensures `@prisma/client/.prisma` symlink is always created after `npm install`
+- [x] `e2e/tsconfig.json` — created for Playwright test discovery (`@types/node` + `@playwright/test` types, `noPropertyAccessFromIndexSignature: false`)
+- [x] `.env.example` — updated in `ultimate-pos-api/`: removed insecure `$(date +%s)` JWT placeholders, added `MAIL_HOST/PORT/USER/PASS`, `VAPID_*` keys, corrected DB port to 3308 (docker-compose mapping)
 
 ---
 
@@ -369,7 +379,7 @@
 | Laravel cleanup | ✅ 100% | All phases complete: Laravel deleted, README rewritten, `.gitignore` created, git repo initialised with tag `v2.0.0-nestjs` (6 Mar 2026) |
 | Swagger docs | ✅ 100% | `/api/docs` live + `@ApiTags` on all controllers + `@ApiOperation`/`@ApiResponse`/`@ApiQuery`/`@ApiParam` on all endpoints (~50 operations) |
 | Redis/memory caching | ✅ 100% | Dashboard (5 min) + POS products (1 min) + products list (1 min) + cache invalidation on write |
-| Pagination safety | ✅ 100% | `Math.min(limit, 100)` enforced in 7 controllers (sales, purchases, expenses, payments, accounting, cash-register, crm) |
+| Pagination safety | ✅ 100% | `Math.min(limit, 100)` enforced in **12 controllers** (sales, purchases, expenses, payments, accounting, cash-register, crm, inventory×2, users, notifications, reports, stock-transfers) |
 | Form validation | ✅ 100% | `mat-error` on login, contact, product, business forms; sale-form line items (product/qty/price) + purchase-form (product/qty) added |
 | Session security | ✅ 100% | Timeout dialog ✅; per-route `@Throttle` ✅; login lockout ✅; CORS ✅; Helmet ✅; input sanitization ✅; remember-me 30d TTL ✅; email verification ✅; token refresh interceptor (401 auto-retry) ✅; password strength meter ✅; HTTPS ✅ (mkcert local, production Nginx block ready) |
 | CI/CD pipeline | ✅ 100% | `.github/workflows/ci.yml` — 3 jobs: `api` (Node 22, MySQL, prisma migrate deploy, tsc, jest), `web` (tsc, build --production), `e2e` (seed DB, start API+Angular, Playwright chromium, upload HTML report artifact) |
