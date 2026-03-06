@@ -83,9 +83,11 @@ interface BarcodeItem {
           <mat-label>Saved template</mat-label>
           <mat-select [(ngModel)]="selectedLabelId">
             <mat-option [value]="null">— None (use size above) —</mat-option>
-            <mat-option *ngFor="let lbl of storedLabels" [value]="lbl.id">
-              {{ lbl.name }}{{ lbl.isDefault ? ' (default)' : '' }}
-            </mat-option>
+            @for (lbl of storedLabels; track lbl.id) {
+              <mat-option [value]="lbl.id">
+                {{ lbl.name }}{{ lbl.isDefault ? ' (default)' : '' }}
+              </mat-option>
+            }
           </mat-select>
         </mat-form-field>
       </div>
@@ -105,8 +107,9 @@ interface BarcodeItem {
 
       <!-- Product grid -->
       <div class="barcode-grid" *ngIf="!loadingProducts && items.length">
-        <mat-card class="barcode-card" *ngFor="let item of items"
-          [class.selected-card]="item.selected">
+        @for (item of items; track item.sku) {
+          <mat-card class="barcode-card"
+            [class.selected-card]="item.selected">
           <mat-card-content>
             <div class="card-header">
               <mat-checkbox [(ngModel)]="item.selected" color="primary"></mat-checkbox>
@@ -146,6 +149,7 @@ interface BarcodeItem {
             </div>
           </mat-card-content>
         </mat-card>
+        }
       </div>
     </div>
   `,

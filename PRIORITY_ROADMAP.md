@@ -1,6 +1,6 @@
 # Ultimate POS — Priority Roadmap
 
-> Last updated: 8 March 2026
+> Last updated: 6 March 2026
 > **Status: All P0–P5 modules implemented and verified. NestJS + Angular 21 fully operational.**
 
 ---
@@ -53,7 +53,7 @@ All sprints (1–38) complete. Full NestJS + Angular migration done.
 - [x] Docker Compose — MySQL + Redis services
 - [x] Nginx reverse proxy — HTTP :8080 redirects to HTTPS :8443 (mkcert local cert)
 - [x] Redis running via Homebrew service (`brew services start redis`)
-- [x] Prisma schema — 70+ models, 10 performance indexes
+- [x] Prisma schema — 70+ models, 25+ performance indexes + `@@unique([businessId, invoiceNo])` on Sale + `@@unique([businessId, refNo])` on Purchase
 - [x] DB seed — admin/manager/posuser, default business, tax rates, units, invoice layout
 - [x] Swagger/OpenAPI — `/api/docs` live + `/api/docs-json` for Postman
 - [x] Helmet, ThrottlerModule (per-route rate limits), CORS, input sanitization middleware
@@ -63,6 +63,7 @@ All sprints (1–38) complete. Full NestJS + Angular migration done.
 - [x] 41/41 Angular unit tests passing
 - [x] Playwright E2E — 3 spec files: auth.spec, products.spec, sales.spec
 - [x] Redis caching — dashboard 5 min, products/POS 1 min, cache invalidation on writes
+- [x] DB query optimisations (6 Mar 2026) — N+1 fix in `InventoryService.getSummary()` (3 parallel queries); app-code SUM replaced with DB-side `groupBy._sum` in `getStockOverview()`; invoice/ref number race condition fixed (`MAX(id)+1` via `$queryRaw` instead of `count()+1`)
 - [x] VAPID push notification keys configured
 - [x] Nginx config: `/opt/homebrew/etc/nginx/servers/ultimatepos.conf`
 - [x] i18n — English + Arabic, RTL support, language switcher in header
@@ -74,6 +75,11 @@ All sprints (1–38) complete. Full NestJS + Angular migration done.
 ---
 
 ## Optional — Post-Stable Features
+
+- [ ] NestJS response compression — `compression` npm middleware; add `app.use(compression())` in `main.ts`; reduces JSON payloads ~60-80%
+- [ ] Prisma connection pool — add `?connection_limit=10&pool_timeout=20` to `DATABASE_URL` in production `.env`; default is unbounded which exhausts MySQL under load
+- [ ] Nginx HTTP/2 — add `http2` to the `listen 8443 ssl;` directive (already on HTTPS, zero-cost addition; enables multiplexing)
+- [ ] Angular `@for` migration — 2 legacy `*ngFor` remaining in `barcode-print.component.ts` (rest of app already on modern control flow)
 
 ### Payment Gateways
 - [ ] Stripe — `stripe` npm; `POST /payments/stripe/charge` + webhook with signature verification

@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
+import * as compression from 'compression';
 import { AppModule } from './app.module';
 
 // BigInt values (used by AssetMaintenance.id) cannot be serialized by JSON.stringify
@@ -15,6 +16,9 @@ async function bootstrap() {
 
   // Security headers
   app.use(helmet());
+
+  // Gzip compress all responses — reduces JSON payload size ~60-80%
+  app.use(compression());
 
   // Enable CORS — allow direct Angular dev server + Nginx proxied origins
   const allowedOrigins = [

@@ -1,13 +1,13 @@
 # Ultimate POS — Migration TODO & Next Steps
 
-> Last updated: 8 March 2026  
+> Last updated: 6 March 2026  
 > Status: NestJS API + Angular 21 frontend fully scaffolded and **verified working**. All P0–P5 modules implemented, TypeScript compiling clean. Redis/memory caching live. 67/67 NestJS unit tests passing. Angular build succeeds (0 errors). Dev servers running on ports 3000 (API) and 4200 (Angular).
 >
-> **Progress snapshot (7 Mar 2026)**  
+> **Progress snapshot (6 Mar 2026)**  
 > 🔴 Critical: 14/14 done ✅  
 > 🟠 High: 12/12 done ✅  
 > 🟡 Medium: 26/26 done ✅  
-> 🟢 Normal / Quality: 25/25 done ✅ (HTTPS + unit tests parent + Remove PHP all complete)  
+> 🟢 Normal / Quality: 26/26 done ✅ (DB perf optimisations + HTTPS + unit tests + Angular `@for` migration all complete)  
 > 🔵 Optional: 23/23 done ✅
 
 ---
@@ -183,14 +183,18 @@
   - [x] Cache `GET /reports/dashboard` (TTL 5 min, invalidated on sale/purchase create)
   - [x] Cache `GET /products` list (TTL 1 min, invalidate on create/update/delete)
   - [x] Cache `GET /pos/products` (TTL 1 min, invalidated on sale/purchase create)
-- [x] Database indexes — added on: Product (sku, type), Contact (name, email), Sale ([businessId,transactionDate] composite), Purchase (refNo, type, [businessId,purchaseDate] composite), CashRegisterTransaction (createdAt), Variation (subSku) — migration `add_performance_indexes` applied
-  ```sql
-  CREATE INDEX idx_sale_business ON sales(business_id);
-  CREATE INDEX idx_sale_date ON sales(transaction_date);
-  CREATE INDEX idx_product_business ON products(business_id);
-  CREATE INDEX idx_stock_product ON stock_entries(product_id);
-  ```
-- [x] Angular lazy loading — all feature routes use `loadComponent` / `loadChildren` lazy patterns ✅ (verified)
+- [x] Database indexes — **25+ performance indexes** on: Product (sku, type), Contact (name, email, mobile), Sale ([businessId,transactionDate] composite, invoiceNo, deletedAt), Purchase (refNo, type, [businessId,purchaseDate] composite, deletedAt), CashRegisterTransaction (createdAt), Variation (subSku, deletedAt), + `deletedAt` indexes on 15 models total (Sale, Purchase, Contact, Category, Brand, Unit, Expense, ExpenseCategory, TaxRate, HmsRoomType, HmsRoom, Package, Subscription, Variation, SellingPriceGroup) — migrations `add_performance_indexes` + `add_indexes_and_unique_constraints` applied
+  - [x] `@@unique([businessId, invoiceNo])` on Sale — hard DB constraint preventing duplicate invoice numbers
+  - [x] `@@unique([businessId, refNo])` on Purchase — hard DB constraint preventing duplicate ref numbers
+- [x] DB query optimisations (6 Mar 2026) — commit `[abcbb20]`:
+  - [x] `InventoryService.getSummary()` — replaced N+1 loop (1 `findFirst` per product) with 3 parallel queries (`findMany` + `groupBy._sum` + `$queryRaw MAX(id) GROUP BY`)
+  - [x] `InventoryService.getStockOverview()` — replaced app-code SUM (loading all stock entries into Node memory) with DB-side `stockEntry.groupBy._sum`
+  - [x] `SalesService.generateInvoiceNo()` — replaced race-prone `count()+1` with `MAX(id)+1` via `$queryRaw`
+  - [x] `PurchasesService.generateRefNo()` — same `MAX(id)+1` fix
+- [x] NestJS response compression — `app.use(compression())` in `main.ts`; ~60-80% smaller JSON payloads
+- [x] Prisma connection pool — `?connection_limit=10&pool_timeout=20` added to `DATABASE_URL` in `.env.example`
+- [x] Nginx HTTP/2 — `http2` added to `listen 8443 ssl;` directive
+- [x] Angular `@for` migration — last 2 `*ngFor` in `barcode-print.component.ts` migrated to `@for (... track id)` (100% of app now on modern control flow)
 - [x] Angular `OnPush` change detection on heavy list components
 - [x] API response pagination — enforce `limit` max 100 on all list endpoints — `Math.min(..., 100)` applied in **12 controllers**: sales, purchases, expenses, payments, accounting, cash-register, crm, inventory (×2 routes), users, notifications, reports, stock-transfers
 
