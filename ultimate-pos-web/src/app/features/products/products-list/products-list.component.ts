@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -598,6 +598,7 @@ export class ProductsListComponent implements OnInit {
   private barcodeService = inject(BarcodeService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+  private cdr = inject(ChangeDetectorRef);
 
   products: Product[] = [];
   filteredProducts: Product[] = [];
@@ -633,7 +634,7 @@ export class ProductsListComponent implements OnInit {
     forkJoin({
       cats: this.productService.getAllCategories(),
       brands: this.productService.getAllBrands(),
-    }).subscribe({ next: ({ cats, brands }) => { this.categories = cats; this.brands = brands; } });
+    }).subscribe({ next: ({ cats, brands }) => { this.categories = cats; this.brands = brands; this.cdr.markForCheck(); } });
   }
 
   loadProducts(): void {
@@ -644,9 +645,11 @@ export class ProductsListComponent implements OnInit {
         this.calculateStats();
         this.applyFilter();
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: (error) => {
         this.isLoading = false;
+        this.cdr.markForCheck();
         const msg = error.error?.message || 'Failed to load products';
         this.snackBar.open(msg, 'Close', {
           duration: 5000,
@@ -728,10 +731,12 @@ export class ProductsListComponent implements OnInit {
         this.currentPage = 0;
         this.updatePagination();
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.snackBar.open('Search failed. Showing all products.', 'Close', { duration: 4000 });
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
     });
   }

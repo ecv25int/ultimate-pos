@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import {
@@ -430,6 +430,7 @@ export class ProductFormComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private snackBar = inject(MatSnackBar);
+  private cdr = inject(ChangeDetectorRef);
 
   readonly apiBase = 'http://localhost:3000'; // serve-static host; override via environment
 
@@ -494,10 +495,12 @@ export class ProductFormComponent implements OnInit {
           this.loadProduct(this.productId);
         } else {
           this.isLoadingData = false;
+          this.cdr.detectChanges();
         }
       },
       error: () => {
         this.isLoadingData = false;
+        this.cdr.detectChanges();
         this.snackBar.open('Failed to load form data', 'Close', {
           duration: 5000,
           panelClass: ['error-snackbar'],
@@ -523,9 +526,11 @@ export class ProductFormComponent implements OnInit {
         });
         this.existingImageUrl = product.imageUrl ?? null;
         this.isLoadingData = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isLoadingData = false;
+        this.cdr.detectChanges();
         this.snackBar.open('Failed to load product', 'Close', {
           duration: 5000,
           panelClass: ['error-snackbar'],

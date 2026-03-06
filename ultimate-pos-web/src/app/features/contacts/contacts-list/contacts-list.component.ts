@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, Inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, Inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -420,6 +420,7 @@ export class ContactsListComponent implements OnInit {
     private contactService: ContactService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -436,10 +437,12 @@ export class ContactsListComponent implements OnInit {
         this.contacts = data;
         this.applyFilter();
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.snackBar.open('Failed to load contacts', 'Close', { duration: 3000 });
         this.loading = false;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -510,6 +513,7 @@ export class ContactsListComponent implements OnInit {
           this.contacts[idx] = { ...this.contacts[idx], contactStatus: updated.contactStatus };
           this.applyFilter();
         }
+        this.cdr.markForCheck();
         this.snackBar.open(
           `Contact ${updated.contactStatus === 'active' ? 'activated' : 'deactivated'}`,
           'Close', { duration: 2000 }
@@ -529,6 +533,7 @@ export class ContactsListComponent implements OnInit {
         next: () => {
           this.contacts = this.contacts.filter(c => c.id !== contact.id);
           this.applyFilter();
+          this.cdr.markForCheck();
           this.snackBar.open('Contact deleted', 'Close', { duration: 2000 });
         },
         error: () => this.snackBar.open('Failed to delete contact', 'Close', { duration: 3000 }),

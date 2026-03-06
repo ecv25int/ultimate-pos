@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -125,11 +125,11 @@ export class ExpensesComponent implements OnInit {
 
   private searchTimer: any;
 
-  constructor(private expensesService: ExpensesService, private dialog: MatDialog) {}
+  constructor(private expensesService: ExpensesService, private dialog: MatDialog, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    this.expensesService.getSummary().subscribe((s) => (this.summary = s));
-    this.expensesService.getCategories().subscribe((c) => (this.categories = c));
+    this.expensesService.getSummary().subscribe((s) => { this.summary = s; this.cdr.markForCheck(); });
+    this.expensesService.getCategories().subscribe((c) => { this.categories = c; this.cdr.markForCheck(); });
     this.load();
   }
 
@@ -148,8 +148,9 @@ export class ExpensesComponent implements OnInit {
           this.total = res.total;
           this.totalPages = res.totalPages;
           this.loading = false;
+          this.cdr.markForCheck();
         },
-        error: () => { this.loading = false; },
+        error: () => { this.loading = false; this.cdr.markForCheck(); },
       });
   }
 
