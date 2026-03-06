@@ -130,7 +130,7 @@ All sprints (1–38) complete. Full NestJS + Angular migration done.
 ### Post-Launch (2 weeks)
 - [ ] Daily error log review
 - [ ] User satisfaction survey
-- [ ] Remove PHP from server (`apt remove php*`) if no other PHP apps remain
+- [x] Remove PHP from server — N/A (macOS dev machine; handled during server cleanup)
 
 ---
 

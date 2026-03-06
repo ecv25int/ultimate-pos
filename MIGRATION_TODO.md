@@ -95,7 +95,7 @@
 - [x] Purchases: stock increment fires on purchase create
 - [x] Stock transfers: bidirectional stock update
 - [x] Cash register: opening balance + transactions sum = closing balance — `closeRegister` now computes `expectedClosingAmount` and returns `discrepancy`
-- [x] Tax calculations: tax-inclusive vs tax-exclusive — sales/purchase services accept pre-calculated `taxAmount` from DTO (same as Laravel behavior ✅)
+- [x] Tax calculations: tax-inclusive vs tax-exclusive — sales/purchase services accept pre-calculated `taxAmount` from DTO ✅
 - [x] Invoice number scheme: auto-increment using `InvoiceScheme` prefix — `SALE-YYYYMMDD-XXXX` / `PO-YYYYMMDD-XXXX` patterns implemented in sales/purchases services ✅
 
 ---
@@ -300,52 +300,7 @@
 
 ---
 
-## 🗑️ LARAVEL LEGACY CLEANUP
-
-> The Laravel app (`/Users/cerdashu/Documents/Personal Projects/well-known/`) is the **old codebase** to be decommissioned once NestJS is stable.
-
-### Phase A — Freeze Laravel (Now — before cutover)
-- [x] Set `APP_DEBUG=false` in Laravel `.env` (never in production) — already `APP_DEBUG="false"` ✅
-- [x] Disable any cron jobs / scheduled tasks in Laravel — `Kernel.php` schedule wrapped in `if (false && ...)`, `APP_ENV` changed to `"frozen"` so no `live`/`demo` branch fires ✅
-- [x] Point all new frontend work to NestJS API only — Angular dev server calls `localhost:3000/api` exclusively ✅
-- [x] Stop running `composer install` / Laravel `queue:work` — `QUEUE_CONNECTION=sync` (no async workers needed) ✅
-
-### Phase B — Redirect Traffic (During cutover)
-- [x] Update Nginx/Apache config to proxy `/api` to NestJS port 3000 instead of Laravel
-  ```nginx
-  location /api {
-    proxy_pass http://127.0.0.1:3000;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-  }
-  ```
-  Nginx installed via Homebrew, config at `/opt/homebrew/etc/nginx/servers/ultimatepos.conf`, running on **port 8080** locally. Both `/api` (→ NestJS:3000) and `/` (→ Angular:4200) proxied and verified HTTP 200. `brew services start nginx` auto-starts on login.
-- [x] Keep Laravel accessible at a separate URL (e.g., `legacy.yourapp.com`) for 30 days rollback window — N/A: Laravel already fully deleted (Phase C complete 6 Mar 2026)
-- [x] Monitor error logs for 2 weeks — logs at `/opt/homebrew/var/log/nginx/ultimatepos.access.log` and `ultimatepos.error.log`
-
-### Phase C — Remove Laravel Code
-- [x] Archive skipped (no git, user confirmed delete directly)
-- [x] Deleted: `app/`, `bootstrap/`, `config/`, `database/`, `lang/`, `resources/`, `routes/`, `storage/`, `public/`, `Modules/` — all removed 6 Mar 2026
-- [x] Deleted Laravel root files: `artisan`, `composer.json`, `composer.lock`, `phpunit.xml`, `.env`, `cgi-bin/`
-- [x] Kept: `database-exports/`, `scripts/`, `ultimate-pos-api/`, `ultimate-pos-web/`
-- [x] Update root README to point to NestJS + Angular — `README.md` rewritten 6 Mar 2026
-- [x] Remove PHP from server — N/A locally (macOS dev machine); on VPS: `apt remove php* -y` after confirming no other PHP apps
-
-### Phase D — Repository Cleanup
-- [x] `vendor/` deleted (263 MB)
-- [x] `tmp/` deleted
-- [x] `Modules/` deleted
-- [x] `.gitignore` created — NestJS/Angular patterns, excludes `node_modules/`, `dist/`, `.env`, `uploads/`, `backups/`
-- [x] Git repository initialised — `git init`, 563 files committed, tagged `v2.0.0-nestjs` (6 Mar 2026)
-- [x] No legacy commits to squash (first commit)
-- [x] Stale docs deleted (6 Mar 2026): `SPRINT1_COMPLETE.md`, `SPRINT2_COMPLETE.md`, `SPRINT2_PLAN.md`, `SPRINT3_COMPLETE.md`, `MIGRATION_PLAN.md`, `MIGRATION_README.md`, `SETUP_STATUS.md`, `START_HERE.md`, `QUICK_REFERENCE.md`, `QUICK_START.md`
-- [x] Empty SQL dump files deleted: `database-exports/*.sql` (all were 0 bytes)
-- [x] `.well-known/pki-validation/` deleted (old Sep 2025 SSL domain validation file)
-- [x] `PRIORITY_ROADMAP.md` rewritten — 750-line sprint plan condensed to current-state module status + open items only
-
----
-
-## 📋 PRIORITY ORDER (What to do next, in order)
+##  PRIORITY ORDER (What to do next, in order)
 
 1. **Create seed file** — without it you can't test login (#2)
 2. **Set `.env` properly** — without it API won't start in prod (#1)
@@ -360,8 +315,6 @@
 11. ~~Remaining confirm() dialogs~~ ✅ Done — all 31 feature components migrated
 12. **Loading skeletons** — replace spinners with Material skeleton loaders (#7)
 13. **E2E tests (Playwright/Cypress)** — login → sale → stock check (#9)
-14. **Laravel traffic redirect** — Phase B cutover (#Phase B)
-15. **Laravel code deletion** — Phase C + D (#Phase C/D)
 
 ---
 
@@ -369,7 +322,7 @@
 
 | Layer | Status | Notes |
 |-------|--------|-------|
-| Prisma Schema | ✅ 100% | 70+ models, all Laravel tables mapped + 10 performance indexes |
+| Prisma Schema | ✅ 100% | 70+ models, 25+ performance indexes |
 | NestJS API modules | ✅ 100% | 47 modules, all P0-P5 covered |
 | Angular services | ✅ 100% | 39 services, all endpoints covered |
 | Angular feature components | ✅ 98% | Reports tabbed UI, POS shortcuts, skeleton loaders, breadcrumbs, session timeout dialog added |
@@ -377,10 +330,10 @@
 | Raw HTTP in components | ✅ 0 remaining | All refactored to typed services |
 | Unit tests | 🟡 80% | 67/67 API passing: Auth(15) + Sales(11) + Purchases(14) + Reports(12) + Inventory(13) + App(1) + AuthController(1); Angular: 9 component specs ✅ + `authGuard.spec.ts` ✅ + `roleGuard.spec.ts` ✅ + `AuthService.spec.ts` (7 tests) ✅ + `PasswordStrengthComponent.spec.ts` ✅; token refresh interceptor verified ✅ |
 | E2E tests | ✅ 90% | Playwright installed; `playwright.config.ts`; 3 spec files — `auth.spec.ts` (6 tests), `products.spec.ts` (5 tests), `sales.spec.ts` (4 tests); helpers in `e2e/helpers/auth.ts`; `e2e` / `e2e:ui` / `e2e:headed` npm scripts |
-| Data migration | ✅ N/A | **Starting from zero** (6 Mar 2026 decision). DB has seed baseline only: 3 users, 1 business, 5 tax rates, 7 units. `scripts/migrate-legacy-data.ts` (11 steps) retained for reference. |
+| Data migration | ✅ N/A | **Starting from zero** (6 Mar 2026 decision). DB has seed baseline only: 3 users, 1 business, 5 tax rates, 7 units. |
 | Seed data | ✅ 100% | `prisma/seed.ts` complete — admin/manager, business, location, tax rates, invoice layout/scheme, expense categories, units |
 | Production .env | ❌ 0% | No real secrets configured; `environment.production.ts` not created |
-| Laravel cleanup | ✅ 100% | All phases complete: Laravel deleted, README rewritten, `.gitignore` created, git repo initialised with tag `v2.0.0-nestjs` (6 Mar 2026) |
+| Repository cleanup | ✅ 100% | Old codebase removed, README updated, `.gitignore` active, git repo initialised with tag `v2.0.0-nestjs` (6 Mar 2026) |
 | Swagger docs | ✅ 100% | `/api/docs` live + `@ApiTags` on all controllers + `@ApiOperation`/`@ApiResponse`/`@ApiQuery`/`@ApiParam` on all endpoints (~50 operations) |
 | Redis/memory caching | ✅ 100% | Dashboard (5 min) + POS products (1 min) + products list (1 min) + cache invalidation on write |
 | Pagination safety | ✅ 100% | `Math.min(limit, 100)` enforced in **12 controllers** (sales, purchases, expenses, payments, accounting, cash-register, crm, inventory×2, users, notifications, reports, stock-transfers) |

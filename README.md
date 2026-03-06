@@ -22,8 +22,6 @@ A full-featured Point of Sale system built with **NestJS** (API) and **Angular**
 well-known/
 ├── ultimate-pos-api/     ← NestJS REST API (port 3000)
 ├── ultimate-pos-web/     ← Angular SPA (port 4200)
-├── database-exports/     ← Legacy DB SQL snapshots
-├── scripts/              ← Data migration script
 └── .github/workflows/    ← CI/CD (GitHub Actions)
 ```
 
@@ -80,22 +78,6 @@ cd ultimate-pos-web && npx ng test
 # E2E tests (Playwright)
 cd ultimate-pos-web && npm run e2e
 ```
-
----
-
-## Data Migration (from Legacy Laravel DB)
-
-```bash
-# Set env vars for both DBs
-export LEGACY_DB_URL=mysql://root:@localhost/ultimate_pos
-export NEW_DB_URL=mysql://root:@localhost/ultimate_pos_new
-
-# Run 11-step migration
-cd scripts
-npx ts-node migrate-legacy-data.ts
-```
-
-Steps: businesses → users → contacts → products → sales → purchases → payments → stock adjustments → sale lines → purchase lines → inventory.
 
 ---
 

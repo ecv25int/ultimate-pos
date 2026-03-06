@@ -2,7 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
-import * as compression from 'compression';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const compression = require('compression');
 import { AppModule } from './app.module';
 
 // BigInt values (used by AssetMaintenance.id) cannot be serialized by JSON.stringify
