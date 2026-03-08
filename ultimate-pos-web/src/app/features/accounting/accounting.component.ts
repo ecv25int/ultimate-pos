@@ -82,7 +82,7 @@ import {
             <!-- Account form -->
             <mat-card class="form-card">
               <mat-card-header>
-                <mat-icon mat-card-avatar>{{ editingAccount ? 'edit' : 'add_circle' }}</mat-icon>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>{{ editingAccount ? 'edit' : 'add_circle' }}</mat-icon></div>
                 <mat-card-title>{{ editingAccount ? 'Edit Account' : 'New Account' }}</mat-card-title>
               </mat-card-header>
               <mat-card-content>
@@ -152,9 +152,9 @@ import {
             </mat-card>
 
             <!-- Accounts list -->
-            <mat-card>
+            <mat-card class="list-card">
               <mat-card-header>
-                <mat-icon mat-card-avatar>list</mat-icon>
+                <div mat-card-avatar class="card-avatar-icon purple"><mat-icon>list</mat-icon></div>
                 <mat-card-title>Accounts ({{ accounts.length }})</mat-card-title>
                 <div style="margin-left:auto">
                   <mat-form-field appearance="outline" style="width:180px">
@@ -231,7 +231,7 @@ import {
             <!-- Entry form -->
             <mat-card class="form-card">
               <mat-card-header>
-                <mat-icon mat-card-avatar>edit_note</mat-icon>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>edit_note</mat-icon></div>
                 <mat-card-title>New Journal Entry</mat-card-title>
               </mat-card-header>
               <mat-card-content>
@@ -300,9 +300,9 @@ import {
             </mat-card>
 
             <!-- Transactions list -->
-            <mat-card>
+            <mat-card class="list-card">
               <mat-card-header>
-                <mat-icon mat-card-avatar>receipt_long</mat-icon>
+                <div mat-card-avatar class="card-avatar-icon orange"><mat-icon>receipt_long</mat-icon></div>
                 <mat-card-title>Ledger Entries</mat-card-title>
                 <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
                   <mat-form-field appearance="outline" style="width:160px">
@@ -590,16 +590,22 @@ import {
   `,
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-    .page-header { display: flex; align-items: center; margin-bottom: 1.5rem; }
-    .header-left { display: flex; align-items: center; gap: 12px; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-left { display: flex; align-items: center; gap: 1rem; }
     .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
     h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
-    .tab-content { padding: 16px 0; }
-    .two-column-layout { display: grid; grid-template-columns: 380px 1fr; gap: 16px; }
-    .form-card { height: fit-content; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
+    .tab-content { padding: 1.5rem 0; }
+    .two-column-layout { display: grid; grid-template-columns: 380px 1fr; gap: 1.5rem; }
+    .form-card, .list-card { border-radius: 12px; overflow: hidden; height: fit-content; }
     .full-width { width: 100%; }
     .form-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .card-avatar-icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; }
+    .card-avatar-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .card-avatar-icon.orange { color: #f57c00; background: #fff3e0; }
+    .card-avatar-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .card-avatar-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .card-avatar-icon mat-icon { font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
     .type-chip { padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; }
     .root-asset { background: #e3f2fd; color: #1565c0; }
     .root-liability { background: #fce4ec; color: #880e4f; }
@@ -611,8 +617,9 @@ import {
     .debit-chip { background: #fff3e0; color: #e65100; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
     .credit-chip { background: #e8f5e9; color: #2e7d32; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
     .pagination-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
-    .report-filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
-    .pl-layout, .bs-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .report-filter-row { display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .pl-layout, .bs-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .report-section { border-radius: 12px; overflow: hidden; }
     .report-section mat-card-header { margin-bottom: 8px; }
     .report-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
     .total-row { padding-top: 8px; margin-top: 4px; }

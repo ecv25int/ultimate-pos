@@ -47,7 +47,13 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   template: `
 <div class="restaurant-container">
   <div class="page-header">
-    <h1><mat-icon>restaurant</mat-icon> Restaurant</h1>
+    <div class="header-title">
+      <mat-icon class="header-icon">restaurant</mat-icon>
+      <div>
+        <h1>Restaurant</h1>
+        <p class="subtitle">Floor plan, table status &amp; reservations</p>
+      </div>
+    </div>
   </div>
 
   <!-- Dashboard summary -->
@@ -55,26 +61,46 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   <div class="stats-row">
     <mat-card class="stat-card">
       <mat-card-content>
-        <div class="stat-value">{{ dashboard.totalTables }}</div>
-        <div class="stat-label">Total Tables</div>
-      </mat-card-content>
-    </mat-card>
-    <mat-card class="stat-card available">
-      <mat-card-content>
-        <div class="stat-value">{{ dashboard.byStatus['available'] }}</div>
-        <div class="stat-label">Available</div>
-      </mat-card-content>
-    </mat-card>
-    <mat-card class="stat-card occupied">
-      <mat-card-content>
-        <div class="stat-value">{{ dashboard.byStatus['occupied'] }}</div>
-        <div class="stat-label">Occupied</div>
+        <div class="stat-content">
+          <mat-icon class="stat-icon blue">table_restaurant</mat-icon>
+          <div>
+            <div class="stat-number">{{ dashboard.totalTables }}</div>
+            <div class="stat-label">Total Tables</div>
+          </div>
+        </div>
       </mat-card-content>
     </mat-card>
     <mat-card class="stat-card">
       <mat-card-content>
-        <div class="stat-value">{{ dashboard.todayBookings }}</div>
-        <div class="stat-label">Today's Bookings</div>
+        <div class="stat-content">
+          <mat-icon class="stat-icon green">check_circle</mat-icon>
+          <div>
+            <div class="stat-number">{{ dashboard.byStatus['available'] ?? 0 }}</div>
+            <div class="stat-label">Available</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon orange">person</mat-icon>
+          <div>
+            <div class="stat-number">{{ dashboard.byStatus['occupied'] ?? 0 }}</div>
+            <div class="stat-label">Occupied</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon purple">event</mat-icon>
+          <div>
+            <div class="stat-number">{{ dashboard.todayBookings }}</div>
+            <div class="stat-label">Today's Bookings</div>
+          </div>
+        </div>
       </mat-card-content>
     </mat-card>
   </div>
@@ -137,6 +163,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         @if (showTableForm) {
           <mat-card class="form-panel">
             <mat-card-header>
+              <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>table_restaurant</mat-icon></div>
               <mat-card-title>{{ editingTable ? 'Edit Table' : 'New Table' }}</mat-card-title>
             </mat-card-header>
             <mat-card-content>
@@ -260,6 +287,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         @if (showBookingForm) {
           <mat-card class="form-panel">
             <mat-card-header>
+              <div mat-card-avatar class="card-avatar-icon green"><mat-icon>event_seat</mat-icon></div>
               <mat-card-title>New Booking</mat-card-title>
             </mat-card-header>
             <mat-card-content>
@@ -315,42 +343,54 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   `,
   styles: [`
     .restaurant-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-    .page-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; }
-    .page-header h1 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-    .stat-card { min-width: 150px; }
-    .stat-card.available mat-card-content { border-left: 4px solid #4caf50; }
-    .stat-card.occupied mat-card-content { border-left: 4px solid #f44336; }
-    .stat-value { font-size: 2rem; font-weight: bold; }
-    .stat-label { color: rgba(0,0,0,.54); font-size: .85rem; }
-    .tab-content { padding: 24px 0; }
-    .section-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
-    .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { border-radius: 12px; overflow: hidden; }
+    .stat-content { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; }
+    .stat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; border-radius: 10px; padding: 0.5rem; }
+    .stat-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .stat-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .stat-icon.orange { color: #f57c00; background: #fff3e0; }
+    .stat-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .stat-number { font-size: 1.75rem; font-weight: 700; line-height: 1; color: #1a1a1a; }
+    .stat-label { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
+    .tab-content { padding: 1.5rem 0; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+    .filter-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
     .filter-field { width: 160px; }
-    .table-grid { display: flex; flex-wrap: wrap; gap: 16px; }
-    .table-card { width: 180px; cursor: default; transition: box-shadow .2s; }
+    .table-grid { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+    .table-card { width: 180px; border-radius: 12px; overflow: hidden; cursor: default; transition: box-shadow .2s; }
     .table-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.15); }
     .table-card.status-available { border-top: 4px solid #4caf50; }
-    .table-card.status-occupied { border-top: 4px solid #f44336; }
-    .table-card.status-reserved { border-top: 4px solid #ff9800; }
-    .table-card.status-cleaning { border-top: 4px solid #9c27b0; }
+    .table-card.status-occupied  { border-top: 4px solid #f44336; }
+    .table-card.status-reserved  { border-top: 4px solid #ff9800; }
+    .table-card.status-cleaning  { border-top: 4px solid #9c27b0; }
     .table-name { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; }
     .table-capacity { display: flex; align-items: center; gap: 4px; color: rgba(0,0,0,.6); font-size: .85rem; margin-bottom: 8px; }
     .table-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
-    .chip-available { background: #e8f5e9 !important; color: #2e7d32 !important; }
-    .chip-occupied { background: #ffebee !important; color: #c62828 !important; }
-    .chip-reserved { background: #fff3e0 !important; color: #e65100 !important; }
-    .chip-cleaning { background: #f3e5f5 !important; color: #6a1b9a !important; }
-    .chip-booked { background: #e3f2fd !important; color: #1565c0 !important; }
-    .chip-completed { background: #e8f5e9 !important; color: #2e7d32 !important; }
-    .chip-cancelled { background: #ffebee !important; color: #c62828 !important; }
-    .chip-waiting { background: #fff3e0 !important; color: #e65100 !important; }
+    .chip-available  { background: #e8f5e9 !important; color: #2e7d32 !important; }
+    .chip-occupied   { background: #ffebee !important; color: #c62828 !important; }
+    .chip-reserved   { background: #fff3e0 !important; color: #e65100 !important; }
+    .chip-cleaning   { background: #f3e5f5 !important; color: #6a1b9a !important; }
+    .chip-booked     { background: #e3f2fd !important; color: #1565c0 !important; }
+    .chip-completed  { background: #e8f5e9 !important; color: #2e7d32 !important; }
+    .chip-cancelled  { background: #ffebee !important; color: #c62828 !important; }
+    .chip-waiting    { background: #fff3e0 !important; color: #e65100 !important; }
     .full-width-table { width: 100%; }
-    .form-panel { max-width: 600px; margin-top: 24px; }
+    .form-panel { max-width: 600px; margin-top: 1.5rem; border-radius: 12px; overflow: hidden; }
+    .card-avatar-icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; }
+    .card-avatar-icon.blue  { color: #1976d2; background: #e3f2fd; }
+    .card-avatar-icon.green { color: #388e3c; background: #e8f5e9; }
+    .card-avatar-icon mat-icon { font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
     form { display: flex; flex-direction: column; gap: 12px; }
     mat-form-field { width: 100%; }
     .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
     .empty-state { color: rgba(0,0,0,.4); text-align: center; padding: 24px; }
+    @media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
   `],
 })
 export class RestaurantComponent implements OnInit {

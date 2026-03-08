@@ -4,6 +4,7 @@ import { Auth } from '../auth/auth';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take, finalize } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 // Module-level state shared across all functional interceptor calls
 let isRefreshing = false;
@@ -29,6 +30,12 @@ function waitForRefresh(
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(Auth);
   const router = inject(Router);
+
+  // Skip requests that are not going to the API (e.g. i18n JSON files, assets)
+  const isApiRequest = req.url.startsWith(environment.apiUrl) || req.url.includes('/api/');
+  if (!isApiRequest) {
+    return next(req);
+  }
 
   // Skip adding token for auth endpoints (login / register / refresh)
   const isAuthRoute =

@@ -37,7 +37,7 @@ export class BusinessController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   findAll() {
     return this.businessService.findAll();
   }

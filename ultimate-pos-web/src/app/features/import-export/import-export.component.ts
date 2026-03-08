@@ -52,7 +52,7 @@ import { ImportResult } from '../../core/models/import-export.model';
         <!-- ── EXPORT SECTION ── -->
         <mat-card class="section-card">
           <mat-card-header>
-            <mat-icon mat-card-avatar>download</mat-icon>
+            <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>download</mat-icon></div>
             <mat-card-title>Export Data</mat-card-title>
             <mat-card-subtitle>Download your data as CSV files</mat-card-subtitle>
           </mat-card-header>
@@ -92,7 +92,7 @@ import { ImportResult } from '../../core/models/import-export.model';
         <!-- ── IMPORT SECTION ── -->
         <mat-card class="section-card">
           <mat-card-header>
-            <mat-icon mat-card-avatar>upload</mat-icon>
+            <div mat-card-avatar class="card-avatar-icon green"><mat-icon>upload</mat-icon></div>
             <mat-card-title>Import Products</mat-card-title>
             <mat-card-subtitle>Upload a CSV file to bulk-create products</mat-card-subtitle>
           </mat-card-header>
@@ -178,7 +178,7 @@ import { ImportResult } from '../../core/models/import-export.model';
         <!-- ── BARCODE GENERATOR ── -->
         <mat-card class="section-card barcode-card">
           <mat-card-header>
-            <mat-icon mat-card-avatar>qr_code</mat-icon>
+            <div mat-card-avatar class="card-avatar-icon purple"><mat-icon>qr_code</mat-icon></div>
             <mat-card-title>Barcode Generator</mat-card-title>
             <mat-card-subtitle>Preview and download barcodes for any text</mat-card-subtitle>
           </mat-card-header>
@@ -235,23 +235,37 @@ import { ImportResult } from '../../core/models/import-export.model';
 
     .page-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: flex-start;
       margin-bottom: 1.5rem;
     }
-    .header-title { display: flex; align-items: center; gap: 16px; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
     .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
     h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
 
     .content-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
     }
 
-    .section-card { height: fit-content; }
-    .barcode-card { grid-column: 1 / -1; max-width: 600px; }
+    .section-card { border-radius: 12px; overflow: hidden; height: fit-content; }
+    .barcode-card { grid-column: 1 / -1; }
+
+    /* Card header icon avatars — matches Products stat-icon pattern */
+    .card-avatar-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+    }
+    .card-avatar-icon.blue  { color: #1976d2; background: #e3f2fd; }
+    .card-avatar-icon.green { color: #388e3c; background: #e8f5e9; }
+    .card-avatar-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .card-avatar-icon mat-icon { font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
 
     .export-buttons {
       display: flex;

@@ -46,11 +46,14 @@ interface BarcodeItem {
     <div class="page-container">
       <!-- Header -->
       <div class="page-header">
-        <div>
-          <h1>Barcode Labels</h1>
-          <p class="subtitle">Generate and print product barcode labels</p>
+        <div class="header-title">
+          <mat-icon class="header-icon">qr_code_2</mat-icon>
+          <div>
+            <h1>Barcode Labels</h1>
+            <p class="subtitle">Generate and print product barcode labels</p>
+          </div>
         </div>
-        <div style="display:flex;gap:8px">
+        <div class="header-actions">
           <button mat-stroked-button (click)="selectAll()" [disabled]="!items.length">
             Select All
           </button>
@@ -155,16 +158,19 @@ interface BarcodeItem {
   `,
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-    .page-header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; }
-    .subtitle { margin: 0; color: #6b7280; font-size: 14px; }
-    .filters-row { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    .header-actions { display: flex; gap: 8px; }
+    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
+    .filters-row { display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem; }
     .search-field { flex: 1; }
     .loading-state, .empty-state { text-align: center; padding: 60px; color: #9ca3af; }
     .loading-state mat-icon, .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; display: block; margin: 0 auto 16px; }
-    .barcode-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-    .barcode-card { border: 2px solid transparent; transition: border-color 0.2s; cursor: default; }
-    .selected-card { border-color: #3b82f6; }
+    .barcode-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+    .barcode-card { border-radius: 12px; overflow: hidden; border: 2px solid transparent; transition: border-color 0.2s; cursor: default; }
+    .selected-card { border-color: #1976d2; }
     .card-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
     .product-info { display: flex; flex-direction: column; min-width: 0; }
     .product-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

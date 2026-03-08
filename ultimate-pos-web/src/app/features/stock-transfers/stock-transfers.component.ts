@@ -57,7 +57,7 @@ import { StockOverviewItem } from '../../core/models/inventory.model';
         <!-- Form -->
         <mat-card class="form-card">
           <mat-card-header>
-            <mat-icon mat-card-avatar>add_circle</mat-icon>
+            <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>add_circle</mat-icon></div>
             <mat-card-title>New Transfer</mat-card-title>
           </mat-card-header>
           <mat-card-content>
@@ -139,7 +139,7 @@ import { StockOverviewItem } from '../../core/models/inventory.model';
         <!-- List -->
         <mat-card class="list-card">
           <mat-card-header>
-            <mat-icon mat-card-avatar>list_alt</mat-icon>
+            <div mat-card-avatar class="card-avatar-icon green"><mat-icon>list_alt</mat-icon></div>
             <mat-card-title>Transfer History</mat-card-title>
             <mat-card-subtitle>{{ total }} total</mat-card-subtitle>
           </mat-card-header>
@@ -199,12 +199,12 @@ import { StockOverviewItem } from '../../core/models/inventory.model';
   `,
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .header-left { display: flex; align-items: center; gap: 16px; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-left { display: flex; align-items: center; gap: 1rem; }
     .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
     h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
-    .two-column-layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+    .two-column-layout { display: grid; grid-template-columns: 380px 1fr; gap: 1.5rem; align-items: start; }
     .full-width { width: 100%; margin-bottom: 8px; }
     .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
     .loading-container { display: flex; justify-content: center; padding: 40px; }
@@ -213,6 +213,11 @@ import { StockOverviewItem } from '../../core/models/inventory.model';
     .badge-completed { background: #e8f5e9; color: #1b5e20; }
     .badge-pending { background: #fff3e0; color: #e65100; }
     .badge-cancelled { background: #ffebee; color: #c62828; }
+    .form-card, .list-card { border-radius: 12px; overflow: hidden; }
+    .card-avatar-icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; }
+    .card-avatar-icon.blue  { color: #1976d2; background: #e3f2fd; }
+    .card-avatar-icon.green { color: #388e3c; background: #e8f5e9; }
+    .card-avatar-icon mat-icon { font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
     @media (max-width: 900px) { .two-column-layout { grid-template-columns: 1fr; } }
   `],
 })
