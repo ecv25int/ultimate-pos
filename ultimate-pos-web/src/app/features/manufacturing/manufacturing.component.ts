@@ -35,7 +35,13 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   template: `
     <div class="page-container">
       <div class="page-header">
-        <h1>Manufacturing</h1>
+        <div class="header-title">
+          <mat-icon class="header-icon">precision_manufacturing</mat-icon>
+          <div>
+            <h1>Manufacturing</h1>
+            <p class="subtitle">Recipes, ingredients &amp; production groups</p>
+          </div>
+        </div>
       </div>
 
       <mat-tab-group>
@@ -43,7 +49,10 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         <mat-tab label="Recipes">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>New Recipe</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>{{ editingRecipeId() ? 'edit' : 'add_circle' }}</mat-icon></div>
+                <mat-card-title>{{ editingRecipeId() ? 'Edit Recipe' : 'New Recipe' }}</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="recipeForm" (ngSubmit)="submitRecipe()">
                   <div class="form-row">
@@ -108,8 +117,11 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
-              <mat-card-header><mat-card-title>Recipes ({{ recipes().length }})</mat-card-title></mat-card-header>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon orange"><mat-icon>menu_book</mat-icon></div>
+                <mat-card-title>Recipes ({{ recipes().length }})</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <div *ngIf="loading()" class="spinner-center"><mat-spinner diameter="40"></mat-spinner></div>
                 <table mat-table [dataSource]="recipes()" *ngIf="!loading()" class="full-width-table">
@@ -148,7 +160,10 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         <mat-tab label="Ingredient Groups">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>New Ingredient Group</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon green"><mat-icon>add_circle</mat-icon></div>
+                <mat-card-title>New Ingredient Group</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="groupForm" (ngSubmit)="submitGroup()">
                   <div class="form-row">
@@ -169,8 +184,11 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
-              <mat-card-header><mat-card-title>Groups ({{ groups().length }})</mat-card-title></mat-card-header>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon purple"><mat-icon>category</mat-icon></div>
+                <mat-card-title>Groups ({{ groups().length }})</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="groups()" class="full-width-table">
                   <ng-container matColumnDef="name">
@@ -199,17 +217,26 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   `,
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-    .page-header { margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .tab-content { padding: 24px 0; display: flex; flex-direction: column; gap: 24px; }
-    .form-card { margin-bottom: 0; }
-    .form-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
+    .tab-content { padding: 1.5rem 0; display: flex; flex-direction: column; gap: 1.5rem; }
+    .form-card, .list-card { border-radius: 12px; overflow: hidden; }
+    .card-avatar-icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; }
+    .card-avatar-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .card-avatar-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .card-avatar-icon.orange { color: #f57c00; background: #fff3e0; }
+    .card-avatar-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .card-avatar-icon mat-icon { font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
+    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
     .form-row mat-form-field { flex: 1; min-width: 160px; }
     .full-width { width: 100%; }
     .full-width-table { width: 100%; }
-    .ingredient-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+    .ingredient-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
     .ingredient-row mat-form-field { flex: 1; min-width: 120px; }
-    .form-actions { display: flex; gap: 12px; margin-top: 16px; }
+    .form-actions { display: flex; gap: 12px; margin-top: 1rem; }
     .spinner-center { display: flex; justify-content: center; padding: 32px; }
   `],
 })

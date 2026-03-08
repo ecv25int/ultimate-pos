@@ -95,6 +95,10 @@ import {
         </div>
       } @else {
         <mat-card class="list-card">
+          <mat-card-header>
+            <div mat-card-avatar class="card-avatar-icon orange"><mat-icon>notifications_active</mat-icon></div>
+            <mat-card-title>Notifications</mat-card-title>
+          </mat-card-header>
           <mat-card-content>
             @for (n of notifications(); track n.id) {
               <div class="notif-item" [class.unread]="!n.isRead" (click)="onNotifClick(n)">
@@ -145,7 +149,7 @@ import {
       <!-- Email Delivery Settings -->
       <div class="email-settings-card">
         <div class="email-settings-header">
-          <mat-icon class="email-icon">email</mat-icon>
+          <div class="card-avatar-icon blue email-avatar"><mat-icon>email</mat-icon></div>
           <div>
             <h2>Email Delivery</h2>
             <p class="subtitle">Configure SMTP to receive notifications by email</p>
@@ -218,7 +222,7 @@ import {
     .empty-icon { font-size: 64px; width: 64px; height: 64px; color: #ccc; display: block; margin: 0 auto 16px; }
     .empty-state h3 { margin: 0 0 8px; font-size: 20px; }
 
-    .list-card { margin-bottom: 16px; }
+    .list-card { margin-bottom: 16px; border-radius: 12px; overflow: hidden; }
     .list-card mat-card-content { padding: 0 !important; }
 
     .notif-item {
@@ -252,14 +256,24 @@ import {
 
     /* Email settings */
     .email-settings-card {
-      margin-top: 28px;
+      margin-top: 1.5rem;
       background: #fff;
       border: 1px solid #e5e7eb;
-      border-radius: 10px;
+      border-radius: 12px;
+      overflow: hidden;
       padding: 24px;
     }
+    .card-avatar-icon {
+      display: flex; align-items: center; justify-content: center;
+      width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+    }
+    .card-avatar-icon mat-icon { font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
+    .card-avatar-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .card-avatar-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .card-avatar-icon.orange { color: #f57c00; background: #fff3e0; }
+    .card-avatar-icon.purple { color: #7b1fa2; background: #f3e5f5; }
     .email-settings-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
-    .email-icon { font-size: 36px; width: 36px; height: 36px; color: #2563eb; margin-top: 2px; }
+    .email-avatar { margin-top: 2px; }
     .email-settings-header h2 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
     .email-status-row { margin-bottom: 16px; }
     .status-indicator { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; margin-bottom: 10px; }

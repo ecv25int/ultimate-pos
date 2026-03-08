@@ -29,31 +29,59 @@ import {
   ],
   template: `
     <div class="page-container">
-      <div class="page-header"><h1>HR & Essentials</h1></div>
+      <div class="page-header">
+        <div class="header-title">
+          <mat-icon class="header-icon">people</mat-icon>
+          <div>
+            <h1>HR &amp; Essentials</h1>
+            <p class="subtitle">Leaves, payrolls, documents &amp; reminders</p>
+          </div>
+        </div>
+      </div>
 
-      <div class="dashboard-cards" *ngIf="dashboard()">
+      <div class="stats-row" *ngIf="dashboard()">
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.pendingLeaves }}</div>
-            <div class="stat-label">Pending Leaves</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon orange">event_busy</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.pendingLeaves }}</div>
+                <div class="stat-label">Pending Leaves</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.myApprovedLeaves }}</div>
-            <div class="stat-label">My Approved Leaves</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon green">event_available</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.myApprovedLeaves }}</div>
+                <div class="stat-label">My Approved Leaves</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.myPayrolls }}</div>
-            <div class="stat-label">My Payrolls</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon blue">payments</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.myPayrolls }}</div>
+                <div class="stat-label">My Payrolls</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.upcomingReminders }}</div>
-            <div class="stat-label">Upcoming Reminders</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon purple">alarm</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.upcomingReminders }}</div>
+                <div class="stat-label">Upcoming Reminders</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
       </div>
@@ -63,7 +91,10 @@ import {
         <mat-tab label="Leaves">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>Apply for Leave</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>event_note</mat-icon></div>
+                <mat-card-title>Apply for Leave</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="leaveForm" (ngSubmit)="submitLeave()">
                   <div class="form-row">
@@ -91,7 +122,11 @@ import {
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon orange"><mat-icon>event_available</mat-icon></div>
+                <mat-card-title>Leave Requests</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <div *ngIf="loading()" class="loading-container"><mat-spinner diameter="40"></mat-spinner></div>
                 <table mat-table [dataSource]="leaves()" *ngIf="!loading()">
@@ -130,7 +165,10 @@ import {
         <mat-tab label="Payrolls">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>New Payroll</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>receipt</mat-icon></div>
+                <mat-card-title>New Payroll</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="payrollForm" (ngSubmit)="submitPayroll()">
                   <div class="form-row">
@@ -167,7 +205,11 @@ import {
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon green"><mat-icon>receipt_long</mat-icon></div>
+                <mat-card-title>Payrolls</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="payrolls()">
                   <ng-container matColumnDef="userId">
@@ -200,7 +242,10 @@ import {
         <mat-tab label="Documents">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>Add Document</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>note_add</mat-icon></div>
+                <mat-card-title>Add Document</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="docForm" (ngSubmit)="submitDoc()">
                   <div class="form-row">
@@ -226,7 +271,11 @@ import {
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon purple"><mat-icon>description</mat-icon></div>
+                <mat-card-title>Documents</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="documents()">
                   <ng-container matColumnDef="name">
@@ -259,7 +308,10 @@ import {
         <mat-tab label="Reminders">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>Add Reminder</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>add_alarm</mat-icon></div>
+                <mat-card-title>Add Reminder</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="reminderForm" (ngSubmit)="submitReminder()">
                   <div class="form-row">
@@ -290,7 +342,11 @@ import {
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon orange"><mat-icon>alarm</mat-icon></div>
+                <mat-card-title>Reminders</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="reminders()">
                   <ng-container matColumnDef="name">
@@ -323,7 +379,10 @@ import {
         <mat-tab label="Leave Types">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>Add Leave Type</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>playlist_add</mat-icon></div>
+                <mat-card-title>Add Leave Type</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="leaveTypeForm" (ngSubmit)="submitLeaveType()">
                   <div class="form-row">
@@ -348,7 +407,11 @@ import {
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon green"><mat-icon>category</mat-icon></div>
+                <mat-card-title>Leave Types</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="leaveTypes()">
                   <ng-container matColumnDef="leaveType">
@@ -381,18 +444,35 @@ import {
   `,
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-    .page-header { margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .dashboard-cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-    .stat-card { min-width: 140px; }
-    .stat-value { font-size: 1.8rem; font-weight: 700; }
-    .stat-label { font-size: 0.85rem; color: #666; }
-    .tab-content { padding: 16px 0; display: flex; flex-direction: column; gap: 16px; }
-    .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { border-radius: 12px; overflow: hidden; }
+    .stat-content { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; }
+    .stat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; border-radius: 10px; padding: 0.5rem; }
+    .stat-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .stat-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .stat-icon.orange { color: #f57c00; background: #fff3e0; }
+    .stat-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .stat-number { font-size: 1.75rem; font-weight: 700; line-height: 1; color: #1a1a1a; }
+    .stat-label { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
+    .tab-content { padding: 1.5rem 0; display: flex; flex-direction: column; gap: 1.5rem; }
+    .form-card, .list-card { border-radius: 12px; overflow: hidden; }
+    .card-avatar-icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; }
+    .card-avatar-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .card-avatar-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .card-avatar-icon.orange { color: #f57c00; background: #fff3e0; }
+    .card-avatar-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .card-avatar-icon mat-icon { font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
+    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
     .full-width { width: 100%; }
     .loading-container { display: flex; justify-content: center; padding: 24px; }
     mat-form-field { min-width: 180px; }
     table { width: 100%; }
+    @media (max-width: 768px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
   `],
 })
 export class EssentialsComponent implements OnInit {

@@ -26,31 +26,59 @@ import { Package, Subscription, SuperadminDashboard } from '../../core/models/su
   ],
   template: `
     <div class="page-container">
-      <div class="page-header"><h1>Superadmin</h1></div>
+      <div class="page-header">
+        <div class="header-title">
+          <mat-icon class="header-icon">admin_panel_settings</mat-icon>
+          <div>
+            <h1>Superadmin</h1>
+            <p class="subtitle">Packages &amp; subscription management</p>
+          </div>
+        </div>
+      </div>
 
-      <div class="dashboard-cards" *ngIf="dashboard()">
+      <div class="stats-row" *ngIf="dashboard()">
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.totalPackages }}</div>
-            <div class="stat-label">Total Packages</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon blue">inventory_2</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.totalPackages }}</div>
+                <div class="stat-label">Total Packages</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.activeSubscriptions }}</div>
-            <div class="stat-label">Active Subscriptions</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon green">verified</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.activeSubscriptions }}</div>
+                <div class="stat-label">Active Subscriptions</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.pendingSubscriptions }}</div>
-            <div class="stat-label">Pending</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon orange">pending</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.pendingSubscriptions }}</div>
+                <div class="stat-label">Pending</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.expiringIn30Days }}</div>
-            <div class="stat-label">Expiring (30 days)</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon purple">schedule</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.expiringIn30Days }}</div>
+                <div class="stat-label">Expiring (30 days)</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
       </div>
@@ -60,7 +88,10 @@ import { Package, Subscription, SuperadminDashboard } from '../../core/models/su
         <mat-tab label="Packages">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>{{ editingPackageId() ? 'Edit Package' : 'New Package' }}</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>{{ editingPackageId() ? 'edit' : 'add_box' }}</mat-icon></div>
+                <mat-card-title>{{ editingPackageId() ? 'Edit Package' : 'New Package' }}</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="packageForm" (ngSubmit)="submitPackage()">
                   <div class="form-row">
@@ -109,7 +140,11 @@ import { Package, Subscription, SuperadminDashboard } from '../../core/models/su
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon orange"><mat-icon>inventory_2</mat-icon></div>
+                <mat-card-title>Packages</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <div *ngIf="loading()" class="loading-container"><mat-spinner diameter="40"></mat-spinner></div>
                 <table mat-table [dataSource]="packages()" *ngIf="!loading()">
@@ -148,7 +183,10 @@ import { Package, Subscription, SuperadminDashboard } from '../../core/models/su
         <mat-tab label="Subscriptions">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>New Subscription</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>add_circle</mat-icon></div>
+                <mat-card-title>New Subscription</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="subscriptionForm" (ngSubmit)="submitSubscription()">
                   <div class="form-row">
@@ -180,7 +218,11 @@ import { Package, Subscription, SuperadminDashboard } from '../../core/models/su
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon green"><mat-icon>subscriptions</mat-icon></div>
+                <mat-card-title>Subscriptions</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="subscriptions()">
                   <ng-container matColumnDef="businessId">
@@ -218,17 +260,34 @@ import { Package, Subscription, SuperadminDashboard } from '../../core/models/su
   `,
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-    .page-header { margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .dashboard-cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-    .stat-card { min-width: 140px; }
-    .stat-value { font-size: 1.8rem; font-weight: 700; }
-    .stat-label { font-size: 0.85rem; color: #666; }
-    .tab-content { padding: 16px 0; display: flex; flex-direction: column; gap: 16px; }
-    .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { border-radius: 12px; overflow: hidden; }
+    .stat-content { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; }
+    .stat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; border-radius: 10px; padding: 0.5rem; }
+    .stat-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .stat-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .stat-icon.orange { color: #f57c00; background: #fff3e0; }
+    .stat-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .stat-number { font-size: 1.75rem; font-weight: 700; line-height: 1; color: #1a1a1a; }
+    .stat-label { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
+    .tab-content { padding: 1.5rem 0; display: flex; flex-direction: column; gap: 1.5rem; }
+    .form-card, .list-card { border-radius: 12px; overflow: hidden; }
+    .card-avatar-icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; }
+    .card-avatar-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .card-avatar-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .card-avatar-icon.orange { color: #f57c00; background: #fff3e0; }
+    .card-avatar-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .card-avatar-icon mat-icon { font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
+    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
     .loading-container { display: flex; justify-content: center; padding: 24px; }
     mat-form-field { min-width: 180px; }
     table { width: 100%; }
+    @media (max-width: 768px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
   `],
 })
 export class SuperadminComponent implements OnInit {

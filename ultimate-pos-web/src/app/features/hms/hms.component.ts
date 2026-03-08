@@ -26,25 +26,48 @@ import { HmsRoomType, HmsRoom, HmsExtra, HmsDashboard } from '../../core/models/
   ],
   template: `
     <div class="page-container">
-      <div class="page-header"><h1>Hotel Management (HMS)</h1></div>
+      <div class="page-header">
+        <div class="header-title">
+          <mat-icon class="header-icon">hotel</mat-icon>
+          <div>
+            <h1>Hotel Management (HMS)</h1>
+            <p class="subtitle">Room types, rooms &amp; extras</p>
+          </div>
+        </div>
+      </div>
 
-      <div class="dashboard-cards" *ngIf="dashboard()">
+      <div class="stats-row" *ngIf="dashboard()">
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.totalRoomTypes }}</div>
-            <div class="stat-label">Room Types</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon blue">category</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.totalRoomTypes }}</div>
+                <div class="stat-label">Room Types</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.totalRooms }}</div>
-            <div class="stat-label">Total Rooms</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon green">door_front</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.totalRooms }}</div>
+                <div class="stat-label">Total Rooms</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.activeExtras }}</div>
-            <div class="stat-label">Active Extras</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon orange">room_service</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.activeExtras }}</div>
+                <div class="stat-label">Active Extras</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
       </div>
@@ -54,7 +77,10 @@ import { HmsRoomType, HmsRoom, HmsExtra, HmsDashboard } from '../../core/models/
         <mat-tab label="Room Types">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>New Room Type</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>add_home</mat-icon></div>
+                <mat-card-title>New Room Type</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="roomTypeForm" (ngSubmit)="submitRoomType()">
                   <div class="form-row">
@@ -84,7 +110,11 @@ import { HmsRoomType, HmsRoom, HmsExtra, HmsDashboard } from '../../core/models/
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon orange"><mat-icon>category</mat-icon></div>
+                <mat-card-title>Room Types</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <div *ngIf="loading()" class="loading-container"><mat-spinner diameter="40"></mat-spinner></div>
                 <table mat-table [dataSource]="roomTypes()" *ngIf="!loading()">
@@ -122,7 +152,10 @@ import { HmsRoomType, HmsRoom, HmsExtra, HmsDashboard } from '../../core/models/
         <mat-tab label="Rooms">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>Add Room</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>meeting_room</mat-icon></div>
+                <mat-card-title>Add Room</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="roomForm" (ngSubmit)="submitRoom()">
                   <div class="form-row">
@@ -142,7 +175,11 @@ import { HmsRoomType, HmsRoom, HmsExtra, HmsDashboard } from '../../core/models/
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon green"><mat-icon>door_front</mat-icon></div>
+                <mat-card-title>Rooms</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="rooms()">
                   <ng-container matColumnDef="roomNumber">
@@ -171,7 +208,10 @@ import { HmsRoomType, HmsRoom, HmsExtra, HmsDashboard } from '../../core/models/
         <mat-tab label="Extras">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>Add Extra</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>room_service</mat-icon></div>
+                <mat-card-title>Add Extra</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="extraForm" (ngSubmit)="submitExtra()">
                   <div class="form-row">
@@ -198,7 +238,11 @@ import { HmsRoomType, HmsRoom, HmsExtra, HmsDashboard } from '../../core/models/
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon purple"><mat-icon>star</mat-icon></div>
+                <mat-card-title>Extras</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="extras()">
                   <ng-container matColumnDef="name">
@@ -235,18 +279,35 @@ import { HmsRoomType, HmsRoom, HmsExtra, HmsDashboard } from '../../core/models/
   `,
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-    .page-header { margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .dashboard-cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-    .stat-card { min-width: 140px; }
-    .stat-value { font-size: 1.8rem; font-weight: 700; }
-    .stat-label { font-size: 0.85rem; color: #666; }
-    .tab-content { padding: 16px 0; display: flex; flex-direction: column; gap: 16px; }
-    .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { border-radius: 12px; overflow: hidden; }
+    .stat-content { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; }
+    .stat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; border-radius: 10px; padding: 0.5rem; }
+    .stat-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .stat-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .stat-icon.orange { color: #f57c00; background: #fff3e0; }
+    .stat-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .stat-number { font-size: 1.75rem; font-weight: 700; line-height: 1; color: #1a1a1a; }
+    .stat-label { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
+    .tab-content { padding: 1.5rem 0; display: flex; flex-direction: column; gap: 1.5rem; }
+    .form-card, .list-card { border-radius: 12px; overflow: hidden; }
+    .card-avatar-icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; }
+    .card-avatar-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .card-avatar-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .card-avatar-icon.orange { color: #f57c00; background: #fff3e0; }
+    .card-avatar-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .card-avatar-icon mat-icon { font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
+    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
     .full-width { width: 100%; }
     .loading-container { display: flex; justify-content: center; padding: 24px; }
     mat-form-field { min-width: 180px; }
     table { width: 100%; }
+    @media (max-width: 768px) { .stats-row { grid-template-columns: 1fr; } }
   `],
 })
 export class HmsComponent implements OnInit {

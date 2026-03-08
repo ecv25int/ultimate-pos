@@ -40,33 +40,59 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   template: `
     <div class="page-container">
       <div class="page-header">
-        <h1>Asset Management</h1>
+        <div class="header-title">
+          <mat-icon class="header-icon">inventory</mat-icon>
+          <div>
+            <h1>Asset Management</h1>
+            <p class="subtitle">Assets, transactions &amp; maintenance records</p>
+          </div>
+        </div>
       </div>
 
       <!-- Dashboard Cards -->
-      <div class="dashboard-cards" *ngIf="dashboard()">
+      <div class="stats-row" *ngIf="dashboard()">
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.totalAssets }}</div>
-            <div class="stat-label">Total Assets</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon blue">inventory_2</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.totalAssets }}</div>
+                <div class="stat-label">Total Assets</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.allocatedCount }}</div>
-            <div class="stat-label">Allocated</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon green">person_pin</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.allocatedCount }}</div>
+                <div class="stat-label">Allocated</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
-        <mat-card class="stat-card warn">
+        <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.maintenancePending }}</div>
-            <div class="stat-label">Maintenance Pending</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon orange">build</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.maintenancePending }}</div>
+                <div class="stat-label">Maintenance Pending</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
-        <mat-card class="stat-card warn">
+        <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ dashboard()!.expiringWarranties }}</div>
-            <div class="stat-label">Warranties Expiring (30d)</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon purple">workspace_premium</mat-icon>
+              <div>
+                <div class="stat-number">{{ dashboard()!.expiringWarranties }}</div>
+                <div class="stat-label">Warranties Expiring (30d)</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
       </div>
@@ -76,7 +102,9 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         <mat-tab label="Assets">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>{{ editingAssetId() ? 'edit' : 'add_box' }}</mat-icon></div>
+                <mat-card-title>
                 {{ editingAssetId() ? 'Edit Asset' : 'New Asset' }}
               </mat-card-title></mat-card-header>
               <mat-card-content>
@@ -128,8 +156,11 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
-              <mat-card-header><mat-card-title>Assets ({{ assets().length }})</mat-card-title></mat-card-header>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon orange"><mat-icon>inventory_2</mat-icon></div>
+                <mat-card-title>Assets ({{ assets().length }})</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <div *ngIf="loading()" class="spinner-center"><mat-spinner diameter="40"></mat-spinner></div>
                 <table mat-table [dataSource]="assets()" *ngIf="!loading()" class="full-width-table">
@@ -176,7 +207,10 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         <mat-tab label="Transactions">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>Log Transaction</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>swap_horiz</mat-icon></div>
+                <mat-card-title>Log Transaction</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="txForm" (ngSubmit)="submitTransaction()">
                   <div class="form-row">
@@ -221,8 +255,11 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
-              <mat-card-header><mat-card-title>Transactions ({{ transactions().length }})</mat-card-title></mat-card-header>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon green"><mat-icon>receipt_long</mat-icon></div>
+                <mat-card-title>Transactions ({{ transactions().length }})</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="transactions()" class="full-width-table">
                   <ng-container matColumnDef="refNo">
@@ -257,7 +294,10 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         <mat-tab label="Maintenances">
           <div class="tab-content">
             <mat-card class="form-card">
-              <mat-card-header><mat-card-title>New Maintenance</mat-card-title></mat-card-header>
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon blue"><mat-icon>build_circle</mat-icon></div>
+                <mat-card-title>New Maintenance</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <form [formGroup]="maintForm" (ngSubmit)="submitMaintenance()">
                   <div class="form-row">
@@ -291,8 +331,11 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
               </mat-card-content>
             </mat-card>
 
-            <mat-card>
-              <mat-card-header><mat-card-title>Maintenances ({{ maintenances().length }})</mat-card-title></mat-card-header>
+            <mat-card class="list-card">
+              <mat-card-header>
+                <div mat-card-avatar class="card-avatar-icon purple"><mat-icon>handyman</mat-icon></div>
+                <mat-card-title>Maintenances ({{ maintenances().length }})</mat-card-title>
+              </mat-card-header>
               <mat-card-content>
                 <table mat-table [dataSource]="maintenances()" class="full-width-table">
                   <ng-container matColumnDef="assetId">
@@ -329,20 +372,36 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   `,
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-    .page-header { margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .dashboard-cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-    .stat-card { min-width: 140px; }
-    .stat-card.warn .stat-value { color: #f57c00; }
-    .stat-value { font-size: 32px; font-weight: 700; }
-    .stat-label { font-size: 13px; color: #666; }
-    .tab-content { padding: 24px 0; display: flex; flex-direction: column; gap: 24px; }
-    .form-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { border-radius: 12px; overflow: hidden; }
+    .stat-content { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; }
+    .stat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; border-radius: 10px; padding: 0.5rem; }
+    .stat-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .stat-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .stat-icon.orange { color: #f57c00; background: #fff3e0; }
+    .stat-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .stat-number { font-size: 1.75rem; font-weight: 700; line-height: 1; color: #1a1a1a; }
+    .stat-label { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
+    .tab-content { padding: 1.5rem 0; display: flex; flex-direction: column; gap: 1.5rem; }
+    .form-card, .list-card { border-radius: 12px; overflow: hidden; }
+    .card-avatar-icon { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; }
+    .card-avatar-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .card-avatar-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .card-avatar-icon.orange { color: #f57c00; background: #fff3e0; }
+    .card-avatar-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .card-avatar-icon mat-icon { font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
+    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
     .form-row mat-form-field { flex: 1; min-width: 160px; }
     .full-width { width: 100%; }
     .full-width-table { width: 100%; }
-    .form-actions { display: flex; gap: 12px; margin-top: 16px; }
+    .form-actions { display: flex; gap: 12px; margin-top: 1rem; }
     .spinner-center { display: flex; justify-content: center; padding: 32px; }
+    @media (max-width: 768px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
   `],
 })
 export class AssetManagementComponent implements OnInit {

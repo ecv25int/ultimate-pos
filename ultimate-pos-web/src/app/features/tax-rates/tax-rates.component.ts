@@ -171,12 +171,11 @@ import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader
                     matInput
                     type="number"
                     formControlName="rate"
-                    placeholder="e.g. 20"
+                    placeholder="e.g. 20 (0–100)"
                     min="0"
                     max="100"
                     step="0.01"
                   />
-                  <mat-hint>Enter value (0–100)</mat-hint>
                   @if (taxForm.get('rate')?.errors?.['required'] && taxForm.get('rate')?.touched) {
                     <mat-error>Rate is required</mat-error>
                   }
@@ -443,18 +442,21 @@ import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader
       font-size: 26px;
       width: 26px;
       height: 26px;
-      color: white;
     }
-    .blue   { background: linear-gradient(135deg, #1976d2, #42a5f5); }
-    .green  { background: linear-gradient(135deg, #43a047, #66bb6a); }
-    .orange { background: linear-gradient(135deg, #f57c00, #ffb74d); }
-    .purple { background: linear-gradient(135deg, #7b1fa2, #ba68c8); }
+    .blue   { background: #e3f2fd; }
+    .blue mat-icon   { color: #1976d2; }
+    .green  { background: #e8f5e9; }
+    .green mat-icon  { color: #388e3c; }
+    .orange { background: #fff3e0; }
+    .orange mat-icon { color: #f57c00; }
+    .purple { background: #f3e5f5; }
+    .purple mat-icon { color: #7b1fa2; }
 
     .stat-body { display: flex; flex-direction: column; overflow: hidden; }
     .stat-value {
-      font-size: 1.35rem;
+      font-size: 1.75rem;
       font-weight: 700;
-      color: #1a1a2e;
+      color: #1a1a1a;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -488,19 +490,20 @@ import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader
       box-shadow: 0 0 0 2px #1976d2 !important;
     }
     .form-card-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #1976d2, #42a5f5);
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #e3f2fd;
       display: flex;
       align-items: center;
       justify-content: center;
       margin-right: 12px;
     }
     .form-card-icon.edit-mode {
-      background: linear-gradient(135deg, #f57c00, #ffb74d);
+      background: #fff3e0;
     }
-    .form-card-icon mat-icon { color: white; font-size: 20px; width: 20px; height: 20px; }
+    .form-card-icon mat-icon { color: #1976d2; font-size: 22px; width: 22px; height: 22px; }
+    .form-card-icon.edit-mode mat-icon { color: #f57c00; }
 
     .tax-form { padding-top: 1rem; }
     .full-width { width: 100%; }
