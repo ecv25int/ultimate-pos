@@ -589,12 +589,12 @@ import {
     </div>
   `,
   styles: [`
-    .page-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
-    .page-header { display: flex; align-items: center; margin-bottom: 20px; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { display: flex; align-items: center; margin-bottom: 1.5rem; }
     .header-left { display: flex; align-items: center; gap: 12px; }
-    .header-icon { font-size: 36px; width: 36px; height: 36px; color: #1976d2; }
-    h1 { margin: 0; font-size: 24px; }
-    .subtitle { margin: 0; color: #666; font-size: 14px; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
     .tab-content { padding: 16px 0; }
     .two-column-layout { display: grid; grid-template-columns: 380px 1fr; gap: 16px; }
     .form-card { height: fit-content; }

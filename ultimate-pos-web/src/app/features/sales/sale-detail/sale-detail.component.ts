@@ -191,10 +191,10 @@ import { Sale } from '../../../core/models/sale.model';
     </ng-template>
   `,
   styles: [`
-    .page-container { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     .page-header > div:first-child { display: flex; align-items: center; gap: 12px; }
-    .page-header h1 { margin: 0; font-size: 1.6rem; }
+    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .badge { padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 500; text-transform: capitalize; }
     .badge-draft { background: #f5f5f5; color: #666; }
     .badge-final { background: #e3f2fd; color: #1565c0; }

@@ -154,7 +154,7 @@ interface BarcodeItem {
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
     .page-header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; }
     .subtitle { margin: 0; color: #6b7280; font-size: 14px; }

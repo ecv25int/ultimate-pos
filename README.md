@@ -19,7 +19,7 @@ A full-featured Point of Sale system built with **NestJS** (API) and **Angular**
 ## Project Structure
 
 ```
-well-known/
+ultimate-pos/
 ├── ultimate-pos-api/     ← NestJS REST API (port 3000)
 ├── ultimate-pos-web/     ← Angular SPA (port 4200)
 └── .github/workflows/    ← CI/CD (GitHub Actions)

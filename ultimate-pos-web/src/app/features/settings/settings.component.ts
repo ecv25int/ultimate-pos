@@ -143,6 +143,10 @@ import { RouterModule } from '@angular/router';
     </div>
   `,
   styles: [`
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { margin-bottom: 1.5rem; }
+    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .page-header p { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
     .settings-nav {
       display: flex;
       gap: 16px;
@@ -154,18 +158,18 @@ import { RouterModule } from '@angular/router';
       align-items: center;
       gap: 16px;
       padding: 16px 24px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
       text-decoration: none;
       color: inherit;
       background: #fff;
       min-width: 220px;
       cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     }
     .settings-card:hover, .settings-card.active {
-      border-color: #5c6bc0;
-      background: #f0f1fa;
+      border-color: #1976d2;
+      background: #e3f2fd;
     }
     .settings-card .icon {
       font-size: 24px;

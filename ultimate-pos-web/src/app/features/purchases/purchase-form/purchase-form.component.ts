@@ -150,9 +150,9 @@ interface LineItem extends CreatePurchaseLineDto {
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; max-width: 1100px; margin: 0 auto; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-    .page-header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .page-header p { margin: 0; color: #6b7280; }
     .form-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
     .section-title { font-size: 16px; font-weight: 600; margin: 0 0 16px; }

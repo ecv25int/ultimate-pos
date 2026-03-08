@@ -141,8 +141,8 @@ const API = '/api';
   `,
   styles: [`
     .cash-drawer-container {
-      padding: 24px;
-      max-width: 700px;
+      padding: 1.5rem;
+      max-width: 1400px;
       margin: 0 auto;
     }
     .page-title {
@@ -150,13 +150,14 @@ const API = '/api';
       align-items: center;
       gap: 8px;
       margin: 0 0 8px;
-      font-size: 22px;
-      font-weight: 500;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #1a1a1a;
     }
     .subtitle {
       color: #666;
-      margin: 0 0 24px;
-      font-size: 14px;
+      margin: 0 0 1.5rem;
+      font-size: 0.9rem;
     }
     .loading-center {
       display: flex;

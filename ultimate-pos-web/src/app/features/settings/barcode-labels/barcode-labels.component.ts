@@ -137,8 +137,9 @@ import {
     </div>
   `,
   styles: [`
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .form-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .section-header h2 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .form-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 1.5rem; }
     .form-row { display: flex; gap: 16px; flex-wrap: wrap; }
     .form-group { flex: 1; min-width: 160px; margin-bottom: 12px; }
     .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #374151; }
@@ -146,7 +147,7 @@ import {
     .form-check { display: flex; align-items: center; }
     .form-actions { display: flex; gap: 8px; margin-top: 8px; }
     .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
-    .btn-primary { background: #5c6bc0; color: white; }
+    .btn-primary { background: #1976d2; color: white; }
     .btn-secondary { background: #e5e7eb; color: #374151; }
     .btn-danger { background: #ef4444; color: white; }
     .btn-sm { padding: 4px 10px; font-size: 12px; }

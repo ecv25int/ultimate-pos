@@ -1,287 +1,495 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
+import {
+  Component,
+  inject,
+  OnInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
-import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Auth } from '../../core/auth/auth';
-import { AuthService } from '../../core/services/auth.service';
 import { RoleService } from '../../core/services/role.service';
-import { HasRoleDirective } from '../../core/directives/has-role.directive';
-import { UserRole } from '../../core/enums/user-role.enum';
+import { SalesService } from '../../core/services/sales.service';
+import { ExpensesService } from '../../core/services/expenses.service';
+import { CashRegisterService } from '../../core/services/cash-register.service';
+import { ProductService } from '../../core/services/product.service';
+import { SaleSummary, SaleListItem } from '../../core/models/sale.model';
+import { ExpenseSummary } from '../../core/models/expense.model';
+import { CashRegisterSummary } from '../../core/models/cash-register.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    MatCardModule,
+    RouterModule,
+    CurrencyPipe,
+    DatePipe,
     MatButtonModule,
-    MatListModule,
     MatIconModule,
-    MatChipsModule,
-    MatSnackBarModule,
-    HasRoleDirective,
+    MatTableModule,
+    MatProgressSpinnerModule,
   ],
   template: `
     <div class="dashboard-container">
-      <h1>Dashboard</h1>
 
-      <mat-card class="user-info-card">
-        <mat-card-header>
-          <mat-card-title>Welcome, {{ currentUser?.firstName || currentUser?.username }}!</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          @if (currentUser) {
-            <div class="user-details">
-              <p><strong>Username:</strong> {{ currentUser.username }}</p>
-              <p><strong>Email:</strong> {{ currentUser.email }}</p>
-              <p>
-                <strong>Role:</strong>
-                <mat-chip [class]="'role-chip-' + currentUser.userType">
-                  {{ currentUser.userType | uppercase }}
-                </mat-chip>
-              </p>
-            </div>
-          }
-        </mat-card-content>
-        <mat-card-actions>
-          <button mat-raised-button color="warn" (click)="logout()">
-            Logout
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="subtitle">Welcome back, {{ currentUser?.firstName || currentUser?.username }}!</p>
+        </div>
+        <div class="header-actions">
+          <button mat-stroked-button routerLink="/pos">
+            <mat-icon>shopping_cart</mat-icon> New Sale
           </button>
-        </mat-card-actions>
-      </mat-card>
-
-      <div class="role-demo-section">
-        <h2>Role-Based Access Control Demo</h2>
-
-        <!-- Admin Only Section -->
-        <mat-card *appHasRole="UserRole.ADMIN" class="role-card admin-card">
-          <mat-card-header>
-            <mat-icon mat-card-avatar>admin_panel_settings</mat-icon>
-            <mat-card-title>Admin Only Section</mat-card-title>
-            <mat-card-subtitle>Only visible to Admin users</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <p>This content is only visible to administrators.</p>
-            <button mat-raised-button color="primary" (click)="testAdminEndpoint()">
-              Test Admin-Only API
-            </button>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Admin or Manager Section -->
-        <mat-card *appHasRole="[UserRole.ADMIN, UserRole.MANAGER]" class="role-card manager-card">
-          <mat-card-header>
-            <mat-icon mat-card-avatar>manage_accounts</mat-icon>
-            <mat-card-title>Admin or Manager Section</mat-card-title>
-            <mat-card-subtitle>Visible to Admin and Manager users</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <p>This content is visible to admins and managers.</p>
-            <button mat-raised-button color="accent" (click)="testManagerEndpoint()">
-              Test Admin/Manager API
-            </button>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Everyone Section -->
-        <mat-card class="role-card public-card">
-          <mat-card-header>
-            <mat-icon mat-card-avatar>public</mat-icon>
-            <mat-card-title>Public Section</mat-card-title>
-            <mat-card-subtitle>Visible to all authenticated users</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <p>This content is visible to all authenticated users regardless of role.</p>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Cashier Only Section -->
-        <mat-card *appHasRole="UserRole.CASHIER" class="role-card cashier-card">
-          <mat-card-header>
-            <mat-icon mat-card-avatar>point_of_sale</mat-icon>
-            <mat-card-title>Cashier Section</mat-card-title>
-            <mat-card-subtitle>Only visible to Cashier users</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <p>This content is only visible to cashiers.</p>
-          </mat-card-content>
-        </mat-card>
+          <button mat-stroked-button routerLink="/products/create">
+            <mat-icon>add_box</mat-icon> Add Product
+          </button>
+          <button mat-raised-button color="primary" routerLink="/expenses/create">
+            <mat-icon>add_card</mat-icon> New Expense
+          </button>
+        </div>
       </div>
 
-      <mat-card class="info-card">
-        <mat-card-header>
-          <mat-card-title>Role Hierarchy</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-list>
-            <mat-list-item>
-              <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
-              <div matListItemTitle><strong>Admin</strong></div>
-              <div matListItemLine>Full system access, user management, business configuration</div>
-            </mat-list-item>
-            <mat-list-item>
-              <mat-icon matListItemIcon>manage_accounts</mat-icon>
-              <div matListItemTitle><strong>Manager</strong></div>
-              <div matListItemLine>Reports, inventory management, employee oversight</div>
-            </mat-list-item>
-            <mat-list-item>
-              <mat-icon matListItemIcon>point_of_sale</mat-icon>
-              <div matListItemTitle><strong>Cashier</strong></div>
-              <div matListItemLine>POS operations, sales transactions, customer management</div>
-            </mat-list-item>
-            <mat-list-item>
-              <mat-icon matListItemIcon>person</mat-icon>
-              <div matListItemTitle><strong>User</strong></div>
-              <div matListItemLine>Basic access, view-only permissions</div>
-            </mat-list-item>
-          </mat-list>
-        </mat-card-content>
-      </mat-card>
+      <!-- Loading -->
+      @if (isLoading) {
+        <div class="loading-state">
+          <mat-spinner diameter="36"></mat-spinner>
+          <span>Loading dashboard…</span>
+        </div>
+      }
+
+      @if (!isLoading) {
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-icon blue"><mat-icon>attach_money</mat-icon></span>
+            <div class="stat-body">
+              <span class="stat-value">{{ (saleSummary?.totalRevenue ?? 0) | currency }}</span>
+              <span class="stat-label">Total Revenue</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon green"><mat-icon>receipt</mat-icon></span>
+            <div class="stat-body">
+              <span class="stat-value">{{ saleSummary?.totalSales ?? 0 }}</span>
+              <span class="stat-label">Total Sales</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon orange"><mat-icon>payments</mat-icon></span>
+            <div class="stat-body">
+              <span class="stat-value">{{ (saleSummary?.outstanding ?? 0) | currency }}</span>
+              <span class="stat-label">Outstanding</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon purple"><mat-icon>receipt_long</mat-icon></span>
+            <div class="stat-body">
+              <span class="stat-value">{{ (expenseSummary?.totalAmount ?? 0) | currency }}</span>
+              <span class="stat-label">Total Expenses</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon teal"><mat-icon>inventory_2</mat-icon></span>
+            <div class="stat-body">
+              <span class="stat-value">{{ productCount }}</span>
+              <span class="stat-label">Products</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon green"><mat-icon>point_of_sale</mat-icon></span>
+            <div class="stat-body">
+              <span class="stat-value">{{ cashSummary?.openSessions ?? 0 }}</span>
+              <span class="stat-label">Open Registers</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon blue"><mat-icon>account_balance_wallet</mat-icon></span>
+            <div class="stat-body">
+              <span class="stat-value">{{ (saleSummary?.totalCollected ?? 0) | currency }}</span>
+              <span class="stat-label">Collected</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon teal"><mat-icon>savings</mat-icon></span>
+            <div class="stat-body">
+              <span class="stat-value">{{ (cashSummary?.totalOpenFloat ?? 0) | currency }}</span>
+              <span class="stat-label">Cash Float</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Sales -->
+        <div class="section">
+          <div class="section-header">
+            <h2>Recent Sales</h2>
+            <a routerLink="/sales" class="view-all-link">View all <mat-icon>chevron_right</mat-icon></a>
+          </div>
+
+          @if (recentSales.length === 0) {
+            <div class="empty-state">
+              <mat-icon>receipt_long</mat-icon>
+              <p>No sales recorded yet.</p>
+              <button mat-raised-button color="primary" routerLink="/pos">Make a Sale</button>
+            </div>
+          } @else {
+            <div class="table-container">
+              <table mat-table [dataSource]="recentSales" class="data-table">
+                <ng-container matColumnDef="invoice">
+                  <th mat-header-cell *matHeaderCellDef>Invoice</th>
+                  <td mat-cell *matCellDef="let s">
+                    <span class="badge badge-blue">{{ s.invoiceNo }}</span>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef>Date</th>
+                  <td mat-cell *matCellDef="let s">{{ s.transactionDate | date:'mediumDate' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="contact">
+                  <th mat-header-cell *matHeaderCellDef>Customer</th>
+                  <td mat-cell *matCellDef="let s">{{ s.contact?.name ?? '—' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef>Status</th>
+                  <td mat-cell *matCellDef="let s">
+                    <span [class]="'badge badge-' + s.status">{{ s.status }}</span>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="payment">
+                  <th mat-header-cell *matHeaderCellDef>Payment</th>
+                  <td mat-cell *matCellDef="let s">
+                    <span [class]="'badge badge-pay-' + s.paymentStatus">{{ s.paymentStatus }}</span>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="amount">
+                  <th mat-header-cell *matHeaderCellDef class="col-right">Amount</th>
+                  <td mat-cell *matCellDef="let s" class="col-right amount-cell">{{ s.totalAmount | currency }}</td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="saleColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: saleColumns;"></tr>
+              </table>
+            </div>
+          }
+        </div>
+
+        <!-- Top Expense Categories -->
+        @if ((expenseSummary?.topCategories?.length ?? 0) > 0) {
+          <div class="section">
+            <div class="section-header">
+              <h2>Top Expense Categories</h2>
+              <a routerLink="/expenses" class="view-all-link">View all <mat-icon>chevron_right</mat-icon></a>
+            </div>
+            <div class="category-list">
+              @for (cat of expenseSummary?.topCategories; track cat.expenseCategoryId) {
+                <div class="category-row">
+                  <span class="category-name">{{ cat.categoryName ?? 'Uncategorized' }}</span>
+                  <div class="category-bar-wrap">
+                    <div class="category-bar" [style.width]="categoryBarWidth(cat._sum.totalAmount ?? 0) + '%'"></div>
+                  </div>
+                  <span class="category-amount">{{ (cat._sum.totalAmount ?? 0) | currency }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+      }
     </div>
   `,
-  styles: [
-    `
-      .dashboard-container {
-        padding: 2rem;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
+  styles: [`
+    .dashboard-container {
+      padding: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
 
-      h1 {
-        color: #333;
-        margin-bottom: 2rem;
-      }
+    /* ── Header ── */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
 
-      h2 {
-        color: #555;
-        margin: 2rem 0 1rem 0;
-      }
+    /* ── Loading ── */
+    .loading-state {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 3rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
 
-      .user-info-card {
-        margin-bottom: 2rem;
-      }
+    /* ── Stats Grid ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: #e2e8f0;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .stat-item {
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+    }
+    .stat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .stat-icon mat-icon { font-size: 22px; width: 22px; height: 22px; }
+    .stat-icon.blue   { background: #e3f2fd; color: #1976d2; }
+    .stat-icon.green  { background: #e8f5e9; color: #388e3c; }
+    .stat-icon.orange { background: #fff3e0; color: #f57c00; }
+    .stat-icon.purple { background: #f3e5f5; color: #7b1fa2; }
+    .stat-icon.teal   { background: #e0f2f1; color: #00796b; }
 
-      .user-details {
-        p {
-          margin: 0.5rem 0;
-          font-size: 1rem;
-        }
-      }
+    .stat-body { display: flex; flex-direction: column; min-width: 0; }
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      color: #888;
+      margin-top: 2px;
+    }
 
-      .role-chip-admin {
-        background-color: #f44336 !important;
-        color: white !important;
-      }
+    /* ── Section ── */
+    .section {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .section-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .view-all-link {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.85rem;
+      color: #1976d2;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .view-all-link mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    .view-all-link:hover { text-decoration: underline; }
 
-      .role-chip-manager {
-        background-color: #2196f3 !important;
-        color: white !important;
-      }
+    /* ── Table ── */
+    .table-container { overflow-x: auto; }
+    .data-table { width: 100%; }
+    .data-table th {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .data-table td {
+      font-size: 0.875rem;
+      color: #1a1a1a;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .col-right { text-align: right !important; }
+    .amount-cell { font-weight: 600; }
 
-      .role-chip-cashier {
-        background-color: #4caf50 !important;
-        color: white !important;
-      }
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-blue       { background: #e3f2fd; color: #1565c0; }
+    .badge-final,
+    .badge-completed  { background: #e8f5e9; color: #2e7d32; }
+    .badge-draft      { background: #f5f5f5; color: #555; }
+    .badge-pending    { background: #fff8e1; color: #f57f17; }
+    .badge-pay-paid   { background: #e8f5e9; color: #2e7d32; }
+    .badge-pay-due    { background: #fff3e0; color: #e65100; }
+    .badge-pay-partial{ background: #fff8e1; color: #f57f17; }
+    .badge-pay-overdue{ background: #ffebee; color: #c62828; }
 
-      .role-chip-user {
-        background-color: #9e9e9e !important;
-        color: white !important;
-      }
+    /* ── Empty state ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem;
+      gap: 0.5rem;
+      color: #9e9e9e;
+    }
+    .empty-state mat-icon { font-size: 3rem; width: 3rem; height: 3rem; }
+    .empty-state p { margin: 0; font-size: 0.9rem; }
 
-      .role-demo-section {
-        margin: 2rem 0;
-      }
+    /* ── Category bars ── */
+    .category-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .category-row {
+      display: grid;
+      grid-template-columns: 180px 1fr 110px;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.875rem 1.5rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .category-row:last-child { border-bottom: none; }
+    .category-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #1a1a1a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .category-bar-wrap {
+      background: #f0f0f0;
+      border-radius: 4px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .category-bar {
+      height: 100%;
+      background: #1976d2;
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+    .category-amount {
+      text-align: right;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
 
-      .role-card {
-        margin-bottom: 1rem;
-      }
-
-      .admin-card {
-        border-left: 4px solid #f44336;
-      }
-
-      .manager-card {
-        border-left: 4px solid #2196f3;
-      }
-
-      .cashier-card {
-        border-left: 4px solid #4caf50;
-      }
-
-      .public-card {
-        border-left: 4px solid #9e9e9e;
-      }
-
-      mat-card-header mat-icon {
-        font-size: 32px;
-        width: 32px;
-        height: 32px;
-      }
-
-      .info-card {
-        margin-top: 2rem;
-      }
-
-      mat-list-item {
-        margin-bottom: 1rem;
-      }
-
-      @media (max-width: 768px) {
-        .dashboard-container {
-          padding: 1rem;
-        }
-      }
-    `,
-  ],
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .dashboard-container { padding: 1rem; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .category-row { grid-template-columns: 120px 1fr 80px; gap: 0.5rem; }
+    }
+  `],
 })
 export class DashboardComponent implements OnInit {
   private authService = inject(Auth);
   private roleService = inject(RoleService);
-  private apiAuth = inject(AuthService);
-  private snackBar = inject(MatSnackBar);
+  private salesService = inject(SalesService);
+  private expensesService = inject(ExpensesService);
+  private cashRegisterService = inject(CashRegisterService);
+  private productService = inject(ProductService);
+  private cdr = inject(ChangeDetectorRef);
 
-  UserRole = UserRole;
   currentUser = this.authService.getCurrentUser();
 
+  isLoading = true;
+  saleSummary: SaleSummary | null = null;
+  expenseSummary: ExpenseSummary | null = null;
+  cashSummary: CashRegisterSummary | null = null;
+  productCount = 0;
+  recentSales: SaleListItem[] = [];
+
+  saleColumns = ['invoice', 'date', 'contact', 'status', 'payment', 'amount'];
+
   ngOnInit(): void {
-    this.roleService.loadCurrentUser();
+    this.roleService.refreshUser();
+    this.loadDashboardData();
   }
 
-  logout() {
-    this.authService.logout();
-  }
-
-  testAdminEndpoint(): void {
-    this.apiAuth.adminOnly().subscribe({
-      next: (response: any) => {
-        this.snackBar.open(response.message, 'Close', { duration: 3000 });
+  private loadDashboardData(): void {
+    forkJoin({
+      sales: this.salesService.getSummary(),
+      expenses: this.expensesService.getSummary(),
+      cash: this.cashRegisterService.getSummary(),
+      products: this.productService.getAllProducts(),
+      recentSales: this.salesService.getSales({ limit: 5, page: 1 }),
+    }).subscribe({
+      next: ({ sales, expenses, cash, products, recentSales }) => {
+        this.saleSummary = sales;
+        this.expenseSummary = expenses;
+        this.cashSummary = cash;
+        this.productCount = products.length;
+        this.recentSales = recentSales.data;
+        this.isLoading = false;
+        this.cdr.markForCheck();
       },
-      error: (error) => {
-        this.snackBar.open(
-          error.error?.message || 'Access denied',
-          'Close',
-          { duration: 3000 }
-        );
+      error: () => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
       },
     });
   }
 
-  testManagerEndpoint(): void {
-    this.apiAuth.adminOrManager().subscribe({
-      next: (response: any) => {
-        this.snackBar.open(response.message, 'Close', { duration: 3000 });
-      },
-      error: (error) => {
-        this.snackBar.open(
-          error.error?.message || 'Access denied',
-          'Close',
-          { duration: 3000 }
-        );
-      },
-    });
+  categoryBarWidth(amount: number): number {
+    const max = Math.max(
+      ...(this.expenseSummary?.topCategories?.map(c => c._sum.totalAmount ?? 0) ?? [1]),
+      1
+    );
+    return Math.round((amount / max) * 100);
   }
 }

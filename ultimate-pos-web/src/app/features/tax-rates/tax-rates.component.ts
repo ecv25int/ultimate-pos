@@ -1,4 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {
@@ -7,6 +13,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,15 +27,16 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { FormsModule } from '@angular/forms';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TaxRatesService } from '../../core/services/tax-rates.service';
 import { TaxRate, CreateTaxRateDto } from '../../core/models/tax-rate.model';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
+import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
 
 @Component({
   selector: 'app-tax-rates',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     RouterModule,
@@ -47,81 +55,173 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
     MatTooltipModule,
     MatChipsModule,
     MatDividerModule,
+    MatDialogModule,
+    SkeletonLoaderComponent,
   ],
   template: `
     <div class="page-container">
+
       <!-- Page Header -->
       <div class="page-header">
         <div class="header-left">
           <mat-icon class="header-icon">percent</mat-icon>
           <div>
-            <h1>Tax Rates</h1>
-            <p class="subtitle">Manage tax rates applied to products and invoices</p>
+            <h1 class="page-title">Tax Rates</h1>
+            <p class="page-subtitle">Manage tax rates applied to products and invoices</p>
           </div>
         </div>
       </div>
 
+      <!-- Stats Row -->
+      @if (isLoading) {
+        <div class="stats-row">
+          @for (_ of [1,2,3,4]; track $index) {
+            <mat-card class="stat-card">
+              <mat-card-content>
+                <app-skeleton-loader [rows]="2" />
+              </mat-card-content>
+            </mat-card>
+          }
+        </div>
+      } @else {
+        <div class="stats-row">
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon-wrap blue">
+                <mat-icon>format_list_numbered</mat-icon>
+              </div>
+              <div class="stat-body">
+                <span class="stat-value">{{ taxRates.length }}</span>
+                <span class="stat-label">Total Rates</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon-wrap green">
+                <mat-icon>check_circle</mat-icon>
+              </div>
+              <div class="stat-body">
+                <span class="stat-value">{{ activeCount }}</span>
+                <span class="stat-label">Active Rates</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon-wrap orange">
+                <mat-icon>star</mat-icon>
+              </div>
+              <div class="stat-body">
+                <span class="stat-value">{{ defaultRate?.name ?? 'None' }}</span>
+                <span class="stat-label">Default Rate</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon-wrap purple">
+                <mat-icon>pie_chart</mat-icon>
+              </div>
+              <div class="stat-body">
+                <span class="stat-value">{{ percentageCount }} / {{ fixedCount }}</span>
+                <span class="stat-label">% Types / Fixed Types</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      }
+
       <div class="two-column-layout">
+
         <!-- Add / Edit Form -->
-        <mat-card class="form-card">
+        <mat-card class="form-card" [class.editing]="!!editingRate">
           <mat-card-header>
-            <mat-icon mat-card-avatar>{{ editingRate ? 'edit' : 'add_circle' }}</mat-icon>
+            <div class="form-card-icon" [class.edit-mode]="!!editingRate">
+              <mat-icon>{{ editingRate ? 'edit' : 'add_circle' }}</mat-icon>
+            </div>
             <mat-card-title>{{ editingRate ? 'Edit Tax Rate' : 'Add Tax Rate' }}</mat-card-title>
+            @if (editingRate) {
+              <mat-card-subtitle>Editing: <strong>{{ editingRate.name }}</strong></mat-card-subtitle>
+            }
           </mat-card-header>
+
+          <mat-divider></mat-divider>
+
           <mat-card-content>
-            <form [formGroup]="taxForm" (ngSubmit)="save()">
+            <form [formGroup]="taxForm" (ngSubmit)="save()" class="tax-form">
 
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Name *</mat-label>
+                <mat-label>Name</mat-label>
+                <mat-icon matPrefix>label</mat-icon>
                 <input matInput formControlName="name" placeholder="e.g. VAT 20%" />
-                <mat-error *ngIf="taxForm.get('name')?.invalid && taxForm.get('name')?.touched">
-                  Name is required
-                </mat-error>
+                @if (taxForm.get('name')?.invalid && taxForm.get('name')?.touched) {
+                  <mat-error>Name is required</mat-error>
+                }
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Rate *</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  formControlName="rate"
-                  placeholder="e.g. 20"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                />
-                <mat-hint>Enter percentage value (e.g. 20 for 20%)</mat-hint>
-                <mat-error *ngIf="taxForm.get('rate')?.errors?.['required'] && taxForm.get('rate')?.touched">
-                  Rate is required
-                </mat-error>
-                <mat-error *ngIf="taxForm.get('rate')?.errors?.['min'] && taxForm.get('rate')?.touched">
-                  Rate must be ≥ 0
-                </mat-error>
-                <mat-error *ngIf="taxForm.get('rate')?.errors?.['max'] && taxForm.get('rate')?.touched">
-                  Rate must be ≤ 100
-                </mat-error>
-              </mat-form-field>
+              <div class="rate-row">
+                <mat-form-field appearance="outline" class="rate-field">
+                  <mat-label>Rate</mat-label>
+                  <mat-icon matPrefix>calculate</mat-icon>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="rate"
+                    placeholder="e.g. 20"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                  />
+                  <mat-hint>Enter value (0–100)</mat-hint>
+                  @if (taxForm.get('rate')?.errors?.['required'] && taxForm.get('rate')?.touched) {
+                    <mat-error>Rate is required</mat-error>
+                  }
+                  @if (taxForm.get('rate')?.errors?.['min'] && taxForm.get('rate')?.touched) {
+                    <mat-error>Rate must be ≥ 0</mat-error>
+                  }
+                  @if (taxForm.get('rate')?.errors?.['max'] && taxForm.get('rate')?.touched) {
+                    <mat-error>Rate must be ≤ 100</mat-error>
+                  }
+                </mat-form-field>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Type</mat-label>
-                <mat-select formControlName="type">
-                  <mat-option value="percentage">Percentage (%)</mat-option>
-                  <mat-option value="fixed">Fixed Amount</mat-option>
-                </mat-select>
-              </mat-form-field>
+                <mat-form-field appearance="outline" class="type-field">
+                  <mat-label>Type</mat-label>
+                  <mat-select formControlName="type">
+                    <mat-option value="percentage">
+                      <mat-icon>percent</mat-icon> Percentage (%)
+                    </mat-option>
+                    <mat-option value="fixed">
+                      <mat-icon>attach_money</mat-icon> Fixed Amount
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
 
-              <div class="toggle-row">
-                <mat-slide-toggle formControlName="isDefault" color="accent">
-                  Set as Default Tax Rate
-                </mat-slide-toggle>
-                <mat-slide-toggle formControlName="isActive" color="primary">
-                  Active
-                </mat-slide-toggle>
+              <div class="toggles-card">
+                <div class="toggle-item">
+                  <div class="toggle-label">
+                    <mat-icon>star</mat-icon>
+                    <span>Default Rate</span>
+                  </div>
+                  <mat-slide-toggle formControlName="isDefault" color="accent"></mat-slide-toggle>
+                </div>
+                <mat-divider></mat-divider>
+                <div class="toggle-item">
+                  <div class="toggle-label">
+                    <mat-icon>toggle_on</mat-icon>
+                    <span>Active</span>
+                  </div>
+                  <mat-slide-toggle formControlName="isActive" color="primary"></mat-slide-toggle>
+                </div>
               </div>
 
               <div class="form-actions">
                 @if (editingRate) {
-                  <button type="button" mat-button (click)="cancelEdit()">
+                  <button type="button" mat-stroked-button (click)="cancelEdit()">
                     <mat-icon>close</mat-icon> Cancel
                   </button>
                 }
@@ -130,13 +230,14 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
                   mat-raised-button
                   color="primary"
                   [disabled]="isSubmitting || taxForm.invalid"
+                  class="submit-btn"
                 >
                   @if (isSubmitting) {
-                    <mat-spinner diameter="18"></mat-spinner>
+                    <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
                   } @else {
                     <mat-icon>{{ editingRate ? 'save' : 'add' }}</mat-icon>
                   }
-                  {{ editingRate ? 'Update' : 'Add Tax Rate' }}
+                  {{ editingRate ? 'Update Rate' : 'Add Tax Rate' }}
                 </button>
               </div>
             </form>
@@ -146,75 +247,106 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         <!-- Tax Rates List -->
         <mat-card class="list-card">
           <mat-card-header>
-            <mat-card-title>Tax Rates ({{ taxRates.length }})</mat-card-title>
-            <div class="card-header-actions">
-              <mat-slide-toggle
-                [(ngModel)]="includeInactive"
-                (change)="loadTaxRates()"
-                color="accent"
-              >
-                Show inactive
-              </mat-slide-toggle>
-            </div>
+            <mat-icon mat-card-avatar class="list-header-icon">list</mat-icon>
+            <mat-card-title>Tax Rates
+              <span class="count-badge">{{ filteredRates.length }}</span>
+            </mat-card-title>
           </mat-card-header>
-          <mat-card-content>
 
+          <mat-divider></mat-divider>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Search rates</mat-label>
+              <mat-icon matPrefix>search</mat-icon>
+              <input matInput [(ngModel)]="searchTerm" placeholder="Filter by name…" />
+              @if (searchTerm) {
+                <button matSuffix mat-icon-button (click)="searchTerm = ''" matTooltip="Clear">
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+            </mat-form-field>
+
+            <mat-slide-toggle
+              [(ngModel)]="includeInactive"
+              (change)="loadTaxRates()"
+              color="accent"
+              class="inactive-toggle"
+            >
+              Show inactive
+            </mat-slide-toggle>
+          </div>
+
+          <mat-card-content>
             @if (isLoading) {
-              <div class="center-spinner">
-                <mat-spinner diameter="40"></mat-spinner>
+              <div class="skeleton-wrap">
+                @for (_ of [1,2,3,4]; track $index) {
+                  <app-skeleton-loader [rows]="2" />
+                  <mat-divider></mat-divider>
+                }
               </div>
             } @else if (taxRates.length === 0) {
               <div class="empty-state">
                 <mat-icon>percent</mat-icon>
-                <p>No tax rates found. Add your first one!</p>
+                <p>No tax rates found</p>
+                <span>Add your first tax rate using the form</span>
+              </div>
+            } @else if (filteredRates.length === 0) {
+              <div class="empty-state">
+                <mat-icon>search_off</mat-icon>
+                <p>No rates match "{{ searchTerm }}"</p>
+                <button mat-stroked-button (click)="searchTerm = ''">Clear Search</button>
               </div>
             } @else {
-              <table mat-table [dataSource]="taxRates" class="full-width-table">
+              <table mat-table [dataSource]="filteredRates" class="rates-table">
 
-                <!-- Name Column -->
                 <ng-container matColumnDef="name">
                   <th mat-header-cell *matHeaderCellDef>Name</th>
                   <td mat-cell *matCellDef="let row">
-                    <strong>{{ row.name }}</strong>
-                    @if (row.isDefault) {
-                      <mat-chip color="primary" highlighted class="default-chip">Default</mat-chip>
-                    }
+                    <div class="name-cell">
+                      <span class="rate-name">{{ row.name }}</span>
+                      @if (row.isDefault) {
+                        <span class="chip chip-default">
+                          <mat-icon>star</mat-icon> Default
+                        </span>
+                      }
+                    </div>
                   </td>
                 </ng-container>
 
-                <!-- Rate Column -->
                 <ng-container matColumnDef="rate">
                   <th mat-header-cell *matHeaderCellDef>Rate</th>
                   <td mat-cell *matCellDef="let row">
-                    <strong>{{ row.rate }}{{ row.type === 'percentage' ? '%' : ' (fixed)' }}</strong>
+                    <span class="rate-value">
+                      {{ row.rate }}{{ row.type === 'percentage' ? '%' : ' fixed' }}
+                    </span>
                   </td>
                 </ng-container>
 
-                <!-- Type Column -->
                 <ng-container matColumnDef="type">
                   <th mat-header-cell *matHeaderCellDef>Type</th>
                   <td mat-cell *matCellDef="let row">
-                    <mat-chip [color]="row.type === 'percentage' ? 'accent' : 'warn'" highlighted>
+                    <span [class]="'chip ' + (row.type === 'percentage' ? 'chip-pct' : 'chip-fixed')">
+                      <mat-icon>{{ row.type === 'percentage' ? 'percent' : 'attach_money' }}</mat-icon>
                       {{ row.type === 'percentage' ? 'Percentage' : 'Fixed' }}
-                    </mat-chip>
+                    </span>
                   </td>
                 </ng-container>
 
-                <!-- Status Column -->
                 <ng-container matColumnDef="status">
                   <th mat-header-cell *matHeaderCellDef>Status</th>
                   <td mat-cell *matCellDef="let row">
-                    <span [class]="row.isActive ? 'status-active' : 'status-inactive'">
+                    <span [class]="'chip ' + (row.isActive ? 'chip-active' : 'chip-inactive')">
                       <mat-icon>{{ row.isActive ? 'check_circle' : 'cancel' }}</mat-icon>
                       {{ row.isActive ? 'Active' : 'Inactive' }}
                     </span>
                   </td>
                 </ng-container>
 
-                <!-- Actions Column -->
                 <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef>Actions</th>
-                  <td mat-cell *matCellDef="let row">
+                  <th mat-header-cell *matHeaderCellDef class="actions-col">Actions</th>
+                  <td mat-cell *matCellDef="let row" class="actions-col">
                     <button
                       mat-icon-button
                       color="primary"
@@ -226,7 +358,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
                     <button
                       mat-icon-button
                       color="warn"
-                      matTooltip="Delete"
+                      matTooltip="{{ row.isDefault ? 'Cannot delete the default rate' : 'Delete' }}"
                       (click)="confirmDelete(row)"
                       [disabled]="row.isDefault"
                     >
@@ -240,6 +372,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
                   mat-row
                   *matRowDef="let row; columns: displayedColumns;"
                   [class.row-inactive]="!row.isActive"
+                  [class.row-editing]="editingRate?.id === row.id"
                 ></tr>
               </table>
             }
@@ -249,94 +382,251 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; max-width: 1280px; margin: 0 auto; }
+    .page-container {
+      padding: 1.5rem 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
 
+    /* ── Header ─────────────────────────── */
     .page-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
+      margin-bottom: 1.5rem;
     }
     .header-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 1rem;
     }
-    .header-icon { font-size: 32px; width: 32px; height: 32px; color: #1976d2; }
-    h1 { margin: 0; font-size: 24px; font-weight: 600; }
-    .subtitle { margin: 0; color: #666; font-size: 14px; }
+    .header-icon {
+      font-size: 2.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      color: #1976d2;
+    }
+    .page-title {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+    .page-subtitle {
+      margin: 0;
+      color: #666;
+      font-size: 0.875rem;
+    }
 
+    /* ── Stats row ───────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card mat-card-content {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem 1rem !important;
+    }
+    .stat-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-icon-wrap mat-icon {
+      font-size: 26px;
+      width: 26px;
+      height: 26px;
+      color: white;
+    }
+    .blue   { background: linear-gradient(135deg, #1976d2, #42a5f5); }
+    .green  { background: linear-gradient(135deg, #43a047, #66bb6a); }
+    .orange { background: linear-gradient(135deg, #f57c00, #ffb74d); }
+    .purple { background: linear-gradient(135deg, #7b1fa2, #ba68c8); }
+
+    .stat-body { display: flex; flex-direction: column; overflow: hidden; }
+    .stat-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* ── Two-column layout ───────────────── */
     .two-column-layout {
       display: grid;
       grid-template-columns: 380px 1fr;
-      gap: 24px;
+      gap: 1.5rem;
       align-items: start;
     }
-
-    @media (max-width: 900px) {
+    @media (max-width: 960px) {
       .two-column-layout { grid-template-columns: 1fr; }
     }
 
-    .full-width { width: 100%; margin-bottom: 8px; }
-    .full-width-table { width: 100%; }
-
-    .toggle-row {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin: 12px 0 16px;
+    /* ── Form card ───────────────────────── */
+    .form-card {
+      position: sticky;
+      top: 1rem;
+      transition: box-shadow 0.2s;
     }
+    .form-card.editing {
+      box-shadow: 0 0 0 2px #1976d2 !important;
+    }
+    .form-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1976d2, #42a5f5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+    }
+    .form-card-icon.edit-mode {
+      background: linear-gradient(135deg, #f57c00, #ffb74d);
+    }
+    .form-card-icon mat-icon { color: white; font-size: 20px; width: 20px; height: 20px; }
+
+    .tax-form { padding-top: 1rem; }
+    .full-width { width: 100%; }
+
+    .rate-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .rate-field, .type-field { width: 100%; }
+
+    .toggles-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 0.75rem 0 1rem;
+    }
+    .toggle-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+    }
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: #444;
+    }
+    .toggle-label mat-icon { font-size: 18px; width: 18px; height: 18px; color: #888; }
 
     .form-actions {
       display: flex;
-      gap: 8px;
+      gap: 0.5rem;
       justify-content: flex-end;
-      margin-top: 8px;
     }
+    .submit-btn { min-width: 140px; }
+    .btn-spinner { display: inline-block; margin-right: 4px; }
 
-    .card-header-actions {
-      margin-left: auto;
+    /* ── List card ───────────────────────── */
+    .list-card mat-card-header {
       display: flex;
       align-items: center;
+      padding-bottom: 0;
     }
-
-    mat-card-header {
-      display: flex;
+    .list-header-icon { color: #1976d2 !important; }
+    .count-badge {
+      display: inline-flex;
       align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .center-spinner {
-      display: flex;
       justify-content: center;
-      padding: 40px;
+      background: #e8eaf6;
+      color: #3f51b5;
+      border-radius: 12px;
+      padding: 1px 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-left: 8px;
     }
 
+    /* ── Filter bar ──────────────────────── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1rem 0;
+      flex-wrap: wrap;
+    }
+    .search-field { flex: 1; min-width: 180px; }
+    .inactive-toggle { white-space: nowrap; }
+
+    /* ── Skeleton ────────────────────────── */
+    .skeleton-wrap {
+      padding: 0 0.5rem;
+    }
+
+    /* ── Empty state ─────────────────────── */
     .empty-state {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      padding: 40px;
-      color: #999;
+      gap: 0.5rem;
+      padding: 3rem 1rem;
+      color: #aaa;
+      text-align: center;
     }
-    .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; }
+    .empty-state mat-icon { font-size: 3rem; width: 3rem; height: 3rem; margin-bottom: 0.25rem; }
+    .empty-state p { margin: 0; font-size: 1rem; color: #666; font-weight: 500; }
+    .empty-state span { font-size: 0.875rem; }
 
-    .default-chip { margin-left: 8px; font-size: 11px; }
+    /* ── Table ───────────────────────────── */
+    .rates-table { width: 100%; }
+    .actions-col { text-align: right !important; width: 100px; }
+    th.mat-header-cell { font-weight: 600; color: #333; font-size: 0.8rem; text-transform: uppercase; }
 
-    .status-active, .status-inactive {
-      display: flex;
+    .name-cell { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .rate-name { font-weight: 600; color: #1a1a2e; }
+    .rate-value { font-weight: 700; font-size: 1rem; color: #1976d2; }
+
+    /* ── Chips ───────────────────────────── */
+    .chip {
+      display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: 13px;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      line-height: 1.6;
     }
-    .status-active { color: #2e7d32; }
-    .status-inactive { color: #c62828; }
-    .status-active mat-icon, .status-inactive mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    .chip mat-icon { font-size: 13px; width: 13px; height: 13px; }
+    .chip-default { background: #e8eaf6; color: #3f51b5; }
+    .chip-pct     { background: #e3f2fd; color: #1565c0; }
+    .chip-fixed   { background: #fff3e0; color: #e65100; }
+    .chip-active  { background: #e8f5e9; color: #2e7d32; }
+    .chip-inactive{ background: #ffebee; color: #c62828; }
 
+    /* ── Row states ──────────────────────── */
     .row-inactive { opacity: 0.55; }
+    .row-editing { background: #e8eaf6 !important; }
 
-    th.mat-header-cell { font-weight: 600; color: #333; }
+    @media (max-width: 600px) {
+      .page-container { padding: 1rem; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .rate-row { grid-template-columns: 1fr; }
+    }
   `],
 })
 export class TaxRatesComponent implements OnInit {
@@ -344,12 +634,14 @@ export class TaxRatesComponent implements OnInit {
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+  private cdr = inject(ChangeDetectorRef);
 
   taxRates: TaxRate[] = [];
   editingRate: TaxRate | null = null;
   isLoading = false;
   isSubmitting = false;
   includeInactive = false;
+  searchTerm = '';
 
   displayedColumns = ['name', 'rate', 'type', 'status', 'actions'];
 
@@ -361,21 +653,45 @@ export class TaxRatesComponent implements OnInit {
     isActive: [true],
   });
 
+  get filteredRates(): TaxRate[] {
+    if (!this.searchTerm.trim()) return this.taxRates;
+    const q = this.searchTerm.toLowerCase();
+    return this.taxRates.filter(r => r.name.toLowerCase().includes(q));
+  }
+
+  get activeCount(): number {
+    return this.taxRates.filter(r => r.isActive).length;
+  }
+
+  get defaultRate(): TaxRate | undefined {
+    return this.taxRates.find(r => r.isDefault);
+  }
+
+  get percentageCount(): number {
+    return this.taxRates.filter(r => r.type === 'percentage').length;
+  }
+
+  get fixedCount(): number {
+    return this.taxRates.filter(r => r.type === 'fixed').length;
+  }
+
   ngOnInit(): void {
     this.loadTaxRates();
   }
 
   loadTaxRates(): void {
     this.isLoading = true;
+    this.cdr.markForCheck();
     this.taxRatesService.getAll(this.includeInactive).subscribe({
       next: (rates) => {
         this.taxRates = rates;
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
-      error: (err) => {
+      error: () => {
         this.snack('Failed to load tax rates', true);
-        console.error(err);
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -383,6 +699,7 @@ export class TaxRatesComponent implements OnInit {
   save(): void {
     if (this.taxForm.invalid) return;
     this.isSubmitting = true;
+    this.cdr.markForCheck();
     const dto: CreateTaxRateDto = this.taxForm.value;
 
     const obs = this.editingRate
@@ -395,11 +712,12 @@ export class TaxRatesComponent implements OnInit {
         this.resetForm();
         this.loadTaxRates();
         this.isSubmitting = false;
+        this.cdr.markForCheck();
       },
-      error: (err) => {
+      error: () => {
         this.snack('Failed to save tax rate', true);
-        console.error(err);
         this.isSubmitting = false;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -413,6 +731,7 @@ export class TaxRatesComponent implements OnInit {
       isDefault: rate.isDefault,
       isActive: rate.isActive,
     });
+    this.cdr.markForCheck();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -426,7 +745,10 @@ export class TaxRatesComponent implements OnInit {
       return;
     }
     this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'Delete Tax Rate', message: `Delete tax rate "${rate.name}"? This action cannot be undone.` },
+      data: {
+        title: 'Delete Tax Rate',
+        message: `Delete tax rate "${rate.name}"? This action cannot be undone.`,
+      },
       width: '450px',
     }).afterClosed().subscribe((confirmed: boolean) => {
       if (!confirmed) return;
@@ -435,9 +757,8 @@ export class TaxRatesComponent implements OnInit {
           this.snack('Tax rate deleted');
           this.loadTaxRates();
         },
-        error: (err) => {
+        error: () => {
           this.snack('Failed to delete tax rate', true);
-          console.error(err);
         },
       });
     });
@@ -452,6 +773,7 @@ export class TaxRatesComponent implements OnInit {
       isDefault: false,
       isActive: true,
     });
+    this.cdr.markForCheck();
   }
 
   private snack(msg: string, isError = false): void {

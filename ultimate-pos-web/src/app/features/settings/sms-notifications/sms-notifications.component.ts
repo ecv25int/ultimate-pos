@@ -142,7 +142,8 @@ const PREFS_KEY = 'sms_notification_prefs';
   `,
   styles: [`
     .sms-settings-container {
-      max-width: 700px;
+      padding: 1.5rem;
+      max-width: 1400px;
     }
 
     .page-title {
@@ -150,11 +151,15 @@ const PREFS_KEY = 'sms_notification_prefs';
       align-items: center;
       gap: 0.5rem;
       margin-bottom: 0.5rem;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #1a1a1a;
     }
 
     .subtitle {
       color: #666;
       margin-bottom: 1.5rem;
+      font-size: 0.9rem;
     }
 
     .status-card {

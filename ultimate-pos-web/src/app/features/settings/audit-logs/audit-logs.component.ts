@@ -76,9 +76,9 @@ import { AuditLogsService, AuditLogEntry } from '../../../core/services/audit-lo
     </div>
   `,
   styles: [`
-    .page-container { padding: 16px; }
-    .page-header h2 { margin: 0 0 4px; font-size: 20px; font-weight: 600; }
-    .page-header p { margin: 0 0 16px; color: #6b7280; font-size: 14px; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header h2 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .page-header p { margin: 0 0 1.5rem; color: #666; font-size: 0.9rem; }
     .filters { display: flex; gap: 12px; margin-bottom: 16px; }
     .filter-select { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
     .table-wrap { overflow-x: auto; }

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -42,6 +42,7 @@ export class LoginComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private snackBar = inject(MatSnackBar);
+  private cdr = inject(ChangeDetectorRef);
 
   loginForm: FormGroup;
   isLoading = false;
@@ -74,11 +75,14 @@ export class LoginComponent {
     }
 
     this.isLoading = true;
-    const credentials = this.loginForm.value;
+    this.loginForm.disable();
+    const credentials = this.loginForm.getRawValue();
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
         this.isLoading = false;
+        this.loginForm.enable();
+        this.cdr.detectChanges();
         this.snackBar.open('Login successful!', 'Close', {
           duration: 3000,
           horizontalPosition: 'end',
@@ -89,6 +93,8 @@ export class LoginComponent {
       },
       error: (error) => {
         this.isLoading = false;
+        this.loginForm.enable();
+        this.cdr.detectChanges();
         this.snackBar.open(
           error.message || 'Login failed. Please try again.',
           'Close',

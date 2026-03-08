@@ -57,6 +57,11 @@ export class DocumentsService {
 
   constructor(private http: HttpClient) {}
 
+  /** GET /api/documents/receipt/:saleId — fetches receipt HTML with auth headers */
+  getReceiptHtml(saleId: number): Observable<string> {
+    return this.http.get(`${this.base}/receipt/${saleId}`, { responseType: 'text' });
+  }
+
   /** GET /api/documents/invoice/:saleId — invoice data for printing */
   getInvoiceData(saleId: number): Observable<any> {
     return this.http.get<any>(`${this.base}/invoice/${saleId}`);

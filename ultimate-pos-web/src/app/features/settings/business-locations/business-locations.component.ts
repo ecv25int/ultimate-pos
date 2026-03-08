@@ -127,7 +127,7 @@ import {
   `,
   styles: [`
     .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-    .form-card { background:#f9f9f9; border:1px solid #ddd; border-radius:8px; padding:20px; margin-bottom:24px; }
+    .form-card { background:#f9f9f9; border:1px solid #e0e0e0; border-radius:12px; padding:20px; margin-bottom:24px; }
     .form-card h3 { margin:0 0 16px; }
     .form-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
     .form-group { flex:1; min-width:180px; display:flex; flex-direction:column; gap:4px; }

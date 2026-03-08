@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -8,6 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { Subject, takeUntil } from 'rxjs';
 import { BusinessService } from '../../../core/services/business.service';
 import { Business } from '../../../core/models/business.model';
 import { RoleService } from '../../../core/services/role.service';
@@ -123,8 +124,8 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
   styles: [
     `
       .business-list-container {
-        padding: 2rem;
-        max-width: 1200px;
+        padding: 1.5rem;
+        max-width: 1400px;
         margin: 0 auto;
       }
 
@@ -132,12 +133,14 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
       }
 
       h1 {
         margin: 0;
-        color: #333;
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #1a1a1a;
       }
 
       .my-business-card {
@@ -173,7 +176,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 
       @media (max-width: 768px) {
         .business-list-container {
-          padding: 1rem;
+          padding: 1rem 0.75rem;
         }
 
         .header {
@@ -185,13 +188,15 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     `,
   ],
 })
-export class BusinessListComponent implements OnInit {
+export class BusinessListComponent implements OnInit, OnDestroy {
   businesses: Business[] = [];
   myBusiness: Business | null = null;
   displayedColumns = ['name', 'currency', 'timezone', 'status', 'actions'];
 
   isAdmin = false;
   isManager = false;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private businessService: BusinessService,
@@ -210,6 +215,20 @@ export class BusinessListComponent implements OnInit {
     if (this.isAdmin) {
       this.loadAllBusinesses();
     }
+
+    // React to user loading asynchronously (e.g. page refresh)
+    this.roleService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.isAdmin = this.roleService.isAdmin();
+      this.isManager = this.roleService.isManager();
+      if (this.isAdmin && this.businesses.length === 0) {
+        this.loadAllBusinesses();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadMyBusiness(): void {

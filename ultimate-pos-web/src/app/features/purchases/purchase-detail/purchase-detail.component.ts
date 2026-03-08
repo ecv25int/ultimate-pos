@@ -139,9 +139,9 @@ import { Purchase } from '../../../core/models/purchase.model';
     </ng-template>
   `,
   styles: [`
-    .page-container { padding: 24px; max-width: 1000px; margin: 0 auto; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-    .page-header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .page-header p { margin: 0; color: #6b7280; }
     .badges-row { display: flex; gap: 8px; margin-bottom: 20px; }
     .badge { padding: 4px 12px; border-radius: 9999px; font-size: 13px; font-weight: 500; }

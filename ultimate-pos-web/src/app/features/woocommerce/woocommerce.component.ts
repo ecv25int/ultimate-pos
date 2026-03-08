@@ -102,8 +102,9 @@ import { WoocommerceSyncLog, WoocommerceStats } from '../../core/models/woocomme
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .stats-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
     .stat-card { min-width: 140px; }
     .stat-value { font-size: 1.8rem; font-weight: 700; }

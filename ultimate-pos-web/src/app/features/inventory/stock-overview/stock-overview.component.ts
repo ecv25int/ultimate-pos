@@ -207,10 +207,10 @@ import {
     </div>
   `,
   styles: [`
-    .inventory-container { padding: 24px; max-width: 1400px; margin: 0 auto; }
-    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-    .page-header h1 { margin: 0 0 4px; font-size: 28px; font-weight: 600; }
-    .subtitle { margin: 0; color: #666; }
+    .inventory-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
 
     .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
     .stat-card { background: white; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }

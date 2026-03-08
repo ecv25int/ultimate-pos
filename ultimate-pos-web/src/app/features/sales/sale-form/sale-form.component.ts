@@ -231,10 +231,10 @@ import { ContactListItem } from '../../../core/models/contact.model';
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; max-width: 1400px; margin: 0 auto; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     .page-header > div { display: flex; align-items: center; gap: 12px; }
-    .page-header h1 { margin: 0; font-size: 1.6rem; }
+    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
     .full-width { width: 100%; }
     .totals-preview { margin-top: 16px; }

@@ -198,9 +198,9 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; }
-    .page-header { margin-bottom: 24px; }
-    .page-header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { margin-bottom: 1.5rem; }
+    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .tab-content { padding: 24px 0; display: flex; flex-direction: column; gap: 24px; }
     .form-card { margin-bottom: 0; }
     .form-row { display: flex; gap: 16px; flex-wrap: wrap; }

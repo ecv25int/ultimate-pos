@@ -195,9 +195,9 @@ const FREQUENCIES = [
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; max-width: 800px; }
-    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .page-title { display: flex; align-items: center; gap: 8px; font-size: 1.4rem; margin: 0; }
+    .page-container { padding: 1.5rem; max-width: 1400px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .page-title { display: flex; align-items: center; gap: 8px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; margin: 0; }
     mat-card { margin-bottom: 16px; }
     .form-card { border-left: 4px solid #1d4ed8; }
     .report-form { display: flex; flex-direction: column; gap: 16px; padding-top: 8px; }

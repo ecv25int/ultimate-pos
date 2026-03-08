@@ -227,9 +227,9 @@ import { CreateContactDto } from '../../../core/models/contact.model';
     </div>
   `,
   styles: [`
-    .form-container { padding: 24px; max-width: 900px; margin: 0 auto; }
+    .form-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .form-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-    .form-header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; }
+    .form-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .subtitle { margin: 0; color: #666; font-size: 14px; }
 
     .loading-state { display: flex; flex-direction: column; align-items: center; padding: 64px; gap: 16px; color: #666; }

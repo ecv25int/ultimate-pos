@@ -320,10 +320,10 @@ import { DashboardReport, RevenuePoint, TopProduct, StockReport } from '../../co
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; max-width: 1400px; margin: 0 auto; }
-    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-    .page-header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; }
-    .page-header p { margin: 0; color: #6b7280; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .page-header p { margin: 0; color: #666; font-size: 0.9rem; }
 
     .tab-body { padding: 20px 0; }
     .filter-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
@@ -334,7 +334,7 @@ import { DashboardReport, RevenuePoint, TopProduct, StockReport } from '../../co
     .loading-wrap { display: flex; justify-content: center; padding: 48px; }
 
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: #fff; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #e5e7eb; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #e5e7eb; }
     .stat-card.blue   { border-left: 4px solid #3b82f6; }
     .stat-card.green  { border-left: 4px solid #10b981; }
     .stat-card.purple { border-left: 4px solid #8b5cf6; }
@@ -345,7 +345,7 @@ import { DashboardReport, RevenuePoint, TopProduct, StockReport } from '../../co
     .stat-card .value { font-size: 22px; font-weight: 700; color: #111827; }
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-    .report-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .report-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
     .report-card h2 { margin: 0 0 16px; font-size: 16px; font-weight: 600; }
     .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .report-header h2 { margin: 0; }
@@ -378,7 +378,7 @@ import { DashboardReport, RevenuePoint, TopProduct, StockReport } from '../../co
     .empty { padding: 32px; text-align: center; color: #9ca3af; }
 
     /* P&L */
-    .pl-table { max-width: 600px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+    .pl-table { max-width: 600px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
     .pl-row { display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
     .pl-row.header { background: #f9fafb; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
     .pl-row.subtotal { background: #f0fdf4; font-weight: 600; }

@@ -420,8 +420,8 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 </div>
   `,
   styles: [`
-    .crm-container { padding: 24px; }
-    .page-header h1 { display: flex; align-items: center; gap: 8px; margin: 0 0 20px; }
+    .crm-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header h1 { display: flex; align-items: center; gap: 8px; margin: 0 0 1.5rem; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
     .stat-card { min-width: 160px; }
     .stat-value { font-size: 2rem; font-weight: bold; }

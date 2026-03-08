@@ -130,8 +130,8 @@ interface BackupMeta {
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; max-width: 800px; }
-    .page-title { display: flex; align-items: center; gap: 8px; font-size: 1.4rem; margin-bottom: 20px; }
+    .page-container { padding: 1.5rem; max-width: 1400px; }
+    .page-title { display: flex; align-items: center; gap: 8px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; margin-bottom: 1.5rem; }
     mat-card { margin-bottom: 16px; }
     .info-card { border-left: 4px solid #1d4ed8; }
     .info-row { display: flex; align-items: flex-start; gap: 12px; }

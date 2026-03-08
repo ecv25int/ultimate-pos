@@ -231,18 +231,18 @@ import { ImportResult } from '../../core/models/import-export.model';
     </div>
   `,
   styles: [`
-    .ie-container { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    .ie-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
 
     .page-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 28px;
+      margin-bottom: 1.5rem;
     }
     .header-title { display: flex; align-items: center; gap: 16px; }
-    .header-icon { font-size: 40px; width: 40px; height: 40px; color: #3f51b5; }
-    h1 { margin: 0; font-size: 24px; font-weight: 600; }
-    .subtitle { margin: 4px 0 0; color: #666; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
 
     .content-grid {
       display: grid;

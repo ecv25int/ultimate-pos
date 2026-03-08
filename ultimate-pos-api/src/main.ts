@@ -25,6 +25,7 @@ async function bootstrap() {
   const allowedOrigins = [
     process.env.FRONTEND_URL || 'http://localhost:4200',
     'http://localhost:4200',
+    'http://127.0.0.1:4200',
     'https://localhost:8443',
     'https://ultimatepos.local:8443',
     'http://ultimatepos.local:8080',

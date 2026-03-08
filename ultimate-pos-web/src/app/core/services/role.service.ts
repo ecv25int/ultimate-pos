@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 import { UserRole } from '../enums/user-role.enum';
 
 export interface User {
@@ -19,29 +17,22 @@ export interface User {
   providedIn: 'root',
 })
 export class RoleService {
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  private currentUserSubject = new BehaviorSubject<User | null>(
+    this.getUserFromStorage(),
+  );
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {
-    this.loadCurrentUser();
+  constructor() {}
+
+  /** Read user object stored by Auth service after login. */
+  private getUserFromStorage(): User | null {
+    const json = localStorage.getItem('current_user');
+    return json ? (JSON.parse(json) as User) : null;
   }
 
-  loadCurrentUser(): void {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      this.http
-        .get<User>('http://localhost:3000/api/auth/profile')
-        .pipe(
-          tap((user) => {
-            this.currentUserSubject.next(user);
-          })
-        )
-        .subscribe({
-          error: () => {
-            this.currentUserSubject.next(null);
-          },
-        });
-    }
+  /** Call after login/logout to refresh the cached user. */
+  refreshUser(): void {
+    this.currentUserSubject.next(this.getUserFromStorage());
   }
 
   getCurrentUser(): User | null {

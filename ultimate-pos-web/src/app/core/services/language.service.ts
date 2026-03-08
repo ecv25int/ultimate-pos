@@ -13,7 +13,7 @@ export interface Language {
 
 export const SUPPORTED_LANGUAGES: Language[] = [
   { code: 'en', label: 'English', dir: 'ltr' },
-  { code: 'ar', label: 'عربي', dir: 'rtl' },
+  { code: 'es', label: 'Español', dir: 'ltr' },
 ];
 
 const LOCALE_KEY = 'app_locale';
@@ -36,7 +36,9 @@ export class LanguageService {
     // Priority: localStorage > browser default > 'en'
     const saved = localStorage.getItem(LOCALE_KEY) ?? navigator.language.split('-')[0];
     const lang = SUPPORTED_LANGUAGES.find((l) => l.code === saved) ?? SUPPORTED_LANGUAGES[0];
-    this.applyLanguage(lang, false);
+    // If the saved locale is no longer supported, write the fallback so it doesn't re-apply next load
+    const persist = !SUPPORTED_LANGUAGES.some((l) => l.code === saved);
+    this.applyLanguage(lang, persist);
   }
 
   use(langCode: string): void {

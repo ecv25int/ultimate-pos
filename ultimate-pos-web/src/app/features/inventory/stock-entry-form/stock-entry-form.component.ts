@@ -130,10 +130,10 @@ import { Product } from '../../../core/models/product.model';
     </div>
   `,
   styles: [`
-    .form-container { padding: 24px; max-width: 760px; margin: 0 auto; }
-    .form-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-    .form-header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; }
-    .subtitle { margin: 0; color: #666; font-size: 14px; }
+    .form-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .form-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+    .form-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
 
     .entry-form { background: white; border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
     .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }

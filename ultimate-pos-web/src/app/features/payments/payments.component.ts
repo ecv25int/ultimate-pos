@@ -196,11 +196,12 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
     </div>
   `,
   styles: [`
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
     .header-left { display: flex; align-items: center; gap: 16px; }
-    .header-icon { font-size: 40px; width: 40px; height: 40px; color: #1976d2; }
-    h1 { margin: 0; font-size: 1.8rem; font-weight: 600; }
-    .subtitle { margin: 4px 0 0; color: #666; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
     .two-column-layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
     .full-width { width: 100%; margin-bottom: 8px; }
     .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }

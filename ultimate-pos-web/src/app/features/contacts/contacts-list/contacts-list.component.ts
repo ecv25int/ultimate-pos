@@ -336,9 +336,9 @@ export class ContactImportPreviewDialog {
     </div>
   `,
   styles: [`
-    .contacts-container { padding: 24px; max-width: 1400px; margin: 0 auto; }
-    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-    .page-header h1 { margin: 0 0 4px; font-size: 28px; font-weight: 600; }
+    .contacts-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .subtitle { margin: 0; color: #666; }
 
     .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }

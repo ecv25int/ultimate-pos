@@ -18,7 +18,6 @@
             formControlName="username"
             placeholder="Enter your username"
             autocomplete="username"
-            [disabled]="isLoading"
           />
           <mat-icon matPrefix>person</mat-icon>
           @if (username?.invalid && username?.touched) {
@@ -41,7 +40,6 @@
             formControlName="password"
             placeholder="Enter your password"
             autocomplete="current-password"
-            [disabled]="isLoading"
           />
           <mat-icon matPrefix>lock</mat-icon>
           <button

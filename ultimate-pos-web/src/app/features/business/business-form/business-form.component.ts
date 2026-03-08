@@ -171,8 +171,8 @@ import { BusinessService } from '../../../core/services/business.service';
   styles: [
     `
       .business-form-container {
-        padding: 2rem;
-        max-width: 900px;
+        padding: 1.5rem;
+        max-width: 1400px;
         margin: 0 auto;
       }
 

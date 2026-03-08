@@ -287,9 +287,9 @@ import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; max-width: 1400px; margin: 0 auto; }
-    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-    .page-header h1 { margin: 0; font-size: 1.8rem; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .subtitle { margin: 4px 0 0; color: #666; }
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .stat-card { text-align: center; }

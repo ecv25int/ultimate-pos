@@ -314,9 +314,9 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 </div>
   `,
   styles: [`
-    .restaurant-container { padding: 24px; }
-    .page-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
-    .page-header h1 { display: flex; align-items: center; gap: 8px; margin: 0; }
+    .restaurant-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; }
+    .page-header h1 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
     .stat-card { min-width: 150px; }
     .stat-card.available mat-card-content { border-left: 4px solid #4caf50; }

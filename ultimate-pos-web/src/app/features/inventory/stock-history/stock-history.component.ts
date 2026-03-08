@@ -126,11 +126,11 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     </div>
   `,
   styles: [`
-    .history-container { padding: 24px; max-width: 1200px; margin: 0 auto; }
-    .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-    .page-header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; }
+    .history-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .page-header > div:nth-child(2) { flex: 1; }
-    .subtitle { margin: 0; color: #666; font-size: 14px; }
+    .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
 
     .current-stock { padding: 12px 20px; border-radius: 10px; text-align: center; min-width: 100px; }
     .current-stock .label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }

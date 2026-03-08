@@ -58,6 +58,51 @@ async function main() {
   });
   console.log(`✅ Manager user: "${managerUser.username}" (id=${managerUser.id})`);
 
+  // ─── Additional demo users (2 per role) ──────────────────────────────────
+  const roleUsers: Array<{
+    username: string;
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    userType: string;
+  }> = [
+    // superadmin
+    { username: 'superadmin1', email: 'superadmin1@ultimatepos.com', password: 'superadmin123', firstName: 'Super',   lastName: 'Admin One',  userType: 'superadmin' },
+    { username: 'superadmin2', email: 'superadmin2@ultimatepos.com', password: 'superadmin123', firstName: 'Super',   lastName: 'Admin Two',  userType: 'superadmin' },
+    // admin
+    { username: 'admin1',      email: 'admin1@ultimatepos.com',      password: 'admin123',      firstName: 'Admin',   lastName: 'One',        userType: 'admin'      },
+    { username: 'admin2',      email: 'admin2@ultimatepos.com',      password: 'admin123',      firstName: 'Admin',   lastName: 'Two',        userType: 'admin'      },
+    // manager
+    { username: 'manager1',    email: 'manager1@ultimatepos.com',    password: 'manager123',    firstName: 'Manager', lastName: 'One',        userType: 'manager'    },
+    { username: 'manager2',    email: 'manager2@ultimatepos.com',    password: 'manager123',    firstName: 'Manager', lastName: 'Two',        userType: 'manager'    },
+    // cashier
+    { username: 'cashier1',    email: 'cashier1@ultimatepos.com',    password: 'cashier123',    firstName: 'Cashier', lastName: 'One',        userType: 'cashier'    },
+    { username: 'cashier2',    email: 'cashier2@ultimatepos.com',    password: 'cashier123',    firstName: 'Cashier', lastName: 'Two',        userType: 'cashier'    },
+    // user
+    { username: 'user1',       email: 'user1@ultimatepos.com',       password: 'user123',       firstName: 'Basic',   lastName: 'User One',   userType: 'user'       },
+    { username: 'user2',       email: 'user2@ultimatepos.com',       password: 'user123',       firstName: 'Basic',   lastName: 'User Two',   userType: 'user'       },
+  ];
+
+  for (const u of roleUsers) {
+    const hashed = await bcrypt.hash(u.password, 10);
+    const created = await prisma.user.upsert({
+      where: { username: u.username },
+      create: {
+        username:   u.username,
+        email:      u.email,
+        password:   hashed,
+        firstName:  u.firstName,
+        lastName:   u.lastName,
+        userType:   u.userType,
+        businessId: business.id,
+        isActive:   true,
+      },
+      update: {},
+    });
+    console.log(`✅ ${u.userType.padEnd(11)} user: "${created.username}"`);
+  }
+
   // ─── 3. Business Location ─────────────────────────────────────────────────
   const location = await prisma.businessLocation.upsert({
     where: { id: 1 },
@@ -220,10 +265,20 @@ async function main() {
   console.log('\n🎉 Seed complete!');
   console.log('─────────────────────────────────────────');
   console.log('  Login credentials:');
-  console.log('  Admin   → username: admin    / password: admin123');
-  console.log('  Manager → username: manager  / password: manager123');
-  console.log('  API     → http://localhost:3000/api');
-  console.log('  Docs    → http://localhost:3000/api/docs');
+  console.log('  superadmin → admin          / admin123');
+  console.log('  superadmin → superadmin1    / superadmin123');
+  console.log('  superadmin → superadmin2    / superadmin123');
+  console.log('  admin      → admin1         / admin123');
+  console.log('  admin      → admin2         / admin123');
+  console.log('  manager    → manager        / manager123  (legacy, userType=user)');
+  console.log('  manager    → manager1       / manager123');
+  console.log('  manager    → manager2       / manager123');
+  console.log('  cashier    → cashier1       / cashier123');
+  console.log('  cashier    → cashier2       / cashier123');
+  console.log('  user       → user1          / user123');
+  console.log('  user       → user2          / user123');
+  console.log('  API        → http://localhost:3000/api');
+  console.log('  Docs       → http://localhost:3000/api/docs');
   console.log('─────────────────────────────────────────');
 }
 

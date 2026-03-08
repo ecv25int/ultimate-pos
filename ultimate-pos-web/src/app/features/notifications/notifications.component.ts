@@ -192,20 +192,20 @@ import {
     </div>
   `,
   styles: [`
-    .notif-container { padding: 24px; max-width: 900px; margin: 0 auto; }
+    .notif-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
 
     .page-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 28px;
+      margin-bottom: 1.5rem;
       flex-wrap: wrap;
       gap: 12px;
     }
     .header-title { display: flex; align-items: center; gap: 16px; }
-    .header-icon { font-size: 40px; width: 40px; height: 40px; color: #3f51b5; }
-    h1 { margin: 0; font-size: 24px; font-weight: 600; }
-    .subtitle { margin: 4px 0 0; color: #666; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 4px 0 0; color: #666; font-size: 0.9rem; }
     .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
     .loading { display: flex; justify-content: center; padding: 60px; }

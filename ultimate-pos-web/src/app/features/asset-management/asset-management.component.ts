@@ -328,9 +328,9 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
     </div>
   `,
   styles: [`
-    .page-container { padding: 24px; }
-    .page-header { margin-bottom: 24px; }
-    .page-header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+    .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+    .page-header { margin-bottom: 1.5rem; }
+    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .dashboard-cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
     .stat-card { min-width: 140px; }
     .stat-card.warn .stat-value { color: #f57c00; }

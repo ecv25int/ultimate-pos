@@ -213,12 +213,13 @@ type Tab = 'layouts' | 'schemes';
     </div>
   `,
   styles: [`
-    .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; }
+    .section-header h2 { margin:0; font-size:1.75rem; font-weight:600; color:#1a1a1a; }
     .tab-bar { display:flex; gap:0; border-bottom:2px solid #e0e0e0; margin-bottom:20px; }
     .tab-btn { padding:10px 24px; border:none; background:none; cursor:pointer; font-size:14px; font-weight:500; color:#666; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .2s; }
     .tab-btn.active { color:#1976d2; border-bottom-color:#1976d2; }
     .sub-header { display:flex; justify-content:flex-end; margin-bottom:12px; }
-    .form-card { background:#f9f9f9; border:1px solid #ddd; border-radius:8px; padding:20px; margin-bottom:24px; }
+    .form-card { background:#fafafa; border:1px solid #e0e0e0; border-radius:12px; padding:20px; margin-bottom:1.5rem; }
     .form-card h3 { margin:0 0 16px; }
     .form-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
     .form-group { flex:1; min-width:160px; display:flex; flex-direction:column; gap:4px; }
