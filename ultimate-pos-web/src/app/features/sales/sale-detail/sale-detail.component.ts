@@ -34,13 +34,20 @@ import { Sale } from '../../../core/models/sale.model';
   template: `
     <div class="page-container" *ngIf="sale; else loading">
       <div class="page-header">
-        <div>
+        <div class="page-header-left">
           <button mat-icon-button routerLink="/sales">
             <mat-icon>arrow_back</mat-icon>
           </button>
-          <h1>{{ sale.invoiceNo }}</h1>
-          <span class="badge" [class]="'badge-' + sale.status">{{ sale.status }}</span>
-          <span class="badge ml" [class]="'badge-pay-' + sale.paymentStatus">{{ sale.paymentStatus }}</span>
+          <div class="header-title">
+            <mat-icon class="header-icon">receipt_long</mat-icon>
+            <div>
+              <h1>{{ sale.invoiceNo }}</h1>
+              <div class="badges-inline">
+                <span class="badge" [class]="'badge-' + sale.status">{{ sale.status }}</span>
+                <span class="badge ml" [class]="'badge-pay-' + sale.paymentStatus">{{ sale.paymentStatus }}</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div>
           <button mat-stroked-button (click)="printInvoice()" style="margin-right:8px">
@@ -193,8 +200,11 @@ import { Sale } from '../../../core/models/sale.model';
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .page-header > div:first-child { display: flex; align-items: center; gap: 12px; }
-    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .page-header-left { display: flex; align-items: center; gap: 12px; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .badges-inline { display: flex; gap: 6px; align-items: center; }
     .badge { padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 500; text-transform: capitalize; }
     .badge-draft { background: #f5f5f5; color: #666; }
     .badge-final { background: #e3f2fd; color: #1565c0; }

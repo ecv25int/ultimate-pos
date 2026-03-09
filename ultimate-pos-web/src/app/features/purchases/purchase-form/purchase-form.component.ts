@@ -6,6 +6,7 @@ import { PurchasesService } from '../../../core/services/purchases.service';
 import { ContactService } from '../../../core/services/contact.service';
 import { ProductService } from '../../../core/services/product.service';
 import { CreatePurchaseDto, CreatePurchaseLineDto } from '../../../core/models/purchase.model';
+import { MatIconModule } from '@angular/material/icon';
 import { ContactListItem } from '../../../core/models/contact.model';
 
 interface LineItem extends CreatePurchaseLineDto {
@@ -15,13 +16,16 @@ interface LineItem extends CreatePurchaseLineDto {
 @Component({
   selector: 'app-purchase-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, MatIconModule],
   template: `
     <div class="page-container">
       <div class="page-header">
-        <div>
-          <h1>{{ isRequisition ? 'New Requisition' : 'New Purchase Order' }}</h1>
-          <p>{{ isRequisition ? 'Save a requisition for later approval' : 'Create a new purchase from supplier' }}</p>
+        <div class="header-title">
+          <mat-icon class="header-icon">add_shopping_cart</mat-icon>
+          <div>
+            <h1>{{ isRequisition ? 'New Requisition' : 'New Purchase Order' }}</h1>
+            <p class="subtitle">{{ isRequisition ? 'Save a requisition for later approval' : 'Create a new purchase from supplier' }}</p>
+          </div>
         </div>
         <a routerLink="/purchases" class="btn btn-outline">Cancel</a>
       </div>
@@ -152,9 +156,11 @@ interface LineItem extends CreatePurchaseLineDto {
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
     .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .page-header p { margin: 0; color: #6b7280; }
-    .form-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .subtitle { margin: 0; color: #6b7280; }
+    .form-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
     .section-title { font-size: 16px; font-weight: 600; margin: 0 0 16px; }
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }

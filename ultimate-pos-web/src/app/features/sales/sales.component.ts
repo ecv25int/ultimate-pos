@@ -57,9 +57,12 @@ import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader
   template: `
     <div class="page-container">
       <div class="page-header">
-        <div>
-          <h1>Sales</h1>
-          <p class="subtitle">Manage your sales transactions</p>
+        <div class="header-title">
+          <mat-icon class="header-icon">point_of_sale</mat-icon>
+          <div>
+            <h1>Sales</h1>
+            <p class="subtitle">Manage your sales transactions</p>
+          </div>
         </div>
         <button mat-raised-button color="primary" routerLink="create">
           <mat-icon>add</mat-icon> New Sale
@@ -90,32 +93,57 @@ import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader
       <div class="stats-grid" *ngIf="summary">
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ summary.totalSales }}</div>
-            <div class="stat-label">Total Sales</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon blue">receipt</mat-icon>
+              <div>
+                <div class="stat-value">{{ summary.totalSales }}</div>
+                <div class="stat-label">Total Sales</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
-        <mat-card class="stat-card revenue">
+        <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ summary.totalRevenue | number:'1.2-2' }}</div>
-            <div class="stat-label">Total Revenue</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon purple">trending_up</mat-icon>
+              <div>
+                <div class="stat-value">{{ summary.totalRevenue | number:'1.2-2' }}</div>
+                <div class="stat-label">Total Revenue</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
-        <mat-card class="stat-card collected">
+        <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ summary.totalCollected | number:'1.2-2' }}</div>
-            <div class="stat-label">Collected</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon green">check_circle</mat-icon>
+              <div>
+                <div class="stat-value">{{ summary.totalCollected | number:'1.2-2' }}</div>
+                <div class="stat-label">Collected</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
-        <mat-card class="stat-card outstanding">
+        <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ summary.outstanding | number:'1.2-2' }}</div>
-            <div class="stat-label">Outstanding</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon orange">pending_actions</mat-icon>
+              <div>
+                <div class="stat-value">{{ summary.outstanding | number:'1.2-2' }}</div>
+                <div class="stat-label">Outstanding</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
-        <mat-card class="stat-card due">
+        <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-value">{{ summary.due }}</div>
-            <div class="stat-label">Due</div>
+            <div class="stat-content">
+              <mat-icon class="stat-icon red">warning</mat-icon>
+              <div>
+                <div class="stat-value">{{ summary.due }}</div>
+                <div class="stat-label">Due</div>
+              </div>
+            </div>
           </mat-card-content>
         </mat-card>
       </div>
@@ -289,16 +317,21 @@ import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .subtitle { margin: 4px 0 0; color: #666; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { text-align: center; }
-    .stat-value { font-size: 1.8rem; font-weight: 700; }
-    .stat-label { color: #666; font-size: 0.85rem; margin-top: 4px; }
-    .revenue .stat-value { color: #1976d2; }
-    .collected .stat-value { color: #388e3c; }
-    .outstanding .stat-value { color: #f57c00; }
-    .due .stat-value { color: #d32f2f; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { border-radius: 12px; overflow: hidden; }
+    .stat-content { display: flex; align-items: center; gap: 1rem; padding: 0.25rem 0; }
+    .stat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; border-radius: 10px; padding: 0.5rem; }
+    .stat-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .stat-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .stat-icon.orange { color: #f57c00; background: #fff3e0; }
+    .stat-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .stat-icon.red    { color: #c62828; background: #ffebee; }
+    .stat-value { font-size: 1.4rem; font-weight: 700; color: #1a1a1a; line-height: 1; }
+    .stat-label { color: #666; font-size: 0.78rem; margin-top: 2px; }
     .type-chips { margin-bottom: 16px; }
     .filter-card { margin-bottom: 24px; }
     .filter-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }

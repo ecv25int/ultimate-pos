@@ -79,7 +79,13 @@ interface CartItem {
       <!-- Left: Product Picker -->
       <div class="product-panel">
         <div class="panel-header">
-          <h2>Products</h2>
+          <div class="panel-title">
+            <mat-icon class="panel-header-icon">storefront</mat-icon>
+            <div>
+              <h2>Products</h2>
+              <p class="panel-subtitle">Click a tile or scan barcode to add</p>
+            </div>
+          </div>
           <mat-form-field appearance="outline" class="search-field">
             <mat-icon matPrefix>search</mat-icon>
             <input matInput #searchInput [formControl]="searchCtrl" placeholder="Search by name or SKU… (F1)" />
@@ -123,7 +129,10 @@ interface CartItem {
       <!-- Right: Cart -->
       <div class="cart-panel">
         <div class="cart-header">
-          <h2>Cart <span class="cart-count" *ngIf="cart.length > 0">({{ cart.length }})</span></h2>
+          <div class="cart-title">
+            <mat-icon class="panel-header-icon cart">shopping_cart</mat-icon>
+            <h2>Cart <span class="cart-count" *ngIf="cart.length > 0">({{ cart.length }})</span></h2>
+          </div>
           <button mat-icon-button color="warn" (click)="clearCart()" [disabled]="cart.length === 0"
                   title="Clear cart">
             <mat-icon>delete_sweep</mat-icon>
@@ -256,15 +265,11 @@ interface CartItem {
 
     .panel-header { margin-bottom: 1.25rem; }
 
-    .panel-header h2 {
-      margin: 0 0 1rem;
-      font-size: 1.75rem;
-      font-weight: 600;
-      color: #1a1a1a;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+    .panel-title { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    .panel-header-icon { font-size: 2.25rem; width: 2.25rem; height: 2.25rem; border-radius: 10px; padding: 0.4rem; color: #1976d2; background: #e3f2fd; flex-shrink: 0; }
+    .panel-header-icon.cart { color: #388e3c; background: #e8f5e9; }
+    .panel-title h2, .panel-header h2 { margin: 0; font-size: 1.4rem; font-weight: 600; color: #1a1a1a; }
+    .panel-subtitle { margin: 2px 0 0; color: #666; font-size: 0.82rem; }
 
     .search-field { width: 100%; }
 
@@ -310,7 +315,7 @@ interface CartItem {
     .product-tile {
       background: #fff;
       border: 1px solid #e2e8f0;
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 14px 12px;
       cursor: pointer;
       transition: border-color 0.18s, box-shadow 0.18s, background 0.18s, transform 0.12s;
@@ -319,8 +324,8 @@ interface CartItem {
     .product-tile:hover {
       border-color: #1976d2;
       background: #f0f7ff;
-      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.12);
-      transform: translateY(-1px);
+      box-shadow: 0 2px 10px rgba(25, 118, 210, 0.14);
+      transform: translateY(-2px);
     }
     .product-tile:active { transform: translateY(0); box-shadow: none; }
     .product-tile.out-of-stock {
@@ -391,9 +396,10 @@ interface CartItem {
       padding-bottom: 0.75rem;
       border-bottom: 1px solid #e2e8f0;
     }
+    .cart-title { display: flex; align-items: center; gap: 0.75rem; }
     .cart-header h2 {
       margin: 0;
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 600;
       color: #1a1a1a;
     }

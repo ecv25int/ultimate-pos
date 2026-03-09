@@ -34,9 +34,12 @@ import { Product } from '../../../core/models/product.model';
         <button mat-icon-button routerLink="/inventory">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <div>
-          <h1>Stock Entry</h1>
-          <p class="subtitle">Record stock movement for a product</p>
+        <div class="header-title">
+          <mat-icon class="header-icon">move_to_inbox</mat-icon>
+          <div>
+            <h1>Stock Entry</h1>
+            <p class="subtitle">Record stock movement for a product</p>
+          </div>
         </div>
       </div>
 
@@ -133,6 +136,8 @@ import { Product } from '../../../core/models/product.model';
     .form-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .form-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
     .form-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
     .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
 
     .entry-form { background: white; border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }

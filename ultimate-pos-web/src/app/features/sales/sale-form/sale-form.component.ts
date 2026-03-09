@@ -43,9 +43,15 @@ import { ContactListItem } from '../../../core/models/contact.model';
   template: `
     <div class="page-container">
       <div class="page-header">
-        <div>
+        <div class="page-header-left">
           <button mat-icon-button routerLink="/sales"><mat-icon>arrow_back</mat-icon></button>
-          <h1>New Sale</h1>
+          <div class="header-title">
+            <mat-icon class="header-icon">point_of_sale</mat-icon>
+            <div>
+              <h1>New Sale</h1>
+              <p class="subtitle">Create a new sales transaction</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -233,8 +239,11 @@ import { ContactListItem } from '../../../core/models/contact.model';
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .page-header > div { display: flex; align-items: center; gap: 12px; }
-    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .page-header-left { display: flex; align-items: center; gap: 12px; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
+    .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
     .full-width { width: 100%; }
     .totals-preview { margin-top: 16px; }

@@ -39,9 +39,12 @@ import {
   template: `
     <div class="inventory-container">
       <div class="page-header">
-        <div>
-          <h1>Inventory</h1>
-          <p class="subtitle">Live stock levels for all tracked products</p>
+        <div class="header-title">
+          <mat-icon class="header-icon">warehouse</mat-icon>
+          <div>
+            <h1>Inventory</h1>
+            <p class="subtitle">Live stock levels for all tracked products</p>
+          </div>
         </div>
         <button mat-raised-button color="primary" routerLink="/inventory/adjust">
           <mat-icon>add</mat-icon>
@@ -52,35 +55,35 @@ import {
       <!-- Summary cards -->
       <div class="stats-row">
         <div class="stat-card">
-          <mat-icon>inventory_2</mat-icon>
+          <mat-icon class="stat-icon blue">inventory_2</mat-icon>
           <div>
             <span class="stat-value">{{ summary?.totalProducts ?? '—' }}</span>
             <span class="stat-label">Tracked Products</span>
           </div>
         </div>
-        <div class="stat-card adequate">
-          <mat-icon>check_circle</mat-icon>
+        <div class="stat-card">
+          <mat-icon class="stat-icon green">check_circle</mat-icon>
           <div>
             <span class="stat-value">{{ summary?.adequateStock ?? '—' }}</span>
             <span class="stat-label">Adequate Stock</span>
           </div>
         </div>
-        <div class="stat-card warning">
-          <mat-icon>warning</mat-icon>
+        <div class="stat-card">
+          <mat-icon class="stat-icon orange">warning</mat-icon>
           <div>
             <span class="stat-value">{{ summary?.lowStockCount ?? '—' }}</span>
             <span class="stat-label">Low Stock</span>
           </div>
         </div>
-        <div class="stat-card danger">
-          <mat-icon>remove_circle</mat-icon>
+        <div class="stat-card">
+          <mat-icon class="stat-icon red">remove_circle</mat-icon>
           <div>
             <span class="stat-value">{{ summary?.outOfStockCount ?? '—' }}</span>
             <span class="stat-label">Out of Stock</span>
           </div>
         </div>
-        <div class="stat-card value">
-          <mat-icon>attach_money</mat-icon>
+        <div class="stat-card">
+          <mat-icon class="stat-icon purple">attach_money</mat-icon>
           <div>
             <span class="stat-value">{{ summary?.totalStockValue | number:'1.2-2' }}</span>
             <span class="stat-label">Est. Stock Value</span>
@@ -209,18 +212,21 @@ import {
   styles: [`
     .inventory-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
     .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
     .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
 
-    .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
     .stat-card { background: white; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .stat-card mat-icon { font-size: 30px; width: 30px; height: 30px; color: #6366f1; }
-    .stat-card.adequate mat-icon { color: #10b981; }
-    .stat-card.warning mat-icon { color: #f59e0b; }
-    .stat-card.danger mat-icon { color: #ef4444; }
-    .stat-card.value mat-icon { color: #0ea5e9; }
-    .stat-value { display: block; font-size: 22px; font-weight: 700; }
-    .stat-label { display: block; font-size: 11px; color: #666; }
+    .stat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; border-radius: 10px; padding: 0.5rem; }
+    .stat-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .stat-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .stat-icon.orange { color: #f57c00; background: #fff3e0; }
+    .stat-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .stat-icon.red    { color: #c62828; background: #ffebee; }
+    .stat-value { display: block; font-size: 1.4rem; font-weight: 700; color: #1a1a1a; }
+    .stat-label { display: block; font-size: 0.78rem; color: #666; margin-top: 2px; }
 
     .search-bar { margin-bottom: 16px; }
     .search-field { width: 360px; }

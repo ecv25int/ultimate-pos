@@ -4,19 +4,23 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PurchasesService } from '../../core/services/purchases.service';
 import { Purchase, PurchaseStatus, PurchasePaymentStatus, PurchaseSummary } from '../../core/models/purchase.model';
+import { MatIconModule } from '@angular/material/icon';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader/skeleton-loader.component';
 
 @Component({
   selector: 'app-purchases',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterModule, FormsModule, SkeletonLoaderComponent],
+  imports: [CommonModule, RouterModule, FormsModule, MatIconModule, SkeletonLoaderComponent],
   template: `
     <div class="page-container">
       <div class="page-header">
-        <div>
-          <h1>Purchases</h1>
-          <p>Manage supplier purchase orders &amp; requisitions</p>
+        <div class="header-title">
+          <mat-icon class="header-icon">receipt_long</mat-icon>
+          <div>
+            <h1>Purchases</h1>
+            <p class="subtitle">Manage supplier purchase orders &amp; requisitions</p>
+          </div>
         </div>
         <div class="header-actions">
           <a routerLink="create" [queryParams]="{type:'requisition'}" class="btn btn-outline">+ New Requisition</a>
@@ -37,20 +41,32 @@ import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader
       <!-- Summary Cards -->
       <div class="stats-grid" *ngIf="summary && typeFilter === 'purchase'">
         <div class="stat-card">
-          <span class="label">Total Orders</span>
-          <span class="value">{{ summary.total }}</span>
+          <mat-icon class="stat-icon blue">receipt</mat-icon>
+          <div>
+            <span class="stat-value">{{ summary.total }}</span>
+            <span class="stat-label">Total Orders</span>
+          </div>
         </div>
         <div class="stat-card">
-          <span class="label">Total Spend</span>
-          <span class="value">{{ summary.totalAmount | number:'1.2-2' }}</span>
+          <mat-icon class="stat-icon purple">payments</mat-icon>
+          <div>
+            <span class="stat-value">{{ summary.totalAmount | number:'1.2-2' }}</span>
+            <span class="stat-label">Total Spend</span>
+          </div>
         </div>
-        <div class="stat-card warning">
-          <span class="label">Total Due</span>
-          <span class="value">{{ summary.totalDue | number:'1.2-2' }}</span>
+        <div class="stat-card">
+          <mat-icon class="stat-icon orange">pending_actions</mat-icon>
+          <div>
+            <span class="stat-value">{{ summary.totalDue | number:'1.2-2' }}</span>
+            <span class="stat-label">Total Due</span>
+          </div>
         </div>
-        <div class="stat-card success">
-          <span class="label">Total Paid</span>
-          <span class="value">{{ summary.totalPaid | number:'1.2-2' }}</span>
+        <div class="stat-card">
+          <mat-icon class="stat-icon green">check_circle</mat-icon>
+          <div>
+            <span class="stat-value">{{ summary.totalPaid | number:'1.2-2' }}</span>
+            <span class="stat-label">Total Paid</span>
+          </div>
         </div>
       </div>
 
@@ -135,18 +151,23 @@ import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
     .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .page-header p { margin: 0; color: #666; font-size: 0.9rem; }
+    .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
     .header-actions { display: flex; gap: 10px; }
     .type-tabs { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; }
     .tab-btn { padding: 10px 20px; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-size: 14px; font-weight: 500; color: #6b7280; margin-bottom: -2px; }
-    .tab-btn.active { color: #4f46e5; border-bottom-color: #4f46e5; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
-    .stat-card.warning { border-left: 4px solid #f59e0b; }
-    .stat-card.success { border-left: 4px solid #10b981; }
-    .stat-card .label { font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; }
-    .stat-card .value { font-size: 22px; font-weight: 700; color: #111827; }
+    .tab-btn.active { color: #1976d2; border-bottom-color: #1976d2; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .stat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; border-radius: 10px; padding: 0.5rem; }
+    .stat-icon.blue   { color: #1976d2; background: #e3f2fd; }
+    .stat-icon.green  { color: #388e3c; background: #e8f5e9; }
+    .stat-icon.orange { color: #f57c00; background: #fff3e0; }
+    .stat-icon.purple { color: #7b1fa2; background: #f3e5f5; }
+    .stat-value { display: block; font-size: 1.4rem; font-weight: 700; color: #1a1a1a; }
+    .stat-label { display: block; font-size: 0.78rem; color: #666; margin-top: 2px; }
     .filters { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
     .search-input, .filter-select { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
     .search-input { flex: 1; min-width: 200px; }

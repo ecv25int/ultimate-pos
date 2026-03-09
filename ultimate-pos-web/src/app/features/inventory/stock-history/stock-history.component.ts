@@ -32,11 +32,14 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
         <button mat-icon-button routerLink="/inventory">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <div>
-          <h1>Stock History</h1>
-          @if (history) {
-            <p class="subtitle">{{ history.product.name }} · SKU: {{ history.product.sku }}</p>
-          }
+        <div class="header-title">
+          <mat-icon class="header-icon">history</mat-icon>
+          <div>
+            <h1>Stock History</h1>
+            @if (history) {
+              <p class="subtitle">{{ history.product.name }} · SKU: {{ history.product.sku }}</p>
+            }
+          </div>
         </div>
         @if (history) {
           <div class="current-stock" [class.stock-ok]="history.currentStock > 0" [class.stock-zero]="history.currentStock <= 0">
@@ -129,7 +132,8 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     .history-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
     .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .page-header > div:nth-child(2) { flex: 1; }
+    .header-title { display: flex; align-items: center; gap: 1rem; flex: 1; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
     .subtitle { margin: 0; color: #666; font-size: 0.9rem; }
 
     .current-stock { padding: 12px 20px; border-radius: 10px; text-align: center; min-width: 100px; }

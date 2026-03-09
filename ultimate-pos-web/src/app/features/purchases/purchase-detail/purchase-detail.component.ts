@@ -7,19 +7,23 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { PurchasesService } from '../../../core/services/purchases.service';
 import { Purchase } from '../../../core/models/purchase.model';
 
 @Component({
   selector: 'app-purchase-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, MatSnackBarModule, MatButtonModule, MatCheckboxModule, MatInputModule, MatFormFieldModule],
+  imports: [CommonModule, RouterModule, FormsModule, MatSnackBarModule, MatButtonModule, MatCheckboxModule, MatInputModule, MatFormFieldModule, MatIconModule],
   template: `
     <div class="page-container" *ngIf="purchase; else loading">
       <div class="page-header">
-        <div>
-          <h1>{{ purchase.refNo }}</h1>
-          <p>{{ purchase.purchaseDate | date:'longDate' }}</p>
+        <div class="header-title">
+          <mat-icon class="header-icon">receipt</mat-icon>
+          <div>
+            <h1>{{ purchase.refNo }}</h1>
+            <p class="subtitle">{{ purchase.purchaseDate | date:'longDate' }}</p>
+          </div>
         </div>
         <div class="header-actions">
           <button *ngIf="purchase.type !== 'purchase_return'" mat-stroked-button (click)="toggleReturnForm()">
@@ -141,8 +145,10 @@ import { Purchase } from '../../../core/models/purchase.model';
   styles: [`
     .page-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .header-title { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: #1976d2; }
     .page-header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 600; color: #1a1a1a; }
-    .page-header p { margin: 0; color: #6b7280; }
+    .subtitle { margin: 0; color: #6b7280; }
     .badges-row { display: flex; gap: 8px; margin-bottom: 20px; }
     .badge { padding: 4px 12px; border-radius: 9999px; font-size: 13px; font-weight: 500; }
     .received { background: #d1fae5; color: #065f46; }
@@ -154,7 +160,7 @@ import { Purchase } from '../../../core/models/purchase.model';
     .due { background: #fee2e2; color: #991b1b; }
     .return-badge { background: #ede9fe; color: #5b21b6; }
     .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-    .detail-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; }
+    .detail-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
     .detail-card.full { grid-column: 1 / -1; }
     .return-panel { border-color: #f97316; margin-top: 20px; }
     .detail-card h2 { margin: 0 0 16px; font-size: 16px; font-weight: 600; }
