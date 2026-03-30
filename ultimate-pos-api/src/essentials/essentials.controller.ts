@@ -9,7 +9,7 @@ import {
   CreatePayrollDto, CreateDocumentDto, CreateReminderDto,
 } from './dto/essentials.dto';
 
-@Controller('api/essentials')
+@Controller('essentials')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.MANAGER)
 export class EssentialsController {

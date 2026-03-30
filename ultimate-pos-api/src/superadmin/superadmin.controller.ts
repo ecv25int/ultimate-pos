@@ -6,7 +6,7 @@ import { UserRole } from '../auth/enums/user-role.enum';
 import { SuperadminService } from './superadmin.service';
 import { CreatePackageDto, UpdatePackageDto, CreateSubscriptionDto, UpdateSubscriptionStatusDto } from './dto/superadmin.dto';
 
-@Controller('api/superadmin')
+@Controller('superadmin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class SuperadminController {

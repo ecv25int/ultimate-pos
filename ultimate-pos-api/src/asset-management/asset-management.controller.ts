@@ -16,7 +16,7 @@ import { UserRole } from '../auth/enums/user-role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.MANAGER)
-@Controller('api/assets')
+@Controller('assets')
 export class AssetManagementController {
   constructor(private readonly assetService: AssetManagementService) {}
 

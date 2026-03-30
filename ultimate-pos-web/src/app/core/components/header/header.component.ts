@@ -179,8 +179,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.roleService.currentUser$.subscribe((user) => {
       if (user) this.currentUser = user;
     });
-    // Start polling for unread count
-    this.notifService.startPolling(60_000);
+    if (this.authService.isAuthenticated()) {
+      this.notifService.startPolling(60_000);
+    }
     this._sub = this.notifService.unreadCount$.subscribe(
       (count) => (this.notificationCount = count),
     );
@@ -190,6 +191,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.notifService.stopPolling();
     this._sub?.unsubscribe();
     this._langSub?.unsubscribe();
   }
@@ -208,6 +210,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
+    this.notifService.stopPolling();
     this.authService.logout();
   }
 }

@@ -11,7 +11,7 @@ import { UserRole } from '../auth/enums/user-role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.MANAGER)
-@Controller('api/manufacturing')
+@Controller('manufacturing')
 export class ManufacturingController {
   constructor(private readonly manufacturingService: ManufacturingService) {}
 

@@ -6,7 +6,7 @@ import { UserRole } from '../auth/enums/user-role.enum';
 import { ProjectService } from './project.service';
 import { CreateProjectDto, UpdateProjectDto, CreateTaskDto, UpdateTaskDto, CreateTimeLogDto, CreateCommentDto } from './dto/project.dto';
 
-@Controller('api/projects')
+@Controller('projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.MANAGER)
 export class ProjectController {

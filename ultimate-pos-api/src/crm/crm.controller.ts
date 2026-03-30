@@ -11,7 +11,7 @@ import { UserRole } from '../auth/enums/user-role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.MANAGER)
-@Controller('api/crm')
+@Controller('crm')
 export class CrmController {
   constructor(private readonly crmService: CrmService) {}
 

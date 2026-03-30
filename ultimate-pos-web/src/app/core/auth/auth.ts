@@ -110,7 +110,7 @@ export class Auth {
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    return !!this.getToken() && !!this.getRefreshToken() && !!this.getCurrentUser();
   }
 
   /**
@@ -149,7 +149,17 @@ export class Auth {
    */
   private getUserFromStorage(): User | null {
     const userJson = localStorage.getItem(this.USER_KEY);
-    return userJson ? JSON.parse(userJson) : null;
+    if (!userJson || userJson === 'undefined' || userJson.trim() === '') {
+      localStorage.removeItem(this.USER_KEY);
+      return null;
+    }
+
+    try {
+      return JSON.parse(userJson) as User;
+    } catch {
+      localStorage.removeItem(this.USER_KEY);
+      return null;
+    }
   }
 
   /**

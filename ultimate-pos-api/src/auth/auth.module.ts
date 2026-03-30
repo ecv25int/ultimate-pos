@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { PermissionGuard } from './guards/permission.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { MailModule } from '../mail/mail.module';
 
@@ -27,8 +28,8 @@ import { MailModule } from '../mail/mail.module';
     }),
     MailModule,
   ],
-  providers: [AuthService, JwtStrategy, RolesGuard],
+  providers: [AuthService, JwtStrategy, RolesGuard, PermissionGuard],
   controllers: [AuthController],
-  exports: [AuthService, JwtStrategy, PassportModule, JwtModule, RolesGuard],
+  exports: [AuthService, JwtStrategy, PassportModule, JwtModule, RolesGuard, PermissionGuard],
 })
 export class AuthModule {}

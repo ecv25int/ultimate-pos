@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, timer, switchMap } from 'rxjs';
+import { Observable, BehaviorSubject, Subscription, timer, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Notification,
@@ -11,6 +11,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private readonly apiUrl = `${environment.apiUrl}/notifications`;
+  private pollingSub?: Subscription;
 
   /** Stream of unread notification count, polled every 60 seconds */
   readonly unreadCount$ = new BehaviorSubject<number>(0);
@@ -19,12 +20,19 @@ export class NotificationsService {
 
   /** Begin polling for unread count (call once from AppComponent or layout) */
   startPolling(intervalMs = 60_000): void {
-    timer(0, intervalMs)
+    this.stopPolling();
+
+    this.pollingSub = timer(0, intervalMs)
       .pipe(switchMap(() => this.getUnreadCount()))
       .subscribe({
         next: (res) => this.unreadCount$.next(res.count),
         error: () => {}, // silent fail
       });
+  }
+
+  stopPolling(): void {
+    this.pollingSub?.unsubscribe();
+    this.pollingSub = undefined;
   }
 
   getAll(params?: {

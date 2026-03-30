@@ -6,7 +6,7 @@ import { UserRole } from '../auth/enums/user-role.enum';
 import { WoocommerceService } from './woocommerce.service';
 import { CreateSyncLogDto } from './dto/woocommerce.dto';
 
-@Controller('api/woocommerce')
+@Controller('woocommerce')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.MANAGER)
 export class WoocommerceController {

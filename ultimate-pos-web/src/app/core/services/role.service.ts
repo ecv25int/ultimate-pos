@@ -17,6 +17,8 @@ export interface User {
   providedIn: 'root',
 })
 export class RoleService {
+  private readonly USER_KEY = 'current_user';
+
   private currentUserSubject = new BehaviorSubject<User | null>(
     this.getUserFromStorage(),
   );
@@ -26,8 +28,18 @@ export class RoleService {
 
   /** Read user object stored by Auth service after login. */
   private getUserFromStorage(): User | null {
-    const json = localStorage.getItem('current_user');
-    return json ? (JSON.parse(json) as User) : null;
+    const json = localStorage.getItem(this.USER_KEY);
+    if (!json || json === 'undefined' || json.trim() === '') {
+      localStorage.removeItem(this.USER_KEY);
+      return null;
+    }
+
+    try {
+      return JSON.parse(json) as User;
+    } catch {
+      localStorage.removeItem(this.USER_KEY);
+      return null;
+    }
   }
 
   /** Call after login/logout to refresh the cached user. */

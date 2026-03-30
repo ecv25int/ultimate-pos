@@ -6,7 +6,7 @@ import { UserRole } from '../auth/enums/user-role.enum';
 import { HmsService } from './hms.service';
 import { CreateRoomTypeDto, CreateRoomDto, CreateExtraDto, CreateBookingLineDto } from './dto/hms.dto';
 
-@Controller('api/hms')
+@Controller('hms')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.MANAGER)
 export class HmsController {
