@@ -25,9 +25,19 @@
     "REPAIR": "Repair",
     "ASSETS": "Asset Management",
     "SETTINGS": "Settings",
+    "BUSINESS": "Business",
+    "IMPORT_EXPORT": "Import / Export",
+    "NOTIFICATIONS": "Notifications",
+    "TAX_RATES": "Tax Rates",
+    "STOCK_ADJUSTMENTS": "Stock Adjustments",
+    "STOCK_TRANSFERS": "Stock Transfers",
+    "PAYMENTS": "Payments",
+    "BARCODES": "Barcodes",
     "HMS": "HMS",
     "PROJECTS": "Projects",
-    "ESSENTIALS": "Essentials"
+    "ESSENTIALS": "Essentials",
+    "SUPERADMIN": "Superadmin",
+    "WOOCOMMERCE": "WooCommerce"
   },
   "COMMON": {
     "SAVE": "Save",
@@ -78,6 +88,10 @@
     "RESET_PASSWORD": "Reset Password",
     "REMEMBER_ME": "Remember me",
     "LOGIN_TITLE": "Sign in to your account",
+    "SESSION_TIMEOUT_TITLE": "Session Expiring Soon",
+    "SESSION_TIMEOUT_MESSAGE": "Your session will expire due to inactivity.",
+    "SESSION_REMAINING": "remaining",
+      "STAY_LOGGED_IN": "Stay Logged In",
     "INVALID_CREDENTIALS": "Invalid username or password.",
     "ACCOUNT_LOCKED": "Account is locked. Please try again later.",
     "EMAIL_VERIFICATION_REQUIRED": "Please verify your email before logging in."

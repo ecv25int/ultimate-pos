@@ -8,6 +8,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { RoleService } from '../../services/role.service';
 import { Auth } from '../../auth/auth';
@@ -27,6 +28,7 @@ import { LanguageService, SUPPORTED_LANGUAGES } from '../../services/language.se
     MatBadgeModule,
     MatDividerModule,
     MatTooltipModule,
+    TranslateModule,
   ],
   template: `
     <mat-toolbar color="primary" class="header-toolbar">
@@ -38,12 +40,12 @@ import { LanguageService, SUPPORTED_LANGUAGES } from '../../services/language.se
         <mat-icon>menu</mat-icon>
       </button>
 
-      <span class="app-title">Ultimate POS</span>
+      <span class="app-title">{{ 'APP.NAME' | translate }}</span>
 
       <span class="spacer"></span>
 
       <!-- Language Switcher -->
-      <button mat-icon-button [matMenuTriggerFor]="langMenu" [matTooltip]="'Language'" class="header-icon-button">
+      <button mat-icon-button [matMenuTriggerFor]="langMenu" [matTooltip]="'APP.LANGUAGE' | translate" class="header-icon-button">
         <mat-icon>translate</mat-icon>
       </button>
 
@@ -84,16 +86,16 @@ import { LanguageService, SUPPORTED_LANGUAGES } from '../../services/language.se
         <mat-divider></mat-divider>
         <button mat-menu-item routerLink="/profile">
           <mat-icon>person</mat-icon>
-          <span>My Profile</span>
+            <span>{{ 'APP.MY_PROFILE' | translate }}</span>
         </button>
         <button mat-menu-item>
           <mat-icon>settings</mat-icon>
-          <span>Settings</span>
+            <span>{{ 'APP.SETTINGS' | translate }}</span>
         </button>
         <mat-divider></mat-divider>
         <button mat-menu-item (click)="logout()">
           <mat-icon color="warn">logout</mat-icon>
-          <span>Logout</span>
+            <span>{{ 'APP.LOGOUT' | translate }}</span>
         </button>
       </mat-menu>
     </mat-toolbar>

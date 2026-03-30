@@ -5,6 +5,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 import { NAV_ITEMS, NavItem } from '../../config/navigation.config';
 import { Auth } from '../../auth/auth';
 
@@ -18,6 +19,7 @@ import { Auth } from '../../auth/auth';
     MatListModule,
     MatIconModule,
     MatTooltipModule,
+    TranslateModule,
   ],
   template: `
     <mat-nav-list class="sidebar-nav">
@@ -27,14 +29,14 @@ import { Auth } from '../../auth/auth';
           [routerLink]="item.route"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-          [matTooltip]="item.label"
+          [matTooltip]="item.translationKey ? (item.translationKey | translate) : item.label"
           matTooltipPosition="right"
           [matTooltipDisabled]="!isCollapsed"
           (click)="navItemClicked.emit()"
         >
           <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
           @if (!isCollapsed) {
-            <span matListItemTitle>{{ item.label }}</span>
+            <span matListItemTitle>{{ (item.translationKey ? (item.translationKey | translate) : item.label) }}</span>
           }
         </a>
       }

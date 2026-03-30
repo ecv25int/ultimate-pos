@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { TranslateModule } from '@ngx-translate/core';
 import { interval, Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 
@@ -14,21 +15,21 @@ export interface SessionTimeoutDialogData {
 @Component({
   selector: 'app-session-timeout-dialog',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatDialogModule, MatIconModule, MatProgressBarModule],
+  imports: [CommonModule, MatButtonModule, MatDialogModule, MatIconModule, MatProgressBarModule, TranslateModule],
   template: `
     <div class="timeout-dialog">
       <div class="timeout-header">
         <mat-icon color="warn">timer</mat-icon>
-        <h2 mat-dialog-title>Session Expiring Soon</h2>
+        <h2 mat-dialog-title>{{ 'AUTH.SESSION_TIMEOUT_TITLE' | translate }}</h2>
       </div>
 
       <mat-dialog-content>
-        <p>Your session will expire due to inactivity.</p>
+        <p>{{ 'AUTH.SESSION_TIMEOUT_MESSAGE' | translate }}</p>
         <div class="countdown">
           <span class="countdown-time" [class.urgent]="remainingSeconds <= 60">
             {{ formattedTime }}
           </span>
-          <span class="countdown-label">remaining</span>
+          <span class="countdown-label">{{ 'AUTH.SESSION_REMAINING' | translate }}</span>
         </div>
         <mat-progress-bar
           mode="determinate"
@@ -40,11 +41,11 @@ export interface SessionTimeoutDialogData {
       <mat-dialog-actions align="end">
         <button mat-button (click)="onLogout()">
           <mat-icon>logout</mat-icon>
-          Logout
+          {{ 'APP.LOGOUT' | translate }}
         </button>
         <button mat-raised-button color="primary" (click)="onStayLoggedIn()">
           <mat-icon>refresh</mat-icon>
-          Stay Logged In
+          {{ 'AUTH.STAY_LOGGED_IN' | translate }}
         </button>
       </mat-dialog-actions>
     </div>

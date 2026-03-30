@@ -25,9 +25,19 @@
     "REPAIR": "Reparaciones",
     "ASSETS": "Gestión de activos",
     "SETTINGS": "Configuración",
+    "BUSINESS": "Negocio",
+    "IMPORT_EXPORT": "Importar / Exportar",
+    "NOTIFICATIONS": "Notificaciones",
+    "TAX_RATES": "Tasas de impuestos",
+    "STOCK_ADJUSTMENTS": "Ajustes de inventario",
+    "STOCK_TRANSFERS": "Transferencias de inventario",
+    "PAYMENTS": "Pagos",
+    "BARCODES": "Códigos de barras",
     "HMS": "HMS",
     "PROJECTS": "Proyectos",
-    "ESSENTIALS": "Esenciales"
+    "ESSENTIALS": "Esenciales",
+    "SUPERADMIN": "Superadmin",
+    "WOOCOMMERCE": "WooCommerce"
   },
   "COMMON": {
     "SAVE": "Guardar",
@@ -78,6 +88,10 @@
     "RESET_PASSWORD": "Restablecer contraseña",
     "REMEMBER_ME": "Recordarme",
     "LOGIN_TITLE": "Inicie sesión en su cuenta",
+    "SESSION_TIMEOUT_TITLE": "La sesión vencerá pronto",
+    "SESSION_TIMEOUT_MESSAGE": "Su sesión vencerá por inactividad.",
+    "SESSION_REMAINING": "restante",
+    "STAY_LOGGED_IN": "Manténgase conectado",
     "INVALID_CREDENTIALS": "Usuario o contraseña incorrectos.",
     "ACCOUNT_LOCKED": "La cuenta está bloqueada. Inténtelo más tarde.",
     "EMAIL_VERIFICATION_REQUIRED": "Por favor, verifique su correo antes de iniciar sesión."
