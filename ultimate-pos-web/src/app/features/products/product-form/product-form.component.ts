@@ -18,6 +18,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 import { ProductService } from '../../../core/services/product.service';
 import { Category, Brand, Unit, CreateProductDto } from '../../../core/models/product.model';
 import { forkJoin } from 'rxjs';
@@ -40,6 +41,7 @@ import { forkJoin } from 'rxjs';
     MatProgressSpinnerModule,
     MatDividerModule,
     MatTooltipModule,
+    TranslateModule,
   ],
   template: `
     <div class="form-container">
@@ -50,8 +52,8 @@ import { forkJoin } from 'rxjs';
             <mat-icon>arrow_back</mat-icon>
           </button>
           <div>
-            <h1>{{ isEditMode ? 'Edit Product' : 'Add New Product' }}</h1>
-            <p class="subtitle">{{ isEditMode ? 'Update product information' : 'Create a new product in your catalog' }}</p>
+            <h1>{{ isEditMode ? ('PRODUCTS.EDIT_PRODUCT' | translate) : ('PRODUCTS.ADD_NEW_PRODUCT' | translate) }}</h1>
+            <p class="subtitle">{{ isEditMode ? ('PRODUCTS.UPDATE_PRODUCT_INFO' | translate) : ('PRODUCTS.CREATE_NEW_PRODUCT' | translate) }}</p>
           </div>
         </div>
       </div>
@@ -59,7 +61,7 @@ import { forkJoin } from 'rxjs';
       @if (isLoadingData) {
         <div class="loading-container">
           <mat-spinner></mat-spinner>
-          <p>Loading...</p>
+          <p>{{ 'COMMON.LOADING' | translate }}</p>
         </div>
       } @else {
         <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
@@ -68,40 +70,40 @@ import { forkJoin } from 'rxjs';
             <mat-card class="form-card">
               <mat-card-header>
                 <mat-icon mat-card-avatar>info</mat-icon>
-                <mat-card-title>Basic Information</mat-card-title>
-                <mat-card-subtitle>Product name, SKU and type</mat-card-subtitle>
+                <mat-card-title>{{ 'PRODUCTS.BASIC_INFORMATION' | translate }}</mat-card-title>
+                <mat-card-subtitle>{{ 'PRODUCTS.PRODUCT_NAME_SKU_TYPE' | translate }}</mat-card-subtitle>
               </mat-card-header>
               <mat-card-content>
                 <!-- Product Name -->
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Product Name *</mat-label>
-                  <input matInput formControlName="name" placeholder="e.g. Coca-Cola 330ml" />
+                  <mat-label>{{ 'PRODUCTS.PRODUCT_NAME' | translate }} *</mat-label>
+                  <input matInput formControlName="name" [placeholder]="'PRODUCTS.PRODUCT_NAME_HINT' | translate" />
                   <mat-error *ngIf="name?.invalid && name?.touched">
-                    <span *ngIf="name?.errors?.['required']">Product name is required</span>
-                    <span *ngIf="name?.errors?.['maxlength']">Maximum 255 characters</span>
+                    <span *ngIf="name?.errors?.['required']">{{ 'PRODUCTS.PRODUCT_NAME_REQUIRED' | translate }}</span>
+                    <span *ngIf="name?.errors?.['maxlength']">{{ 'PRODUCTS.MAX_255_CHARS' | translate }}</span>
                   </mat-error>
                 </mat-form-field>
 
                 <!-- SKU -->
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>SKU (Stock Keeping Unit) *</mat-label>
-                  <input matInput formControlName="sku" placeholder="e.g. COKE-330ML" />
-                  <mat-hint>Unique identifier for this product</mat-hint>
+                  <mat-label>{{ 'PRODUCTS.SKU' | translate }} *</mat-label>
+                  <input matInput formControlName="sku" [placeholder]="'PRODUCTS.SKU_HINT' | translate" />
+                  <mat-hint>{{ 'PRODUCTS.UNIQUE_IDENTIFIER' | translate }}</mat-hint>
                   <mat-error *ngIf="sku?.invalid && sku?.touched">
-                    <span *ngIf="sku?.errors?.['required']">SKU is required</span>
+                    <span *ngIf="sku?.errors?.['required']">{{ 'PRODUCTS.SKU_REQUIRED' | translate }}</span>
                   </mat-error>
                 </mat-form-field>
 
                 <!-- Product Type -->
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Product Type</mat-label>
+                  <mat-label>{{ 'PRODUCTS.PRODUCT_TYPE' | translate }}</mat-label>
                   <mat-select formControlName="type">
                     <mat-option value="single">
                       <div class="option-with-icon">
                         <mat-icon>inventory_2</mat-icon>
                         <div>
-                          <div>Single Product</div>
-                          <div class="option-description">One SKU, no variations</div>
+                          <div>{{ 'PRODUCTS.SINGLE_PRODUCT' | translate }}</div>
+                          <div class="option-description">{{ 'PRODUCTS.ONE_SKU_NO_VARIATIONS' | translate }}</div>
                         </div>
                       </div>
                     </mat-option>
@@ -109,8 +111,8 @@ import { forkJoin } from 'rxjs';
                       <div class="option-with-icon">
                         <mat-icon>workspaces</mat-icon>
                         <div>
-                          <div>Variable Product</div>
-                          <div class="option-description">Multiple sizes, colors, etc.</div>
+                          <div>{{ 'PRODUCTS.VARIABLE_PRODUCT' | translate }}</div>
+                          <div class="option-description">{{ 'PRODUCTS.MULTIPLE_VARIATIONS' | translate }}</div>
                         </div>
                       </div>
                     </mat-option>
@@ -119,15 +121,15 @@ import { forkJoin } from 'rxjs';
 
                 <!-- Barcode Type -->
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Barcode Type</mat-label>
+                  <mat-label>{{ 'PRODUCTS.BARCODE_TYPE' | translate }}</mat-label>
                   <mat-select formControlName="barcodeType">
-                    <mat-option value="C128">Code 128 (Recommended)</mat-option>
-                    <mat-option value="C39">Code 39</mat-option>
-                    <mat-option value="EAN-13">EAN-13 (International)</mat-option>
-                    <mat-option value="EAN-8">EAN-8</mat-option>
-                    <mat-option value="UPC-A">UPC-A (North America)</mat-option>
-                    <mat-option value="UPC-E">UPC-E</mat-option>
-                    <mat-option value="ITF-14">ITF-14 (Shipping)</mat-option>
+                    <mat-option value="C128">{{ 'PRODUCTS.CODE_128_RECOMMENDED' | translate }}</mat-option>
+                    <mat-option value="C39">{{ 'PRODUCTS.CODE_39' | translate }}</mat-option>
+                    <mat-option value="EAN-13">{{ 'PRODUCTS.EAN_13_INTERNATIONAL' | translate }}</mat-option>
+                    <mat-option value="EAN-8">{{ 'PRODUCTS.EAN_8' | translate }}</mat-option>
+                    <mat-option value="UPC-A">{{ 'PRODUCTS.UPC_A_NORTH_AMERICA' | translate }}</mat-option>
+                    <mat-option value="UPC-E">{{ 'PRODUCTS.UPC_E' | translate }}</mat-option>
+                    <mat-option value="ITF-14">{{ 'PRODUCTS.ITF_14_SHIPPING' | translate }}</mat-option>
                   </mat-select>
                 </mat-form-field>
               </mat-card-content>
@@ -137,15 +139,15 @@ import { forkJoin } from 'rxjs';
             <mat-card class="form-card">
               <mat-card-header>
                 <mat-icon mat-card-avatar>category</mat-icon>
-                <mat-card-title>Classification</mat-card-title>
-                <mat-card-subtitle>Category, brand and unit of measure</mat-card-subtitle>
+                <mat-card-title>{{ 'PRODUCTS.CLASSIFICATION' | translate }}</mat-card-title>
+                <mat-card-subtitle>{{ 'PRODUCTS.CATEGORY_BRAND_UNIT' | translate }}</mat-card-subtitle>
               </mat-card-header>
               <mat-card-content>
                 <!-- Category -->
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Category</mat-label>
+                  <mat-label>{{ 'PRODUCTS.CATEGORY' | translate }}</mat-label>
                   <mat-select formControlName="categoryId">
-                    <mat-option [value]="null">-- No Category --</mat-option>
+                    <mat-option [value]="null">-- {{ 'COMMON.NO_CATEGORY' | translate }} --</mat-option>
                     @for (cat of parentCategories; track cat.id) {
                       <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
                       @for (sub of cat.subcategories; track sub.id) {
@@ -153,38 +155,44 @@ import { forkJoin } from 'rxjs';
                       }
                     }
                   </mat-select>
+                  <mat-hint>
+                    <a routerLink="/products/categories" class="add-link">{{ 'PRODUCTS.MANAGE_CATEGORIES' | translate }}</a>
+                  </mat-hint>
                 </mat-form-field>
 
                 <!-- Sub-Category -->
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Sub-Category</mat-label>
+                  <mat-label>{{ 'PRODUCTS.SUB_CATEGORY' | translate }}</mat-label>
                   <mat-select formControlName="subCategoryId">
-                    <mat-option [value]="null">-- No Sub-Category --</mat-option>
+                    <mat-option [value]="null">-- {{ 'COMMON.NO_SUB_CATEGORY' | translate }} --</mat-option>
                     @for (cat of categories; track cat.id) {
                       <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
                     }
                   </mat-select>
+                  <mat-hint>
+                    <a routerLink="/products/categories" class="add-link">{{ 'PRODUCTS.MANAGE_CATEGORIES' | translate }}</a>
+                  </mat-hint>
                 </mat-form-field>
 
                 <!-- Brand -->
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Brand</mat-label>
+                  <mat-label>{{ 'PRODUCTS.BRAND' | translate }}</mat-label>
                   <mat-select formControlName="brandId">
-                    <mat-option [value]="null">-- No Brand --</mat-option>
+                    <mat-option [value]="null">-- {{ 'COMMON.NO_BRAND' | translate }} --</mat-option>
                     @for (brand of brands; track brand.id) {
                       <mat-option [value]="brand.id">{{ brand.name }}</mat-option>
                     }
                   </mat-select>
                   <mat-hint>
-                    <a routerLink="/products/brands" class="add-link">Manage brands</a>
+                    <a routerLink="/products/brands" class="add-link">{{ 'PRODUCTS.MANAGE_BRANDS' | translate }}</a>
                   </mat-hint>
                 </mat-form-field>
 
                 <!-- Unit -->
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Unit of Measurement *</mat-label>
+                  <mat-label>{{ 'PRODUCTS.UNIT_MEASUREMENT' | translate }} *</mat-label>
                   <mat-select formControlName="unitId">
-                    <mat-option [value]="null">-- Select Unit --</mat-option>
+                    <mat-option [value]="null">-- {{ 'COMMON.SELECT_UNIT' | translate }} --</mat-option>
                     @for (unit of units; track unit.id) {
                       <mat-option [value]="unit.id">
                         {{ unit.actualName }} ({{ unit.shortName }})
@@ -192,10 +200,10 @@ import { forkJoin } from 'rxjs';
                     }
                   </mat-select>
                   <mat-error *ngIf="unitId?.invalid && unitId?.touched">
-                    Unit is required
+                    {{ 'PRODUCTS.UNIT_REQUIRED' | translate }}
                   </mat-error>
                   <mat-hint>
-                    <a routerLink="/products/units" class="add-link">Manage units</a>
+                    <a routerLink="/products/units" class="add-link">{{ 'PRODUCTS.MANAGE_UNITS' | translate }}</a>
                   </mat-hint>
                 </mat-form-field>
               </mat-card-content>
@@ -205,25 +213,25 @@ import { forkJoin } from 'rxjs';
             <mat-card class="form-card">
               <mat-card-header>
                 <mat-icon mat-card-avatar>inventory</mat-icon>
-                <mat-card-title>Stock Management</mat-card-title>
-                <mat-card-subtitle>Inventory tracking settings</mat-card-subtitle>
+                <mat-card-title>{{ 'PRODUCTS.STOCK_MANAGEMENT' | translate }}</mat-card-title>
+                <mat-card-subtitle>{{ 'PRODUCTS.INVENTORY_TRACKING_SETTINGS' | translate }}</mat-card-subtitle>
               </mat-card-header>
               <mat-card-content>
                 <div class="checkbox-field">
                   <mat-checkbox formControlName="enableStock" color="primary">
-                    Enable stock tracking for this product
+                    {{ 'PRODUCTS.ENABLE_STOCK_TRACKING' | translate }}
                   </mat-checkbox>
-                  <p class="field-hint">When enabled, you can track stock levels and receive low stock alerts</p>
+                  <p class="field-hint">{{ 'PRODUCTS.STOCK_TRACKING_HINT' | translate }}</p>
                 </div>
 
                 @if (productForm.get('enableStock')?.value) {
                   <mat-divider class="my-divider"></mat-divider>
                   <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Alert Quantity</mat-label>
+                    <mat-label>{{ 'PRODUCTS.ALERT_QUANTITY' | translate }}</mat-label>
                     <input matInput type="number" formControlName="alertQuantity" placeholder="0" min="0" />
-                    <mat-hint>Get notified when stock falls below this quantity</mat-hint>
+                    <mat-hint>{{ 'PRODUCTS.LOW_STOCK_ALERT_HINT' | translate }}</mat-hint>
                     <mat-error *ngIf="alertQuantity?.invalid && alertQuantity?.touched">
-                      Invalid quantity
+                      {{ 'COMMON.INVALID_QUANTITY' | translate }}
                     </mat-error>
                   </mat-form-field>
                 }
@@ -237,9 +245,9 @@ import { forkJoin } from 'rxjs';
             <mat-card appearance="outlined">
               <mat-card-header>
                 <mat-card-title>
-                  <mat-icon>image</mat-icon> Product Image
+                  <mat-icon>image</mat-icon> {{ 'PRODUCTS.PRODUCT_IMAGE' | translate }}
                 </mat-card-title>
-                <mat-card-subtitle>Optional — jpg, png, gif or webp, max 8 MB</mat-card-subtitle>
+                <mat-card-subtitle>{{ 'PRODUCTS.IMAGE_UPLOAD_HINT' | translate }}</mat-card-subtitle>
               </mat-card-header>
               <mat-card-content>
                 <div class="img-preview-row">
@@ -250,7 +258,7 @@ import { forkJoin } from 'rxjs';
                         type="button" mat-icon-button color="warn"
                         class="img-remove-btn"
                         (click)="onRemoveImage()"
-                        matTooltip="Remove image"
+                        [matTooltip]="'COMMON.REMOVE_IMAGE' | translate"
                       >
                         <mat-icon>delete</mat-icon>
                       </button>
@@ -258,7 +266,7 @@ import { forkJoin } from 'rxjs';
                   } @else {
                     <div class="img-placeholder">
                       <mat-icon>image_not_supported</mat-icon>
-                      <span>No image</span>
+                      <span>{{ 'COMMON.NO_IMAGE' | translate }}</span>
                     </div>
                   }
 
@@ -272,7 +280,7 @@ import { forkJoin } from 'rxjs';
                     />
                     <button type="button" mat-stroked-button color="primary" (click)="imageFileInput.click()">
                       <mat-icon>upload</mat-icon>
-                      {{ imagePreviewUrl || existingImageUrl ? 'Change Image' : 'Upload Image' }}
+                      {{ (imagePreviewUrl || existingImageUrl ? 'COMMON.CHANGE_IMAGE' : 'COMMON.UPLOAD_IMAGE') | translate }}
                     </button>
                     @if (uploadingImage) {
                       <mat-progress-spinner diameter="20" mode="indeterminate" style="margin-left:8px"></mat-progress-spinner>
@@ -289,7 +297,7 @@ import { forkJoin } from 'rxjs';
           <!-- Form Actions -->
           <div class="form-actions">
             <button type="button" mat-button routerLink="/products">
-              Cancel
+              {{ 'COMMON.CANCEL' | translate }}
             </button>
             <button
               type="submit"
@@ -302,7 +310,7 @@ import { forkJoin } from 'rxjs';
               } @else {
                 <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
               }
-              {{ isEditMode ? 'Save Changes' : 'Create Product' }}
+              {{ (isEditMode ? 'COMMON.SAVE_CHANGES' : 'PRODUCTS.CREATE_PRODUCT') | translate }}
             </button>
           </div>
         </form>

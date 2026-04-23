@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {
@@ -357,6 +357,7 @@ export class CategoriesComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
+  private cdr = inject(ChangeDetectorRef);
 
   categories: Category[] = [];
   topLevelCategories: Category[] = [];
@@ -388,6 +389,7 @@ export class CategoriesComponent implements OnInit {
         const assignedSubIds = new Set(cats.filter(c => c.parentId).map(c => c.id));
         this.orphanedCategories = []; // cleared in this simple model
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.isLoading = false;

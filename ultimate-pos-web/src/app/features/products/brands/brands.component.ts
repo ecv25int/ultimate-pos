@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {
@@ -276,6 +276,7 @@ export class BrandsComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
+  private cdr = inject(ChangeDetectorRef);
 
   brands: Brand[] = [];
   isLoading = true;
@@ -301,6 +302,7 @@ export class BrandsComponent implements OnInit {
       next: (brands) => {
         this.brands = brands;
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.isLoading = false;

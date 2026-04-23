@@ -49,12 +49,17 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { PushModule } from './push/push.module';
 import { BackupModule } from './backup/backup.module';
 import { ReportSchedulerModule } from './report-scheduler/report-scheduler.module';
+import { TransactionsModule } from './transactions/transactions.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { APP_GUARD } from '@nestjs/core';
 import { SanitizeMiddleware } from './common/sanitize.middleware';
 import { APP_FILTER } from '@nestjs/core';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { HealthController } from './common/controllers/health.controller';
 
 @Module({
   imports: [
@@ -121,8 +126,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     PushModule,
     BackupModule,
     ReportSchedulerModule,
+    TransactionsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [
     AppService,
     {
@@ -132,6 +138,14 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
     },
   ],
 })

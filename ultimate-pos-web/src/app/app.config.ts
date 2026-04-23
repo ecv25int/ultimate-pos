@@ -17,6 +17,7 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { apiResponseInterceptor } from './core/interceptors/api-response.interceptor';
 import { LanguageService } from './core/services/language.service';
 
 function initLanguage(langService: LanguageService) {
@@ -27,7 +28,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor]), withFetch()),
+    provideHttpClient(
+      withInterceptors([authInterceptor, apiResponseInterceptor]),
+      withFetch(),
+    ),
     provideAnimationsAsync(),
     provideTranslateService({ defaultLanguage: 'en' }),
     provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json', useHttpBackend: true }),

@@ -56,8 +56,8 @@ if [[ "$SKIP_INSTALL" != "1" ]]; then
 	log 'Installing API dependencies...'
 	(cd "$API_DIR" && npm install) || fail 'API npm install failed'
 
-	log 'Installing Web dependencies...'
-	(cd "$WEB_DIR" && npm install) || fail 'Web npm install failed'
+	log 'Installing Web dependencies with legacy peer dependency resolution...'
+	(cd "$WEB_DIR" && npm install --legacy-peer-deps) || fail 'Web npm install failed'
 else
 	log 'SKIP_INSTALL=1 set; skipping npm install'
 fi
