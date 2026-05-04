@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { WebPushService } from '../push/web-push.service';
+import { CheckAvailabilityUseCase } from '../inventory/application/use-cases/check-availability.use-case';
 
 // ─── Shared fixtures ─────────────────────────────────────────────────────────
 
@@ -91,6 +92,10 @@ describe('SalesService', () => {
         {
           provide: WebPushService,
           useValue: { sendToUser: jest.fn(), isConfigured: false },
+        },
+        {
+          provide: CheckAvailabilityUseCase,
+          useValue: { assertAvailable: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();

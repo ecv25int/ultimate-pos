@@ -11,23 +11,39 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CancelTransactionUseCase } from './application/use-cases/cancel-transaction.use-case';
+import { CreateTransactionUseCase } from './application/use-cases/create-transaction.use-case';
+import { FinalizeTransactionUseCase } from './application/use-cases/finalize-transaction.use-case';
+import { FindTransactionUseCase } from './application/use-cases/find-transaction.use-case';
+import { GetTransactionTotalUseCase } from './application/use-cases/get-transaction-total.use-case';
+import { ListTransactionsUseCase } from './application/use-cases/list-transactions.use-case';
+import { UpdateTransactionUseCase } from './application/use-cases/update-transaction.use-case';
+import { TransactionType } from './domain/transaction-type';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import type { TransactionType } from './dto/create-transaction.dto';
+import { TransactionDto } from './dto/transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { TransactionsService } from './transactions.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('transactions')
 export class TransactionsController {
-  constructor(private readonly transactionsService: TransactionsService) {}
+  constructor(
+    private readonly createUseCase: CreateTransactionUseCase,
+    private readonly findUseCase: FindTransactionUseCase,
+    private readonly listUseCase: ListTransactionsUseCase,
+    private readonly updateUseCase: UpdateTransactionUseCase,
+    private readonly finalizeUseCase: FinalizeTransactionUseCase,
+    private readonly cancelUseCase: CancelTransactionUseCase,
+    private readonly getTotalUseCase: GetTransactionTotalUseCase,
+  ) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateTransactionDto) {
-    return this.transactionsService.create(req.user.businessId, req.user.id, dto);
+  async create(@Request() req: any, @Body() dto: CreateTransactionDto) {
+    const entity = await this.createUseCase.execute(req.user.businessId, req.user.id, dto);
+    return TransactionDto.fromEntity(entity);
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Request() req: any,
     @Query('type') type?: string,
     @Query('status') status?: string,
@@ -37,7 +53,7 @@ export class TransactionsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.transactionsService.findAll(req.user.businessId, {
+    const result = await this.listUseCase.execute(req.user.businessId, {
       type: type as TransactionType | undefined,
       status,
       search,
@@ -46,50 +62,68 @@ export class TransactionsController {
       page: page ? Number(page) : 1,
       limit: limit ? Math.min(Number(limit), 100) : 20,
     });
+    return { ...result, data: result.data.map(TransactionDto.fromEntity) };
   }
 
   @Get(':id')
-  findById(
+  async findById(
     @Request() req: any,
     @Param('id', ParseIntPipe) id: number,
     @Query('type') type?: string,
   ) {
-    return this.transactionsService.findById(
+    const entity = await this.findUseCase.execute(
       id,
       req.user.businessId,
       type as TransactionType | undefined,
     );
+    return TransactionDto.fromEntity(entity);
   }
 
   @Put(':id')
-  update(
+  async update(
     @Request() req: any,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTransactionDto,
   ) {
-    return this.transactionsService.update(id, req.user.businessId, dto);
+    const entity = await this.updateUseCase.execute(id, req.user.businessId, dto);
+    return TransactionDto.fromEntity(entity);
   }
 
   @Post(':id/finalize')
-  finalize(
+  async finalize(
     @Request() req: any,
     @Param('id', ParseIntPipe) id: number,
     @Query('type') type?: string,
   ) {
-    return this.transactionsService.finalize(
+    const entity = await this.finalizeUseCase.execute(
       id,
       req.user.businessId,
       type as TransactionType | undefined,
     );
+    return TransactionDto.fromEntity(entity);
   }
 
   @Post(':id/cancel')
-  cancel(
+  async cancel(
     @Request() req: any,
     @Param('id', ParseIntPipe) id: number,
     @Query('type') type?: string,
   ) {
-    return this.transactionsService.cancel(
+    const entity = await this.cancelUseCase.execute(
+      id,
+      req.user.businessId,
+      type as TransactionType | undefined,
+    );
+    return TransactionDto.fromEntity(entity);
+  }
+
+  @Get(':id/total')
+  getTotal(
+    @Request() req: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Query('type') type?: string,
+  ) {
+    return this.getTotalUseCase.execute(
       id,
       req.user.businessId,
       type as TransactionType | undefined,

@@ -109,6 +109,16 @@ export class CreatePurchaseDto {
   @IsEnum(PurchaseType)
   type?: PurchaseType;
 
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  freightAmount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  dutyAmount?: number;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreatePurchaseLineDto)

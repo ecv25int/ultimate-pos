@@ -14,6 +14,7 @@ import { ProductsModule } from './products/products.module';
 import { ContactsModule } from './contacts/contacts.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { SalesModule } from './sales/sales.module';
+import { SaleReturnsModule } from './sales-returns/sale-returns.module';
 import { PosModule } from './pos/pos.module';
 import { PurchasesModule } from './purchases/purchases.module';
 import { ReportsModule } from './reports/reports.module';
@@ -91,6 +92,7 @@ import { HealthController } from './common/controllers/health.controller';
     ContactsModule,
     InventoryModule,
     SalesModule,
+    SaleReturnsModule,
     PosModule,
     PurchasesModule,
     ReportsModule,

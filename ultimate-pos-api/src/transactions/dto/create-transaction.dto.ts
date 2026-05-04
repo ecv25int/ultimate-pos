@@ -8,19 +8,14 @@ import {
   IsString,
   Min,
 } from 'class-validator';
+import { TRANSACTION_TYPES } from '../domain/transaction-type';
+import type { TransactionType } from '../domain/transaction-type';
 
-export const TRANSACTION_TYPES = [
-  'sale',
-  'purchase',
-  'expense',
-  'stock_transfer',
-  'stock_adjustment',
-] as const;
-
-export type TransactionType = (typeof TRANSACTION_TYPES)[number];
+export { TRANSACTION_TYPES };
+export type { TransactionType };
 
 export class CreateTransactionDto {
-  @IsIn(TRANSACTION_TYPES)
+  @IsIn([...TRANSACTION_TYPES])
   type: TransactionType;
 
   @IsOptional()

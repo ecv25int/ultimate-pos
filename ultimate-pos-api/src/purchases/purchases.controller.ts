@@ -11,50 +11,63 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { PurchasesService } from './purchases.service';
+import { CreatePurchaseUseCase } from './application/use-cases/create-purchase.use-case';
+import { FindPurchaseUseCase } from './application/use-cases/find-purchase.use-case';
+import { ListPurchasesUseCase } from './application/use-cases/list-purchases.use-case';
+import { UpdatePurchaseUseCase } from './application/use-cases/update-purchase.use-case';
+import { FinalizePurchaseUseCase } from './application/use-cases/finalize-purchase.use-case';
+import { CreatePurchaseReturnUseCase } from './application/use-cases/create-purchase-return.use-case';
+import { GetPurchasesSummaryUseCase } from './application/use-cases/get-purchases-summary.use-case';
+import { ConvertRequisitionUseCase } from './application/use-cases/convert-requisition.use-case';
+import { DeletePurchaseUseCase } from './application/use-cases/delete-purchase.use-case';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { UpdatePurchaseDto } from './dto/update-purchase.dto';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
+import { PurchaseDto } from './dto/purchase.dto';
 
 @ApiTags('Purchases')
 @ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard)
 @Controller('purchases')
 export class PurchasesController {
-  constructor(private readonly purchasesService: PurchasesService) {}
+  constructor(
+    private readonly createPurchase: CreatePurchaseUseCase,
+    private readonly findPurchase: FindPurchaseUseCase,
+    private readonly listPurchases: ListPurchasesUseCase,
+    private readonly updatePurchase: UpdatePurchaseUseCase,
+    private readonly finalizePurchase: FinalizePurchaseUseCase,
+    private readonly createReturn: CreatePurchaseReturnUseCase,
+    private readonly getSummary: GetPurchasesSummaryUseCase,
+    private readonly convertRequisition: ConvertRequisitionUseCase,
+    private readonly deletePurchase: DeletePurchaseUseCase,
+  ) {}
 
-  /** GET /api/purchases/summary */
   @Get('summary')
-  @ApiOperation({ summary: 'Get purchases summary', description: 'Returns total purchase count, total cost, and payment status breakdown.' })
+  @ApiOperation({ summary: 'Get purchases summary' })
   @ApiResponse({ status: 200, description: 'Summary object.' })
-  getSummary(@Request() req: any) {
-    return this.purchasesService.getSummary(req.user.businessId);
+  async summary(@Request() req: any) {
+    return this.getSummary.execute(req.user.businessId);
   }
 
-  /** POST /api/purchases */
   @Post()
-  @ApiOperation({ summary: 'Create a new purchase', description: 'Creates a purchase order. If status is "received", automatically increments stock.' })
-  @ApiResponse({ status: 201, description: 'Created purchase with ref number.' })
-  create(@Request() req: any, @Body() dto: CreatePurchaseDto) {
-    return this.purchasesService.create(
-      req.user.businessId,
-      req.user.id,
-      dto,
-    );
+  @ApiOperation({ summary: 'Create a new purchase' })
+  @ApiResponse({ status: 201, description: 'Created purchase.' })
+  async create(@Request() req: any, @Body() dto: CreatePurchaseDto) {
+    const entity = await this.createPurchase.execute(req.user.businessId, req.user.id, dto);
+    return PurchaseDto.fromEntity(entity);
   }
 
-  /** GET /api/purchases */
   @Get()
-  @ApiOperation({ summary: 'List purchases', description: 'Paginated list of purchases. Max limit: 100.' })
+  @ApiOperation({ summary: 'List purchases' })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'status', required: false, enum: ['received', 'ordered', 'pending', 'cancelled'] })
   @ApiQuery({ name: 'paymentStatus', required: false, enum: ['paid', 'due', 'partial'] })
-  @ApiQuery({ name: 'type', required: false, enum: ['purchase', 'requisition'], description: 'Filter by type. Defaults to "purchase" when omitted.' })
+  @ApiQuery({ name: 'type', required: false, enum: ['purchase', 'requisition'] })
   @ApiQuery({ name: 'page', required: false, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, example: 20, description: 'Max 100' })
+  @ApiQuery({ name: 'limit', required: false, example: 20 })
   @ApiResponse({ status: 200, description: 'Paginated { total, page, limit, data[] }.' })
-  findAll(
+  async findAll(
     @Request() req: any,
     @Query('search') search?: string,
     @Query('status') status?: string,
@@ -64,7 +77,7 @@ export class PurchasesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.purchasesService.findAll(req.user.businessId, {
+    const result = await this.listPurchases.execute(req.user.businessId, {
       search,
       status,
       paymentStatus,
@@ -73,60 +86,73 @@ export class PurchasesController {
       page: page ? +page : 1,
       limit: Math.min(limit ? +limit : 20, 100),
     });
+    return { ...result, data: result.data.map(PurchaseDto.fromEntity) };
   }
 
-  /** GET /api/purchases/:id */
   @Get(':id')
   @ApiOperation({ summary: 'Get purchase by ID' })
   @ApiParam({ name: 'id', description: 'Purchase ID' })
   @ApiResponse({ status: 200, description: 'Purchase details with lines.' })
-  @ApiResponse({ status: 404, description: 'Purchase not found.' })
-  findOne(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
-    return this.purchasesService.findOne(req.user.businessId, id);
+  @ApiResponse({ status: 404, description: 'Not found.' })
+  async findOne(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
+    const entity = await this.findPurchase.execute(id, req.user.businessId);
+    return PurchaseDto.fromEntity(entity);
   }
 
-  /** POST /api/purchases/:id/convert-to-order */
+  @Post(':id/finalize')
+  @ApiOperation({ summary: 'Finalize (receive) a purchase order' })
+  @ApiParam({ name: 'id', description: 'Purchase ID' })
+  @ApiResponse({ status: 200, description: 'Finalized purchase.' })
+  async finalize(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
+    const entity = await this.finalizePurchase.execute(id, req.user.businessId);
+    return PurchaseDto.fromEntity(entity);
+  }
+
   @Post(':id/convert-to-order')
-  @ApiOperation({ summary: 'Convert requisition to purchase order', description: 'Changes type from requisition to purchase and sets status to ordered.' })
+  @ApiOperation({ summary: 'Convert requisition to purchase order' })
   @ApiParam({ name: 'id', description: 'Requisition ID' })
   @ApiResponse({ status: 200, description: 'Purchase order created from requisition.' })
   @ApiResponse({ status: 404, description: 'Requisition not found.' })
-  convertToOrder(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
-    return this.purchasesService.convertToOrder(req.user.businessId, id);
+  async convertToOrder(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
+    const entity = await this.convertRequisition.execute(id, req.user.businessId);
+    return PurchaseDto.fromEntity(entity);
   }
 
-  /** POST /api/purchases/:id/return */
   @Post(':id/return')
-  @ApiOperation({ summary: 'Create purchase return', description: 'Returns items. Automatically decrements the previously received stock.' })
+  @ApiOperation({ summary: 'Create purchase return' })
   @ApiParam({ name: 'id', description: 'Original purchase ID' })
   @ApiResponse({ status: 201, description: 'Return purchase created.' })
-  createReturn(
+  async createPurchaseReturn(
     @Request() req: any,
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: { lines: { productId: number; quantity: number; unitCost: number }[]; note?: string },
+    @Body() body: { lines: { productId: number; quantity: number; unitCost: number }[]; note?: string },
   ) {
-    return this.purchasesService.createReturn(req.user.businessId, req.user.id, id, dto);
+    const entity = await this.createReturn.execute(id, req.user.businessId, req.user.id, {
+      lines: body.lines,
+      note: body.note,
+    });
+    return PurchaseDto.fromEntity(entity);
   }
 
-  /** PATCH /api/purchases/:id */
   @Patch(':id')
   @ApiOperation({ summary: 'Update purchase' })
   @ApiParam({ name: 'id', description: 'Purchase ID' })
   @ApiResponse({ status: 200, description: 'Updated purchase.' })
-  update(
+  async update(
     @Request() req: any,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdatePurchaseDto,
   ) {
-    return this.purchasesService.update(req.user.businessId, id, dto);
+    const entity = await this.updatePurchase.execute(id, req.user.businessId, dto);
+    return PurchaseDto.fromEntity(entity);
   }
 
-  /** DELETE /api/purchases/:id */
   @Delete(':id')
   @ApiOperation({ summary: 'Delete purchase' })
   @ApiParam({ name: 'id', description: 'Purchase ID' })
   @ApiResponse({ status: 200, description: 'Deletion confirmation.' })
-  remove(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
-    return this.purchasesService.remove(req.user.businessId, id);
+  async remove(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
+    await this.deletePurchase.execute(id, req.user.businessId);
+    return { message: `Purchase #${id} deleted` };
   }
 }

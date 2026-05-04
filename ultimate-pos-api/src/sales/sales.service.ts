@@ -8,6 +8,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { WebPushService } from '../push/web-push.service';
+import { CheckAvailabilityUseCase } from '../inventory/application/use-cases/check-availability.use-case';
 
 @Injectable()
 export class SalesService {
@@ -17,6 +18,7 @@ export class SalesService {
     private auditLogs: AuditLogsService,
     private notifications: NotificationsService,
     private webPush: WebPushService,
+    private checkAvailability: CheckAvailabilityUseCase,
   ) {}
 
   // ------------------------------------------------------------
@@ -86,6 +88,13 @@ export class SalesService {
         paymentStatus = PaymentStatus.PARTIAL;
       }
     }
+
+    // Validate stock availability for each line before committing
+    await Promise.all(
+      dto.lines.map((line) =>
+        this.checkAvailability.assertAvailable(line.productId, businessId, line.quantity),
+      ),
+    );
 
     const sale = await this.prisma.sale.create({
       data: {

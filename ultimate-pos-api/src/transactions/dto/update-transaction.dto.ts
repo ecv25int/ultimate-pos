@@ -8,12 +8,13 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { TRANSACTION_TYPES } from './create-transaction.dto';
+import { TRANSACTION_TYPES } from '../domain/transaction-type';
+import type { TransactionType } from '../domain/transaction-type';
 
 export class UpdateTransactionDto {
   @IsOptional()
-  @IsIn(TRANSACTION_TYPES)
-  type?: (typeof TRANSACTION_TYPES)[number];
+  @IsIn([...TRANSACTION_TYPES])
+  type?: TransactionType;
 
   @IsOptional()
   @IsString()
