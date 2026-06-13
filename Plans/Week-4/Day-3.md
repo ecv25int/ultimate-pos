@@ -3,6 +3,10 @@
 ## Objective
 Link sales, purchases, and payments to automatic GL posting.
 
+## PHP Original project at: 
+This is a migration project. PHP Source code at /opt/homebrew/var/www/superpos/
+
+
 ## Tasks
 - [ ] Create `accounting.service.ts` (orchestrator):
   - postSaleToGL(saleId)

@@ -3,6 +3,10 @@
 ## Objective
 Implement double-entry journal entries with GL posting.
 
+## PHP Original project at: 
+This is a migration project. PHP Source code at /opt/homebrew/var/www/superpos/
+
+
 ## Tasks
 - [ ] Verify AccountTransaction model
 - [ ] Create `journal.service.ts`:

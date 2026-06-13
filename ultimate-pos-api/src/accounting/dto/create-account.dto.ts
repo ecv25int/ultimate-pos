@@ -15,6 +15,11 @@ export class CreateAccountDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  parentId?: number;
 }
 
 export class UpdateAccountDto {
@@ -38,4 +43,9 @@ export class UpdateAccountDto {
   @IsOptional()
   @IsBoolean()
   isClosed?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  parentId?: number;
 }

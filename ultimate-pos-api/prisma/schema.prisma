@@ -758,6 +758,7 @@ model Account {
   id            Int       @id @default(autoincrement())
   businessId    Int       @map("business_id")
   accountTypeId Int       @map("account_type_id")
+  parentId      Int?      @map("parent_id")
   name          String    @db.VarChar(200)
   accountNumber String    @map("account_number") @db.VarChar(50)
   note          String?   @db.Text
@@ -769,11 +770,14 @@ model Account {
 
   business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
   accountType  AccountType   @relation(fields: [accountTypeId], references: [id])
+  parent       Account?      @relation("AccountChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Account[]     @relation("AccountChildren")
   transactions AccountTransaction[]
 
   @@map("accounts")
   @@index([businessId])
   @@index([accountTypeId])
+  @@index([parentId])
   @@index([isClosed])
 }
 

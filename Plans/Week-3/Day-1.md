@@ -4,7 +4,7 @@
 Build complete product management with SKU-level variations and pricing.
 
 ## PHP Original project at: 
-PHP Source code at /opt/homebrew/var/www/superpos/
+This is a migration project. PHP Source code at /opt/homebrew/var/www/superpos/
 
 ## Tasks
 - [x] Verify Product, ProductVariation, Variation models in Prisma
