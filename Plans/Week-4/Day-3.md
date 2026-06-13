@@ -8,28 +8,28 @@ This is a migration project. PHP Source code at /opt/homebrew/var/www/superpos/
 
 
 ## Tasks
-- [ ] Create `accounting.service.ts` (orchestrator):
-  - postSaleToGL(saleId)
-  - postPurchaseToGL(purchaseId)
-  - postPaymentToGL(paymentId)
-- [ ] Implement posting rules:
-  - Sale: Dr AR (receivable), Cr Revenue
-  - Sale Payment: Dr Bank, Cr AR
-  - Purchase: Dr Expense/Asset, Cr AP (payable)
-  - Purchase Payment: Dr AP, Cr Bank
-  - Stock Adjustment: Dr Inventory, Cr Expense/Gain
-- [ ] Link to existing services:
-  - sales.service → post on finalize
-  - purchases.service → post on finalize
-  - payments.service → post on payment
-- [ ] Handle multi-currency GL posting
-- [ ] Error handling if account mapping missing
+- [x] Create `accounting.service.ts` (orchestrator):
+  - [x] postSaleToGL(saleId)
+  - [x] postPurchaseToGL(purchaseId)
+  - [x] postPaymentToGL(paymentId)
+- [x] Implement posting rules:
+  - [x] Sale: Dr AR (receivable), Cr Revenue
+  - [x] Sale Payment: Dr Bank, Cr AR
+  - [x] Purchase: Dr Expense/Asset, Cr AP (payable)
+  - [x] Purchase Payment: Dr AP, Cr Bank
+  - [x] Stock Adjustment: Dr Inventory, Cr Expense/Gain
+- [x] Link to existing services:
+  - [x] sales.service → post on finalize
+  - [x] purchases.service → post on finalize
+  - [x] payments.service → post on payment
+- [x] Handle multi-currency GL posting
+- [x] Error handling if account mapping missing
 
 ## Verification
-- [ ] All transactions auto-post to GL
-- [ ] GL balances match transaction totals
-- [ ] No orphaned journal entries
-- [ ] Account mappings properly configured
+- [x] All transactions auto-post to GL
+- [x] GL balances match transaction totals
+- [x] No orphaned journal entries
+- [x] Account mappings properly configured
 
 ## Success Criteria
 ✅ Automatic GL posting fully operational

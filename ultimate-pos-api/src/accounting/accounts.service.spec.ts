@@ -193,9 +193,9 @@ describe('AccountsService', () => {
       }));
 
       const seeded = await service.seedStandardAccounts(1, 99);
-      expect(seeded).toHaveLength(12); // Should seed all 12 standard accounts
+      expect(seeded).toHaveLength(13); // Should seed all 13 standard accounts
       expect(prisma.accountType.create).toHaveBeenCalledTimes(5); // 5 root types
-      expect(prisma.account.create).toHaveBeenCalledTimes(12);
+      expect(prisma.account.create).toHaveBeenCalledTimes(13);
     });
   });
 });

@@ -15,6 +15,8 @@ import {
   AddTransactionDto,
   CloseRegisterDto,
   CreateCashRegisterDto,
+  CashInOutDto,
+  ReconcileCashDto,
 } from './dto/create-cash-register.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -79,5 +81,53 @@ export class CashRegisterController {
     @Body() dto: CloseRegisterDto,
   ) {
     return this.cashRegisterService.closeRegister(req.user.businessId, id, req.user.id, dto);
+  }
+
+  /** POST /api/cash-register/:id/cash-in */
+  @Post(':id/cash-in')
+  addCashIn(
+    @Req() req: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CashInOutDto,
+  ) {
+    return this.cashRegisterService.addCashIn(
+      req.user.businessId,
+      id,
+      req.user.id,
+      dto.amount,
+      dto.reason,
+    );
+  }
+
+  /** POST /api/cash-register/:id/cash-out */
+  @Post(':id/cash-out')
+  addCashOut(
+    @Req() req: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CashInOutDto,
+  ) {
+    return this.cashRegisterService.addCashOut(
+      req.user.businessId,
+      id,
+      req.user.id,
+      dto.amount,
+      dto.reason,
+    );
+  }
+
+  /** POST /api/cash-register/:id/reconcile */
+  @Post(':id/reconcile')
+  reconcileCash(
+    @Req() req: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ReconcileCashDto,
+  ) {
+    return this.cashRegisterService.reconcileCash(
+      req.user.businessId,
+      id,
+      req.user.id,
+      dto.expectedAmount,
+      dto.actualAmount,
+    );
   }
 }

@@ -1,6 +1,9 @@
 import {
   Controller,
   Get,
+  Post,
+  Body,
+  BadRequestException,
   Param,
   ParseIntPipe,
   Query,
@@ -11,10 +14,12 @@ import {
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ReportsService } from './reports.service';
+import { ExportReportDto, ReportType, ExportFormat } from './dto/export-report.dto';
 import {
   ApiTags,
   ApiBearerAuth,
   ApiQuery,
+  ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -258,6 +263,135 @@ export class ReportsController {
 
     res.set({
       'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': String(buffer.length),
+    });
+    res.end(buffer);
+  }
+
+  /** GET /api/reports/trial-balance?asOfDate= */
+  @Get('trial-balance')
+  @ApiOperation({
+    summary: 'Trial Balance',
+    description:
+      'Returns all accounts with hierarchical debits, credits, and balances. Validates that root debits match root credits.',
+  })
+  @ApiQuery({ name: 'asOfDate', required: false, description: 'ISO date, e.g. 2025-12-31' })
+  @ApiResponse({ status: 200, description: 'Trial balance report.' })
+  getTrialBalance(
+    @Request() req: { user: { businessId: number } },
+    @Query('asOfDate') asOfDate?: string,
+  ) {
+    return this.reportsService.getTrialBalance(req.user.businessId, asOfDate);
+  }
+
+  /** GET /api/reports/balance-sheet?asOfDate= */
+  @Get('balance-sheet')
+  @ApiOperation({
+    summary: 'Balance Sheet',
+    description:
+      'Returns Assets, Liabilities, and Equity lists, verifying Assets === Liabilities + Equity.',
+  })
+  @ApiQuery({ name: 'asOfDate', required: false, description: 'ISO date, e.g. 2025-12-31' })
+  @ApiResponse({ status: 200, description: 'Balance sheet report.' })
+  getBalanceSheet(
+    @Request() req: { user: { businessId: number } },
+    @Query('asOfDate') asOfDate?: string,
+  ) {
+    return this.reportsService.getBalanceSheet(req.user.businessId, asOfDate);
+  }
+
+  /** GET /api/reports/income-statement?from=&to= */
+  @Get('income-statement')
+  @ApiOperation({
+    summary: 'Income Statement',
+    description:
+      'Returns Revenue and Expense lists, calculating Net Income over a custom date range.',
+  })
+  @ApiQuery({ name: 'from', required: true, description: 'ISO date, e.g. 2025-01-01' })
+  @ApiQuery({ name: 'to', required: true, description: 'ISO date, e.g. 2025-12-31' })
+  @ApiResponse({ status: 200, description: 'Income statement report.' })
+  getIncomeStatement(
+    @Request() req: { user: { businessId: number } },
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    if (!from || !to) {
+      throw new BadRequestException('Query parameters from and to are required');
+    }
+    return this.reportsService.getIncomeStatement(req.user.businessId, from, to);
+  }
+
+  /** POST /api/reports/export */
+  @Post('export')
+  @ApiOperation({
+    summary: 'Export financial statement',
+    description:
+      'Generates Excel or PDF binary for Trial Balance, Balance Sheet, or Income Statement.',
+  })
+  @ApiBody({ type: ExportReportDto })
+  @ApiResponse({ status: 201, description: 'Excel or PDF binary file download.' })
+  async exportFinancialReport(
+    @Request() req: { user: { businessId: number } },
+    @Res() res: Response,
+    @Body() dto: ExportReportDto,
+  ) {
+    let buffer: Buffer;
+    let filename: string;
+    let contentType: string;
+
+    const { type, format, fromDate, toDate, asOfDate } = dto;
+    const isPdf = format === ExportFormat.PDF;
+
+    if (type === ReportType.TRIAL_BALANCE) {
+      if (isPdf) {
+        buffer = await this.reportsService.exportTrialBalancePdf(req.user.businessId, asOfDate);
+        filename = 'trial-balance.pdf';
+        contentType = 'application/pdf';
+      } else {
+        buffer = await this.reportsService.exportTrialBalanceExcel(req.user.businessId, asOfDate);
+        filename = 'trial-balance.xlsx';
+        contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      }
+    } else if (type === ReportType.BALANCE_SHEET) {
+      if (isPdf) {
+        buffer = await this.reportsService.exportBalanceSheetPdf(req.user.businessId, asOfDate);
+        filename = 'balance-sheet.pdf';
+        contentType = 'application/pdf';
+      } else {
+        buffer = await this.reportsService.exportBalanceSheetExcel(req.user.businessId, asOfDate);
+        filename = 'balance-sheet.xlsx';
+        contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      }
+    } else if (type === ReportType.INCOME_STATEMENT) {
+      if (!fromDate || !toDate) {
+        throw new BadRequestException(
+          'fromDate and toDate are required for income-statement export',
+        );
+      }
+      if (isPdf) {
+        buffer = await this.reportsService.exportIncomeStatementPdf(
+          req.user.businessId,
+          fromDate,
+          toDate,
+        );
+        filename = 'income-statement.pdf';
+        contentType = 'application/pdf';
+      } else {
+        buffer = await this.reportsService.exportIncomeStatementExcel(
+          req.user.businessId,
+          fromDate,
+          toDate,
+        );
+        filename = 'income-statement.xlsx';
+        contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      }
+    } else {
+      throw new BadRequestException('Invalid report type for export');
+    }
+
+    res.set({
+      'Content-Type': contentType,
       'Content-Disposition': `attachment; filename="${filename}"`,
       'Content-Length': String(buffer.length),
     });

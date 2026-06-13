@@ -1,10 +1,10 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { Decimal } from '@prisma/client/runtime/library';
 import type { Purchase } from '../../domain/purchase.entity';
 import type { IPurchaseRepository } from '../../domain/purchase.repository';
 import { PURCHASE_REPOSITORY } from '../../domain/purchase.repository';
 import { LandedCostService } from '../../domain/landed-cost.service';
 import { CreatePurchaseDto, PurchaseStatus } from '../../dto/create-purchase.dto';
+import { PostingService } from '../../../accounting/posting.service';
 
 @Injectable()
 export class CreatePurchaseUseCase {
@@ -12,6 +12,7 @@ export class CreatePurchaseUseCase {
     @Inject(PURCHASE_REPOSITORY)
     private readonly repo: IPurchaseRepository,
     private readonly landedCost: LandedCostService,
+    private readonly postingService: PostingService,
   ) {}
 
   async execute(businessId: number, userId: number, dto: CreatePurchaseDto): Promise<Purchase> {
@@ -51,7 +52,7 @@ export class CreatePurchaseUseCase {
 
     const status = dto.status ?? PurchaseStatus.RECEIVED;
 
-    return this.repo.create({
+    const purchase = await this.repo.create({
       businessId,
       userId,
       refNo,
@@ -78,5 +79,11 @@ export class CreatePurchaseUseCase {
         note: l.note,
       })),
     });
+
+    if (purchase.status === 'received') {
+      await this.postingService.postPurchaseToGL(businessId, purchase.id);
+    }
+
+    return purchase;
   }
 }

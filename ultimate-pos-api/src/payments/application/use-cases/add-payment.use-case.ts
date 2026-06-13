@@ -4,6 +4,7 @@ import type { IPaymentRepository } from '../../domain/payment.repository';
 import type { Payment } from '../../domain/payment.entity';
 import { PaymentStatusService } from '../../domain/payment-status.service';
 import type { CreatePaymentDto } from '../../dto/create-payment.dto';
+import { PostingService } from '../../../accounting/posting.service';
 
 @Injectable()
 export class AddPaymentUseCase {
@@ -11,6 +12,7 @@ export class AddPaymentUseCase {
     @Inject(PAYMENT_REPOSITORY)
     private readonly repo: IPaymentRepository,
     private readonly statusSvc: PaymentStatusService,
+    private readonly postingService: PostingService,
   ) {}
 
   async execute(businessId: number, userId: number, dto: CreatePaymentDto): Promise<Payment> {
@@ -63,6 +65,8 @@ export class AddPaymentUseCase {
     if (dto.purchaseId) {
       await this.repo.updatePurchasePaymentStatus(dto.purchaseId, newTotalPaid, newStatus);
     }
+
+    await this.postingService.postPaymentToGL(businessId, payment.id);
 
     return payment;
   }

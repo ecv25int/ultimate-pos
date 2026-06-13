@@ -4,31 +4,31 @@
 Build foundational general ledger structure with account hierarchy.
 
 ## Tasks
-- [ ] Verify Account, AccountType models in schema
-- [ ] Create `accounts.service.ts`:
-  - createAccount(code, name, type, parentAccountId)
-  - getAccountBalance(accountId, asOfDate)
-  - getAccountTransactions(accountId, fromDate, toDate)
-  - deactivateAccount(accountId)
-- [ ] Implement account hierarchy (parent-child relationships)
-- [ ] Seed standard accounts:
-  - 1000-1999: Assets
-  - 2000-2999: Liabilities
-  - 3000-3999: Equity
-  - 4000-4999: Income/Revenue
-  - 5000-6999: Expenses
-- [ ] Create accounts controller:
-  - GET /api/accounts
-  - POST /api/accounts
-  - GET /api/accounts/:id
-  - PUT /api/accounts/:id
-- [ ] Unit tests for balance calculations
+- [x] Verify Account, AccountType models in schema
+- [x] Create `accounts.service.ts`:
+  - [x] createAccount(code, name, type, parentAccountId)
+  - [x] getAccountBalance(accountId, asOfDate)
+  - [x] getAccountTransactions(accountId, fromDate, toDate)
+  - [x] deactivateAccount(accountId)
+- [x] Implement account hierarchy (parent-child relationships)
+- [x] Seed standard accounts:
+  - [x] 1000-1999: Assets
+  - [x] 2000-2999: Liabilities
+  - [x] 3000-3999: Equity
+  - [x] 4000-4999: Income/Revenue
+  - [x] 5000-6999: Expenses
+- [x] Create accounts controller:
+  - [x] GET /api/accounts
+  - [x] POST /api/accounts
+  - [x] GET /api/accounts/:id
+  - [x] PUT /api/accounts/:id
+- [x] Unit tests for balance calculations
 
 ## Verification
-- [ ] Chart of accounts created with proper hierarchy
-- [ ] Account codes unique per business
-- [ ] Parent-child relationships working
-- [ ] Balance calculations accurate
+- [x] Chart of accounts created with proper hierarchy
+- [x] Account codes unique per business
+- [x] Parent-child relationships working
+- [x] Balance calculations accurate
 
 ## Success Criteria
 ✅ Chart of accounts fully functional

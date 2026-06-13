@@ -4,6 +4,7 @@ import { BadRequestException } from '@nestjs/common';
 import { StockAdjustmentsService } from './stock-adjustments.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { StockService } from '../inventory/stock.service';
+import { PostingService } from '../accounting/posting.service';
 import { Decimal } from '@prisma/client/runtime/library';
 
 describe('StockAdjustmentsService', () => {
@@ -46,6 +47,10 @@ describe('StockAdjustmentsService', () => {
         StockAdjustmentsService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: StockService, useValue: stockServiceMock },
+        {
+          provide: PostingService,
+          useValue: { postStockAdjustmentToGL: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 

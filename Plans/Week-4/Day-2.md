@@ -8,26 +8,26 @@ This is a migration project. PHP Source code at /opt/homebrew/var/www/superpos/
 
 
 ## Tasks
-- [ ] Verify AccountTransaction model
-- [ ] Create `journal.service.ts`:
-  - createJournalEntry(description, entries[])
-  - postToLedger(journalEntryId) — finalize entry
-  - reverseEntry(journalEntryId) — reverse posted entry
-- [ ] Implement debit/credit validation: sum(debits) === sum(credits)
-- [ ] Entry status: draft, posted, reversed
-- [ ] Create journal.controller.ts:
-  - POST /api/journal-entries
-  - GET /api/journal-entries/:id
-  - POST /api/journal-entries/:id/post
-  - POST /api/journal-entries/:id/reverse
-- [ ] Create journal entry DTOs
-- [ ] Unit tests for entry validation
+- [x] Verify AccountTransaction model
+- [x] Create `journal.service.ts`:
+  - [x] createJournalEntry(description, entries[])
+  - [x] postToLedger(journalEntryId) — finalize entry
+  - [x] reverseEntry(journalEntryId) — reverse posted entry
+- [x] Implement debit/credit validation: sum(debits) === sum(credits)
+- [x] Entry status: draft, posted, reversed
+- [x] Create journal.controller.ts:
+  - [x] POST /api/journal-entries
+  - [x] GET /api/journal-entries/:id
+  - [x] POST /api/journal-entries/:id/post
+  - [x] POST /api/journal-entries/:id/reverse
+- [x] Create journal entry DTOs
+- [x] Unit tests for entry validation
 
 ## Verification
-- [ ] Journal entries balance (Dr = Cr)
-- [ ] Posted entries locked (can't edit)
-- [ ] Reversal working correctly
-- [ ] All posting errors caught
+- [x] Journal entries balance (Dr = Cr)
+- [x] Posted entries locked (can't edit)
+- [x] Reversal working correctly
+- [x] All posting errors caught
 
 ## Success Criteria
 ✅ Double-entry bookkeeping foundation operational

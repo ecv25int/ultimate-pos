@@ -303,6 +303,7 @@ export class AccountsService {
       { name: 'Cash', number: '1010', type: 'asset' },
       { name: 'Bank Account', number: '1020', type: 'asset' },
       { name: 'Accounts Receivable', number: '1200', type: 'asset' },
+      { name: 'Inventory', number: '1300', type: 'asset' },
       // Liabilities (2000-2999)
       { name: 'Accounts Payable', number: '2010', type: 'liability' },
       { name: 'Sales Tax Payable', number: '2200', type: 'liability' },

@@ -79,6 +79,10 @@ describe('PaymentStatusService', () => {
 
 describe('AddPaymentUseCase', () => {
   const statusSvc = new PaymentStatusService();
+  const mockPostingService = {
+    postPaymentToGL: jest.fn().mockResolvedValue(undefined),
+    deletePaymentFromGL: jest.fn().mockResolvedValue(undefined),
+  } as any;
 
   const buildRepo = (overrides: any = {}) => ({
     findSale: jest.fn().mockResolvedValue(makeSale()),
@@ -91,7 +95,7 @@ describe('AddPaymentUseCase', () => {
   });
 
   it('throws if neither saleId nor purchaseId provided', async () => {
-    const uc = new AddPaymentUseCase(buildRepo(), statusSvc);
+    const uc = new AddPaymentUseCase(buildRepo(), statusSvc, mockPostingService);
     const dto = Object.assign(new CreatePaymentDto(), { amount: 50 });
     await expect(uc.execute(10, 1, dto)).rejects.toThrow(BadRequestException);
   });
@@ -100,6 +104,7 @@ describe('AddPaymentUseCase', () => {
     const uc = new AddPaymentUseCase(
       buildRepo({ findSale: jest.fn().mockResolvedValue(null) }),
       statusSvc,
+      mockPostingService,
     );
     const dto = Object.assign(new CreatePaymentDto(), { amount: 50, saleId: 99 });
     await expect(uc.execute(10, 1, dto)).rejects.toThrow(NotFoundException);
@@ -107,14 +112,14 @@ describe('AddPaymentUseCase', () => {
 
   it('throws BadRequestException when payment would overpay', async () => {
     const repo = buildRepo({ getTotalPaid: jest.fn().mockResolvedValue(80) });
-    const uc = new AddPaymentUseCase(repo, statusSvc);
+    const uc = new AddPaymentUseCase(repo, statusSvc, mockPostingService);
     const dto = Object.assign(new CreatePaymentDto(), { amount: 30, saleId: 5 }); // 80+30=110>100
     await expect(uc.execute(10, 1, dto)).rejects.toThrow(BadRequestException);
   });
 
   it('creates payment and updates sale payment status', async () => {
     const repo = buildRepo({ getTotalPaid: jest.fn().mockResolvedValue(0) });
-    const uc = new AddPaymentUseCase(repo, statusSvc);
+    const uc = new AddPaymentUseCase(repo, statusSvc, mockPostingService);
     const dto = Object.assign(new CreatePaymentDto(), { amount: 50, saleId: 5 });
     const result = await uc.execute(10, 1, dto);
     expect(result.amount).toBe(50);
@@ -123,7 +128,7 @@ describe('AddPaymentUseCase', () => {
 
   it('marks sale as paid when full amount is paid', async () => {
     const repo = buildRepo({ getTotalPaid: jest.fn().mockResolvedValue(0) });
-    const uc = new AddPaymentUseCase(repo, statusSvc);
+    const uc = new AddPaymentUseCase(repo, statusSvc, mockPostingService);
     const dto = Object.assign(new CreatePaymentDto(), { amount: 100, saleId: 5 });
     await uc.execute(10, 1, dto);
     expect(repo.updateSalePaymentStatus).toHaveBeenCalledWith(5, 100, 'paid');
@@ -145,6 +150,9 @@ describe('FindPaymentUseCase', () => {
 
 describe('DeletePaymentUseCase', () => {
   const statusSvc = new PaymentStatusService();
+  const mockPostingService = {
+    deletePaymentFromGL: jest.fn().mockResolvedValue(undefined),
+  } as any;
 
   it('deletes payment and recalculates sale status', async () => {
     const payment = makePayment({ saleId: 5 });
@@ -156,14 +164,14 @@ describe('DeletePaymentUseCase', () => {
       updateSalePaymentStatus: jest.fn().mockResolvedValue(undefined),
       findPurchase: jest.fn(),
     };
-    await new DeletePaymentUseCase(repo, statusSvc).execute(1, 10);
+    await new DeletePaymentUseCase(repo, statusSvc, mockPostingService).execute(1, 10);
     expect(repo.delete).toHaveBeenCalledWith(1);
     expect(repo.updateSalePaymentStatus).toHaveBeenCalledWith(5, 0, 'due');
   });
 
   it('throws NotFoundException when payment not found', async () => {
     const repo: any = { findById: jest.fn().mockResolvedValue(null) };
-    await expect(new DeletePaymentUseCase(repo, statusSvc).execute(99, 10)).rejects.toThrow(
+    await expect(new DeletePaymentUseCase(repo, statusSvc, mockPostingService).execute(99, 10)).rejects.toThrow(
       NotFoundException,
     );
   });

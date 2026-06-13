@@ -14,6 +14,7 @@ import {
   SalePaymentsController,
   PurchasePaymentsController,
 } from './payments.controller';
+import { AccountingModule } from '../accounting/accounting.module';
 
 const USE_CASES = [
   AddPaymentUseCase,
@@ -25,7 +26,7 @@ const USE_CASES = [
 ];
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AccountingModule],
   controllers: [PaymentsController, SalePaymentsController, PurchasePaymentsController],
   providers: [
     PaymentStatusService,

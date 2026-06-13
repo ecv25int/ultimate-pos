@@ -3,12 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateStockAdjustmentDto } from './dto/create-stock-adjustment.dto';
 import { UpdateStockAdjustmentDto } from './dto/update-stock-adjustment.dto';
 import { StockService } from '../inventory/stock.service';
+import { PostingService } from '../accounting/posting.service';
 
 @Injectable()
 export class StockAdjustmentsService {
   constructor(
     private prisma: PrismaService,
     private readonly stockService: StockService,
+    private readonly postingService: PostingService,
   ) {}
 
   async findAll(businessId: number, locationId?: number) {
@@ -44,7 +46,7 @@ export class StockAdjustmentsService {
   async create(businessId: number, userId: number, dto: CreateStockAdjustmentDto) {
     const { lines, ...rest } = dto;
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const isFinalised = (rest.status ?? 'received') === 'received';
       const adjustment = await tx.stockAdjustment.create({
         data: {
@@ -187,6 +189,12 @@ export class StockAdjustmentsService {
         },
       });
     });
+
+    if (result && result.status === 'received') {
+      await this.postingService.postStockAdjustmentToGL(businessId, result.id);
+    }
+
+    return result;
   }
 
   async confirmAdjustment(id: number, businessId: number) {
@@ -199,7 +207,7 @@ export class StockAdjustmentsService {
       throw new BadRequestException('Stock adjustment is already finalised');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const updatedLines = [];
       for (const line of adj.lines) {
         let finalQty = Number(line.quantity);
@@ -318,6 +326,12 @@ export class StockAdjustmentsService {
         },
       });
     });
+
+    if (result && result.status === 'received') {
+      await this.postingService.postStockAdjustmentToGL(businessId, result.id);
+    }
+
+    return result;
   }
 
   async update(id: number, businessId: number, dto: UpdateStockAdjustmentDto) {
@@ -325,7 +339,7 @@ export class StockAdjustmentsService {
     const rest = { ...dto };
     delete rest.lines;
 
-    return this.prisma.stockAdjustment.update({
+    const result = await this.prisma.stockAdjustment.update({
       where: { id },
       data: {
         ...(rest.locationId !== undefined && { locationId: rest.locationId }),
@@ -335,6 +349,12 @@ export class StockAdjustmentsService {
         ...(rest.status !== undefined && { status: rest.status }),
       },
     });
+
+    if (result.status === 'received') {
+      await this.postingService.postStockAdjustmentToGL(businessId, result.id);
+    }
+
+    return result;
   }
 
   async remove(id: number, businessId: number) {

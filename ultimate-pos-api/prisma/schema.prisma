@@ -138,6 +138,7 @@ model Business {
   warranties            Warranty[]
   notificationTemplates NotificationTemplate[]
   stockAdjustments      StockAdjustment[]
+  journalEntries        JournalEntry[]
   barcodeLabels         BarcodeLabel[]
   auditLogs             AuditLog[]
   pushSubscriptions     PushSubscription[]
@@ -773,6 +774,7 @@ model Account {
   parent       Account?      @relation("AccountChildren", fields: [parentId], references: [id], onDelete: SetNull)
   children     Account[]     @relation("AccountChildren")
   transactions AccountTransaction[]
+  journalEntryLines JournalEntryLine[]
 
   @@map("accounts")
   @@index([businessId])
@@ -2050,5 +2052,42 @@ model TransactionSellLinesPurchaseLines {
   @@map("transaction_sell_lines_purchase_lines")
   @@index([sellLineId])
   @@index([purchaseLineId])
+}
+
+model JournalEntry {
+  id          Int                 @id @default(autoincrement())
+  businessId  Int                 @map("business_id")
+  description String?             @db.Text
+  referenceNo String?             @map("reference_no") @db.VarChar(100)
+  entryDate   DateTime            @map("entry_date")
+  status      String              @default("draft") @db.VarChar(20) // 'draft' | 'posted' | 'reversed'
+  createdBy   Int                 @map("created_by")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  business    Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  lines       JournalEntryLine[]
+
+  @@map("journal_entries")
+  @@index([businessId])
+  @@index([status])
+  @@index([entryDate])
+}
+
+model JournalEntryLine {
+  id             Int          @id @default(autoincrement())
+  journalEntryId Int          @map("journal_entry_id")
+  accountId      Int          @map("account_id")
+  type           String       @db.VarChar(10) // 'debit' | 'credit'
+  amount         Decimal      @db.Decimal(22, 4)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account        Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("journal_entry_lines")
+  @@index([journalEntryId])
+  @@index([accountId])
 }
 

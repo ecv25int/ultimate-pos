@@ -872,4 +872,575 @@ export class ReportsService {
 
     return this.buildPdf('Profit & Loss Statement', subtitle, headers, colWidths, rows);
   }
+
+  async getTrialBalance(businessId: number, asOfDate?: string) {
+    const accounts = await this.prisma.account.findMany({
+      where: { businessId },
+      include: { accountType: { select: { rootType: true } } },
+    });
+
+    const transactions = await this.prisma.accountTransaction.findMany({
+      where: {
+        account: { businessId },
+        ...(asOfDate ? { operationDate: { lte: new Date(asOfDate) } } : {}),
+      },
+      select: { accountId: true, type: true, amount: true },
+    });
+
+    const directBalances = new Map<number, { debit: number; credit: number }>();
+    for (const acc of accounts) {
+      directBalances.set(acc.id, { debit: 0, credit: 0 });
+    }
+    for (const tx of transactions) {
+      const bal = directBalances.get(tx.accountId) || { debit: 0, credit: 0 };
+      const amt = Number(tx.amount);
+      if (tx.type === 'debit') {
+        bal.debit += amt;
+      } else if (tx.type === 'credit') {
+        bal.credit += amt;
+      }
+      directBalances.set(tx.accountId, bal);
+    }
+
+    const nodeMap = new Map<number, AccountNode>();
+    for (const acc of accounts) {
+      const direct = directBalances.get(acc.id) || { debit: 0, credit: 0 };
+      nodeMap.set(acc.id, {
+        id: acc.id,
+        parentId: acc.parentId,
+        name: acc.name,
+        accountNumber: acc.accountNumber,
+        rootType: acc.accountType.rootType,
+        directDebit: direct.debit,
+        directCredit: direct.credit,
+        debit: 0,
+        credit: 0,
+        balance: 0,
+        children: [],
+      });
+    }
+
+    const roots: AccountNode[] = [];
+    for (const node of nodeMap.values()) {
+      if (node.parentId !== null && nodeMap.has(node.parentId)) {
+        const parent = nodeMap.get(node.parentId)!;
+        parent.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+
+    function rollup(node: AccountNode): { debit: number; credit: number } {
+      let debit = node.directDebit;
+      let credit = node.directCredit;
+      for (const child of node.children) {
+        const childTotals = rollup(child);
+        debit += childTotals.debit;
+        credit += childTotals.credit;
+      }
+      node.debit = debit;
+      node.credit = credit;
+
+      const rt = node.rootType.toLowerCase();
+      if (rt === 'asset' || rt === 'expense') {
+        node.balance = debit - credit;
+      } else {
+        node.balance = credit - debit;
+      }
+      return { debit, credit };
+    }
+
+    for (const root of roots) {
+      rollup(root);
+    }
+
+    let totalDebit = 0;
+    let totalCredit = 0;
+    for (const root of roots) {
+      totalDebit += root.debit;
+      totalCredit += root.credit;
+    }
+
+    return {
+      accounts: roots,
+      summary: {
+        totalDebit,
+        totalCredit,
+        balancesMatch: Math.abs(totalDebit - totalCredit) < 0.01,
+      },
+    };
+  }
+
+  async getBalanceSheet(businessId: number, asOfDate?: string) {
+    const tb = await this.getTrialBalance(businessId, asOfDate);
+    const roots = tb.accounts;
+
+    const assets = roots.filter((r) => r.rootType.toLowerCase() === 'asset');
+    const liabilities = roots.filter((r) => r.rootType.toLowerCase() === 'liability');
+    const equity = roots.filter((r) => r.rootType.toLowerCase() === 'equity');
+    const revenue = roots.filter((r) => r.rootType.toLowerCase() === 'revenue');
+    const expense = roots.filter((r) => r.rootType.toLowerCase() === 'expense');
+
+    const totalAssets = assets.reduce((sum, r) => sum + r.balance, 0);
+    const totalLiabilities = liabilities.reduce((sum, r) => sum + r.balance, 0);
+    const totalEquity = equity.reduce((sum, r) => sum + r.balance, 0);
+    const totalRevenue = revenue.reduce((sum, r) => sum + r.balance, 0);
+    const totalExpenses = expense.reduce((sum, r) => sum + r.balance, 0);
+
+    const netIncome = totalRevenue - totalExpenses;
+    const totalEquityWithNetIncome = totalEquity + netIncome;
+
+    const equationBalances =
+      Math.abs(totalAssets - (totalLiabilities + totalEquityWithNetIncome)) < 0.01;
+
+    return {
+      assets,
+      liabilities,
+      equity,
+      summary: {
+        totalAssets,
+        totalLiabilities,
+        totalEquity,
+        netIncome,
+        totalEquityWithNetIncome,
+        equationBalances,
+      },
+    };
+  }
+
+  async getIncomeStatement(businessId: number, fromDate: string, toDate: string) {
+    const accounts = await this.prisma.account.findMany({
+      where: { businessId },
+      include: { accountType: { select: { rootType: true } } },
+    });
+
+    const transactions = await this.prisma.accountTransaction.findMany({
+      where: {
+        account: { businessId },
+        operationDate: {
+          gte: new Date(fromDate),
+          lte: new Date(toDate),
+        },
+      },
+      select: { accountId: true, type: true, amount: true },
+    });
+
+    const directBalances = new Map<number, { debit: number; credit: number }>();
+    for (const acc of accounts) {
+      directBalances.set(acc.id, { debit: 0, credit: 0 });
+    }
+    for (const tx of transactions) {
+      const bal = directBalances.get(tx.accountId) || { debit: 0, credit: 0 };
+      const amt = Number(tx.amount);
+      if (tx.type === 'debit') {
+        bal.debit += amt;
+      } else if (tx.type === 'credit') {
+        bal.credit += amt;
+      }
+      directBalances.set(tx.accountId, bal);
+    }
+
+    const nodeMap = new Map<number, AccountNode>();
+    for (const acc of accounts) {
+      const direct = directBalances.get(acc.id) || { debit: 0, credit: 0 };
+      nodeMap.set(acc.id, {
+        id: acc.id,
+        parentId: acc.parentId,
+        name: acc.name,
+        accountNumber: acc.accountNumber,
+        rootType: acc.accountType.rootType,
+        directDebit: direct.debit,
+        directCredit: direct.credit,
+        debit: 0,
+        credit: 0,
+        balance: 0,
+        children: [],
+      });
+    }
+
+    const roots: AccountNode[] = [];
+    for (const node of nodeMap.values()) {
+      if (node.parentId !== null && nodeMap.has(node.parentId)) {
+        const parent = nodeMap.get(node.parentId)!;
+        parent.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+
+    function rollup(node: AccountNode): { debit: number; credit: number } {
+      let debit = node.directDebit;
+      let credit = node.directCredit;
+      for (const child of node.children) {
+        const childTotals = rollup(child);
+        debit += childTotals.debit;
+        credit += childTotals.credit;
+      }
+      node.debit = debit;
+      node.credit = credit;
+
+      const rt = node.rootType.toLowerCase();
+      if (rt === 'asset' || rt === 'expense') {
+        node.balance = debit - credit;
+      } else {
+        node.balance = credit - debit;
+      }
+      return { debit, credit };
+    }
+
+    for (const root of roots) {
+      rollup(root);
+    }
+
+    const revenues = roots.filter((r) => r.rootType.toLowerCase() === 'revenue');
+    const expenses = roots.filter((r) => r.rootType.toLowerCase() === 'expense');
+
+    const totalRevenue = revenues.reduce((sum, r) => sum + r.balance, 0);
+    const totalExpenses = expenses.reduce((sum, r) => sum + r.balance, 0);
+    const netIncome = totalRevenue - totalExpenses;
+
+    return {
+      revenues,
+      expenses,
+      summary: {
+        totalRevenue,
+        totalExpenses,
+        netIncome,
+      },
+    };
+  }
+
+  async exportTrialBalanceExcel(businessId: number, asOfDate?: string): Promise<Buffer> {
+    const { accounts, summary } = await this.getTrialBalance(businessId, asOfDate);
+    const { wb, ws } = this.createWorkbook('Trial Balance');
+
+    ws.columns = [
+      { header: 'Account Number', key: 'accountNumber', width: 20 },
+      { header: 'Account Name', key: 'name', width: 35 },
+      { header: 'Debit', key: 'debit', width: 18 },
+      { header: 'Credit', key: 'credit', width: 18 },
+    ];
+    this.styleHeaderRow(ws, ws.columns.length);
+
+    const flatRows = flattenAccounts(accounts);
+    for (const r of flatRows) {
+      const indent = '   '.repeat(r.depth);
+      ws.addRow({
+        accountNumber: r.accountNumber,
+        name: indent + r.name,
+        debit: r.debit !== 0 ? r.debit : null,
+        credit: r.credit !== 0 ? r.credit : null,
+      });
+    }
+
+    const totalRow = ws.addRow({
+      accountNumber: '',
+      name: 'Total',
+      debit: summary.totalDebit,
+      credit: summary.totalCredit,
+    });
+    totalRow.getCell('name').font = { bold: true };
+    totalRow.getCell('debit').font = { bold: true };
+    totalRow.getCell('credit').font = { bold: true };
+
+    ['debit', 'credit'].forEach((key) => {
+      ws.getColumn(key).numFmt = '"$"#,##0.00';
+    });
+
+    return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
+  }
+
+  async exportTrialBalancePdf(businessId: number, asOfDate?: string): Promise<Buffer> {
+    const { accounts, summary } = await this.getTrialBalance(businessId, asOfDate);
+    const subtitle = asOfDate ? `As of: ${asOfDate}` : `As of: ${new Date().toLocaleDateString()}`;
+
+    const headers = ['Account Number', 'Account Name', 'Debit', 'Credit'];
+    const colWidths = [20, 50, 15, 15];
+
+    const flat = flattenAccounts(accounts);
+    const rows = flat.map((r) => [
+      r.accountNumber,
+      '  '.repeat(r.depth) + r.name,
+      r.debit !== 0 ? `$${r.debit.toFixed(2)}` : '',
+      r.credit !== 0 ? `$${r.credit.toFixed(2)}` : '',
+    ]);
+
+    const summaryLines = [
+      `Total Debit: $${summary.totalDebit.toFixed(2)}`,
+      `Total Credit: $${summary.totalCredit.toFixed(2)}`,
+      `Trial Balance Status: ${summary.balancesMatch ? 'BALANCED' : 'UNBALANCED'}`,
+    ];
+
+    return this.buildPdf('Trial Balance Report', subtitle, headers, colWidths, rows, summaryLines);
+  }
+
+  async exportBalanceSheetExcel(businessId: number, asOfDate?: string): Promise<Buffer> {
+    const bs = await this.getBalanceSheet(businessId, asOfDate);
+    const { wb, ws } = this.createWorkbook('Balance Sheet');
+
+    ws.columns = [
+      { header: 'Account Number', key: 'accountNumber', width: 20 },
+      { header: 'Account Name', key: 'name', width: 40 },
+      { header: 'Balance', key: 'balance', width: 20 },
+    ];
+    this.styleHeaderRow(ws, ws.columns.length);
+
+    const addSection = (title: string, roots: AccountNode[], total: number) => {
+      const headerRow = ws.addRow({ accountNumber: '', name: title, balance: null });
+      headerRow.getCell('name').font = { bold: true, size: 12 };
+
+      const flat = flattenAccounts(roots);
+      for (const r of flat) {
+        const indent = '   '.repeat(r.depth + 1);
+        ws.addRow({
+          accountNumber: r.accountNumber,
+          name: indent + r.name,
+          balance: r.balance,
+        });
+      }
+
+      const totalRow = ws.addRow({
+        accountNumber: '',
+        name: `Total ${title}`,
+        balance: total,
+      });
+      totalRow.getCell('name').font = { bold: true };
+      totalRow.getCell('balance').font = { bold: true };
+      ws.addRow({});
+    };
+
+    addSection('ASSETS', bs.assets, bs.summary.totalAssets);
+    addSection('LIABILITIES', bs.liabilities, bs.summary.totalLiabilities);
+
+    const equityHeader = ws.addRow({ accountNumber: '', name: 'EQUITY', balance: null });
+    equityHeader.getCell('name').font = { bold: true, size: 12 };
+
+    const flatEquity = flattenAccounts(bs.equity);
+    for (const r of flatEquity) {
+      const indent = '   '.repeat(r.depth + 1);
+      ws.addRow({
+        accountNumber: r.accountNumber,
+        name: indent + r.name,
+        balance: r.balance,
+      });
+    }
+
+    const netIncomeRow = ws.addRow({
+      accountNumber: '',
+      name: '   Net Income (Current Period)',
+      balance: bs.summary.netIncome,
+    });
+    netIncomeRow.getCell('name').font = { italic: true };
+
+    const totalEquityRow = ws.addRow({
+      accountNumber: '',
+      name: 'Total EQUITY',
+      balance: bs.summary.totalEquityWithNetIncome,
+    });
+    totalEquityRow.getCell('name').font = { bold: true };
+    totalEquityRow.getCell('balance').font = { bold: true };
+
+    ws.addRow({});
+
+    const grandTotalRow = ws.addRow({
+      accountNumber: '',
+      name: 'TOTAL LIABILITIES & EQUITY',
+      balance: bs.summary.totalLiabilities + bs.summary.totalEquityWithNetIncome,
+    });
+    grandTotalRow.getCell('name').font = { bold: true, color: { argb: '1A237E' } };
+    grandTotalRow.getCell('balance').font = { bold: true, color: { argb: '1A237E' } };
+
+    ws.getColumn('balance').numFmt = '"$"#,##0.00';
+
+    return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
+  }
+
+  async exportBalanceSheetPdf(businessId: number, asOfDate?: string): Promise<Buffer> {
+    const bs = await this.getBalanceSheet(businessId, asOfDate);
+    const subtitle = asOfDate ? `As of: ${asOfDate}` : `As of: ${new Date().toLocaleDateString()}`;
+
+    const headers = ['Account Number', 'Account Name', 'Balance'];
+    const colWidths = [25, 55, 20];
+
+    const rows: string[][] = [];
+
+    const addSection = (title: string, roots: AccountNode[], total: number) => {
+      rows.push(['', title, '']);
+      const flat = flattenAccounts(roots);
+      for (const r of flat) {
+        rows.push([r.accountNumber, '  '.repeat(r.depth + 1) + r.name, `$${r.balance.toFixed(2)}`]);
+      }
+      rows.push(['', `Total ${title}`, `$${total.toFixed(2)}`]);
+      rows.push(['', '', '']);
+    };
+
+    addSection('ASSETS', bs.assets, bs.summary.totalAssets);
+    addSection('LIABILITIES', bs.liabilities, bs.summary.totalLiabilities);
+
+    rows.push(['', 'EQUITY', '']);
+    const flatEquity = flattenAccounts(bs.equity);
+    for (const r of flatEquity) {
+      rows.push([r.accountNumber, '  '.repeat(r.depth + 1) + r.name, `$${r.balance.toFixed(2)}`]);
+    }
+    rows.push(['', '  Net Income (Current Period)', `$${bs.summary.netIncome.toFixed(2)}`]);
+    rows.push(['', 'Total EQUITY', `$${bs.summary.totalEquityWithNetIncome.toFixed(2)}`]);
+    rows.push(['', '', '']);
+
+    rows.push([
+      '',
+      'TOTAL LIABILITIES & EQUITY',
+      `$${(bs.summary.totalLiabilities + bs.summary.totalEquityWithNetIncome).toFixed(2)}`,
+    ]);
+
+    const summaryLines = [
+      `Assets: $${bs.summary.totalAssets.toFixed(2)}`,
+      `Liabilities + Equity: $${(bs.summary.totalLiabilities + bs.summary.totalEquityWithNetIncome).toFixed(2)}`,
+      `Accounting Equation Status: ${bs.summary.equationBalances ? 'BALANCED' : 'UNBALANCED'}`,
+    ];
+
+    return this.buildPdf('Balance Sheet', subtitle, headers, colWidths, rows, summaryLines);
+  }
+
+  async exportIncomeStatementExcel(
+    businessId: number,
+    fromDate: string,
+    toDate: string,
+  ): Promise<Buffer> {
+    const is = await this.getIncomeStatement(businessId, fromDate, toDate);
+    const { wb, ws } = this.createWorkbook('Income Statement');
+
+    ws.columns = [
+      { header: 'Account Number', key: 'accountNumber', width: 20 },
+      { header: 'Account Name', key: 'name', width: 40 },
+      { header: 'Amount', key: 'balance', width: 20 },
+    ];
+    this.styleHeaderRow(ws, ws.columns.length);
+
+    const addSection = (title: string, roots: AccountNode[], total: number) => {
+      const headerRow = ws.addRow({ accountNumber: '', name: title, balance: null });
+      headerRow.getCell('name').font = { bold: true, size: 12 };
+
+      const flat = flattenAccounts(roots);
+      for (const r of flat) {
+        const indent = '   '.repeat(r.depth + 1);
+        ws.addRow({
+          accountNumber: r.accountNumber,
+          name: indent + r.name,
+          balance: r.balance,
+        });
+      }
+
+      const totalRow = ws.addRow({
+        accountNumber: '',
+        name: `Total ${title}`,
+        balance: total,
+      });
+      totalRow.getCell('name').font = { bold: true };
+      totalRow.getCell('balance').font = { bold: true };
+      ws.addRow({});
+    };
+
+    addSection('REVENUE', is.revenues, is.summary.totalRevenue);
+    addSection('EXPENSES', is.expenses, is.summary.totalExpenses);
+
+    const netIncomeRow = ws.addRow({
+      accountNumber: '',
+      name: 'NET INCOME',
+      balance: is.summary.netIncome,
+    });
+    netIncomeRow.getCell('name').font = { bold: true, color: { argb: '1A237E' } };
+    netIncomeRow.getCell('balance').font = { bold: true, color: { argb: '1A237E' } };
+
+    ws.getColumn('balance').numFmt = '"$"#,##0.00';
+
+    return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
+  }
+
+  async exportIncomeStatementPdf(
+    businessId: number,
+    fromDate: string,
+    toDate: string,
+  ): Promise<Buffer> {
+    const is = await this.getIncomeStatement(businessId, fromDate, toDate);
+    const subtitle = `Period: ${fromDate} to ${toDate}`;
+
+    const headers = ['Account Number', 'Account Name', 'Amount'];
+    const colWidths = [25, 55, 20];
+
+    const rows: string[][] = [];
+
+    const addSection = (title: string, roots: AccountNode[], total: number) => {
+      rows.push(['', title, '']);
+      const flat = flattenAccounts(roots);
+      for (const r of flat) {
+        rows.push([r.accountNumber, '  '.repeat(r.depth + 1) + r.name, `$${r.balance.toFixed(2)}`]);
+      }
+      rows.push(['', `Total ${title}`, `$${total.toFixed(2)}`]);
+      rows.push(['', '', '']);
+    };
+
+    addSection('REVENUE', is.revenues, is.summary.totalRevenue);
+    addSection('EXPENSES', is.expenses, is.summary.totalExpenses);
+
+    rows.push(['', 'NET INCOME', `$${is.summary.netIncome.toFixed(2)}`]);
+
+    const summaryLines = [
+      `Total Revenue: $${is.summary.totalRevenue.toFixed(2)}`,
+      `Total Expenses: $${is.summary.totalExpenses.toFixed(2)}`,
+      `Net Income: $${is.summary.netIncome.toFixed(2)}`,
+    ];
+
+    return this.buildPdf(
+      'Income Statement (Profit & Loss)',
+      subtitle,
+      headers,
+      colWidths,
+      rows,
+      summaryLines,
+    );
+  }
+}
+
+export interface AccountNode {
+  id: number;
+  parentId: number | null;
+  name: string;
+  accountNumber: string;
+  rootType: string;
+  directDebit: number;
+  directCredit: number;
+  debit: number;
+  credit: number;
+  balance: number;
+  children: AccountNode[];
+}
+
+export interface FlatAccountRow {
+  accountNumber: string;
+  name: string;
+  depth: number;
+  debit: number;
+  credit: number;
+  balance: number;
+  rootType: string;
+}
+
+function flattenAccounts(nodes: AccountNode[], depth = 0): FlatAccountRow[] {
+  const result: FlatAccountRow[] = [];
+  const sorted = [...nodes].sort((a, b) => a.accountNumber.localeCompare(b.accountNumber));
+  for (const node of sorted) {
+    result.push({
+      accountNumber: node.accountNumber,
+      name: node.name,
+      depth,
+      debit: node.debit,
+      credit: node.credit,
+      balance: node.balance,
+      rootType: node.rootType,
+    });
+    if (node.children.length > 0) {
+      result.push(...flattenAccounts(node.children, depth + 1));
+    }
+  }
+  return result;
 }

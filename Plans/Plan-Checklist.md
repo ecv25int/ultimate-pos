@@ -11,8 +11,8 @@
 |---|---|---|
 | Week 1 | Auth, Users, DB Schema, API Foundation | ✅ Complete |
 | Week 2 | Transactions, Sales, Purchases, Inventory, Payments | ✅ Complete — all 5 days clean arch, 133 tests passing |
-| Week 3 | Products, Pricing, Inventory Management | 🔲 In progress — Day 1 complete, 16 tests passing |
-| Week 4 | Accounting, GL, Financial Statements | 🔲 Not started |
+| Week 3 | Products, Pricing, Inventory Management | ✅ Complete |
+| Week 4 | Accounting, GL, Financial Statements | ✅ Complete |
 | Week 5 | Reporting, Dashboard, Alerts | 🔲 Not started |
 | Week 6 | Data Migration, QA, Performance, Go-live | 🔲 Not started |
 
@@ -67,10 +67,10 @@
 | Day | Task | Status |
 |---|---|---|
 | Day 1 | Product catalog & variations | ✅ |
-| Day 2 | Pricing with customer group overrides | 🔲 |
-| Day 3 | Advanced inventory tracking (locations, valuation) | 🔲 |
-| Day 4 | Physical inventory counts & inter-location transfers | 🔲 |
-| Day 5 | FIFO batch tracking & expiry dates | 🔲 |
+| Day 2 | Pricing with customer group overrides | ✅ |
+| Day 3 | Advanced inventory tracking (locations, valuation) | ✅ |
+| Day 4 | Physical inventory counts & inter-location transfers | ✅ |
+| Day 5 | FIFO batch tracking & expiry dates | ✅ |
 
 ---
 
@@ -78,11 +78,11 @@
 
 | Day | Task | Status |
 |---|---|---|
-| Day 1 | Chart of accounts & account hierarchy | 🔲 |
-| Day 2 | Double-entry journal entries with GL posting | 🔲 |
-| Day 3 | Link sales/purchases/payments to GL auto-posting | 🔲 |
-| Day 4 | Core financial statements | 🔲 |
-| Day 5 | Cash management & multi-currency | 🔲 |
+| Day 1 | Chart of accounts & account hierarchy | ✅ |
+| Day 2 | Double-entry journal entries with GL posting | ✅ |
+| Day 3 | Link sales/purchases/payments to GL auto-posting | ✅ |
+| Day 4 | Core financial statements | ✅ |
+| Day 5 | Cash management & multi-currency | ✅ |
 
 ---
 

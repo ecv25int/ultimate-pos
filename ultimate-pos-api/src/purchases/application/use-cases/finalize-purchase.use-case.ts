@@ -2,12 +2,14 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import type { Purchase } from '../../domain/purchase.entity';
 import type { IPurchaseRepository } from '../../domain/purchase.repository';
 import { PURCHASE_REPOSITORY } from '../../domain/purchase.repository';
+import { PostingService } from '../../../accounting/posting.service';
 
 @Injectable()
 export class FinalizePurchaseUseCase {
   constructor(
     @Inject(PURCHASE_REPOSITORY)
     private readonly repo: IPurchaseRepository,
+    private readonly postingService: PostingService,
   ) {}
 
   async execute(id: number, businessId: number): Promise<Purchase> {
@@ -18,6 +20,8 @@ export class FinalizePurchaseUseCase {
         `Purchase #${id} is already finalized (status: ${existing.status})`,
       );
     }
-    return this.repo.update(id, businessId, { status: 'received' });
+    const updated = await this.repo.update(id, businessId, { status: 'received' });
+    await this.postingService.postPurchaseToGL(businessId, updated.id);
+    return updated;
   }
 }

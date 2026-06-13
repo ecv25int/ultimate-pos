@@ -2,6 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PAYMENT_REPOSITORY } from '../../domain/payment.repository';
 import type { IPaymentRepository } from '../../domain/payment.repository';
 import { PaymentStatusService } from '../../domain/payment-status.service';
+import { PostingService } from '../../../accounting/posting.service';
 
 @Injectable()
 export class DeletePaymentUseCase {
@@ -9,6 +10,7 @@ export class DeletePaymentUseCase {
     @Inject(PAYMENT_REPOSITORY)
     private readonly repo: IPaymentRepository,
     private readonly statusSvc: PaymentStatusService,
+    private readonly postingService: PostingService,
   ) {}
 
   async execute(id: number, businessId: number): Promise<void> {
@@ -16,6 +18,7 @@ export class DeletePaymentUseCase {
     if (!payment) throw new NotFoundException(`Payment #${id} not found`);
 
     await this.repo.delete(id);
+    await this.postingService.deletePaymentFromGL(id);
 
     // Recalculate payment status after deletion
     if (payment.saleId) {

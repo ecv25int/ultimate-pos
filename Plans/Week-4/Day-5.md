@@ -5,28 +5,30 @@ Implement cash management and multi-currency transactions.
 
 ## PHP Original project at: 
 This is a migration project. PHP Source code at /opt/homebrew/var/www/superpos/
+Update Plans/Plan-Checklist.md  file when finish, with all the plans implemented so far, including this one. 
+For the current week, update also the progress in Plans/Week-X/Day-X.md for the days already done.
 
 ## Tasks
-- [ ] Verify CashRegister, CashRegisterTransaction models
-- [ ] Create `cash-register.service.ts`:
+- [x] Verify CashRegister, CashRegisterTransaction models
+- [x] Create `cash-register.service.ts`:
   - openRegister(userId, locationId, initialCash)
   - addCashIn(registerId, amount, reason)
   - addCashOut(registerId, amount, reason)
   - closeRegister(registerId, finalCash)
   - reconcileCash(registerId, expectedAmount, actualAmount)
-- [ ] Create cash register controller endpoints
-- [ ] Create `currency.service.ts`:
+- [x] Create cash register controller endpoints
+- [x] Create `currency.service.ts`:
   - getExchangeRate(fromCurrency, toCurrency, asOfDate)
   - convertAmount(amount, fromCurrency, toCurrency, rate)
-- [ ] Implement multi-currency balance tracking
-- [ ] Calculate unrealized gains/losses
-- [ ] Unit and integration tests
+- [x] Implement multi-currency balance tracking
+- [x] Calculate unrealized gains/losses
+- [x] Unit and integration tests
 
 ## Verification
-- [ ] Cash register open/close working
-- [ ] Variances calculated correctly
-- [ ] Multi-currency conversions accurate
-- [ ] GL posting includes currency conversions
+- [x] Cash register open/close working
+- [x] Variances calculated correctly
+- [x] Multi-currency conversions accurate
+- [x] GL posting includes currency conversions
 
 ## Success Criteria
 ✅ Cash management complete

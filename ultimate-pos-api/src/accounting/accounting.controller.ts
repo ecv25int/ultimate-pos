@@ -16,6 +16,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
 import { AccountingService } from './accounting.service';
+import { CurrencyService } from './currency.service';
 import { CreateAccountTypeDto } from './dto/create-account-type.dto';
 import { CreateAccountDto, UpdateAccountDto } from './dto/create-account.dto';
 import { CreateAccountTransactionDto } from './dto/create-account-transaction.dto';
@@ -23,7 +24,10 @@ import { CreateAccountTransactionDto } from './dto/create-account-transaction.dt
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('accounting')
 export class AccountingController {
-  constructor(private readonly accountingService: AccountingService) {}
+  constructor(
+    private readonly accountingService: AccountingService,
+    private readonly currencyService: CurrencyService,
+  ) {}
 
   // ─── Account Types ────────────────────────────────────────────────
 
@@ -142,7 +146,37 @@ export class AccountingController {
 
   /** GET /api/accounting/reports/balance-sheet */
   @Get('reports/balance-sheet')
-  getBalanceSheet(@Req() req: any) {
+  getBalanceSheet(@Req() req: { user: { businessId: number } }) {
     return this.accountingService.getBalanceSheet(req.user.businessId);
+  }
+
+  // ─── Multi-Currency & Exchange Rates ──────────────────────────────
+
+  /** GET /api/accounting/currencies/exchange-rate?from=&to=&date= */
+  @Get('currencies/exchange-rate')
+  getExchangeRate(
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('date') date?: string,
+  ) {
+    return this.currencyService.getExchangeRate(from, to, date);
+  }
+
+  /** GET /api/accounting/currencies/unrealized-gains?asOfDate= */
+  @Get('currencies/unrealized-gains')
+  getUnrealizedGains(
+    @Req() req: { user: { businessId: number } },
+    @Query('asOfDate') asOfDate?: string,
+  ) {
+    return this.currencyService.calculateUnrealizedGains(req.user.businessId, asOfDate);
+  }
+
+  /** GET /api/accounting/currencies/balance/:accountId?asOfDate= */
+  @Get('currencies/balance/:accountId')
+  getAccountMultiCurrencyBalance(
+    @Param('accountId', ParseIntPipe) accountId: number,
+    @Query('asOfDate') asOfDate?: string,
+  ) {
+    return this.currencyService.getAccountMultiCurrencyBalance(accountId, asOfDate);
   }
 }

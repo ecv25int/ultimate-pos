@@ -11,6 +11,7 @@ import { WebPushService } from '../push/web-push.service';
 import { CheckAvailabilityUseCase } from '../inventory/application/use-cases/check-availability.use-case';
 import { StockService } from '../inventory/stock.service';
 import { BatchService } from '../inventory/batch.service';
+import { PostingService } from '../accounting/posting.service';
 
 @Injectable()
 export class SalesService {
@@ -23,6 +24,7 @@ export class SalesService {
     private checkAvailability: CheckAvailabilityUseCase,
     private readonly stockService: StockService,
     private readonly batchService: BatchService,
+    private readonly postingService: PostingService,
   ) {}
 
   // ------------------------------------------------------------
@@ -237,6 +239,10 @@ export class SalesService {
       };
     });
 
+    if (sale.status === 'final') {
+      await this.postingService.postSaleToGL(businessId, sale.id);
+    }
+
     // Invalidate cached data affected by new sale
     await Promise.all([
       this.cacheManager.del(`dashboard_${businessId}`),
@@ -347,7 +353,7 @@ export class SalesService {
   // ------------------------------------------------------------
   async update(businessId: number, id: number, dto: UpdateSaleDto) {
     await this.findOne(businessId, id);
-    return this.prisma.sale.update({
+    const updated = await this.prisma.sale.update({
       where: { id },
       data: {
         contactId: dto.contactId,
@@ -367,6 +373,12 @@ export class SalesService {
         },
       },
     });
+
+    if (updated.status === 'final') {
+      await this.postingService.postSaleToGL(businessId, updated.id);
+    }
+
+    return updated;
   }
 
   // ------------------------------------------------------------
@@ -377,7 +389,7 @@ export class SalesService {
     if (sale.type !== 'quotation' && sale.status !== 'draft') {
       throw new Error('Only quotations or drafts can be converted to invoices');
     }
-    return this.prisma.sale.update({
+    const updated = await this.prisma.sale.update({
       where: { id },
       data: {
         type: 'sale',
@@ -390,6 +402,10 @@ export class SalesService {
         },
       },
     });
+
+    await this.postingService.postSaleToGL(businessId, updated.id);
+
+    return updated;
   }
 
   // ------------------------------------------------------------

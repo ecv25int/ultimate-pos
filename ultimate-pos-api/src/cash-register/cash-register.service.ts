@@ -208,4 +208,51 @@ export class CashRegisterService {
       totalCashOut,
     };
   }
+
+  async addCashIn(
+    businessId: number,
+    registerId: number,
+    userId: number,
+    amount: number,
+    reason?: string,
+  ) {
+    return this.addTransaction(businessId, registerId, userId, {
+      transactionType: 'cash_in',
+      amount,
+      note: reason ?? 'Cash In',
+    });
+  }
+
+  async addCashOut(
+    businessId: number,
+    registerId: number,
+    userId: number,
+    amount: number,
+    reason?: string,
+  ) {
+    return this.addTransaction(businessId, registerId, userId, {
+      transactionType: 'cash_out',
+      amount,
+      note: reason ?? 'Cash Out',
+    });
+  }
+
+  async reconcileCash(
+    businessId: number,
+    registerId: number,
+    userId: number,
+    expectedAmount: number,
+    actualAmount: number,
+  ) {
+    const register = await this.prisma.cashRegister.findFirst({
+      where: { id: registerId, businessId, status: 'open' },
+    });
+    if (!register) {
+      throw new NotFoundException('Open cash register session not found');
+    }
+    return this.closeRegister(businessId, registerId, userId, {
+      closingAmount: actualAmount,
+      closingNote: `Reconciled expected: ${expectedAmount}, actual: ${actualAmount}`,
+    });
+  }
 }

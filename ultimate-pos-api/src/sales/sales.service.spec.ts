@@ -9,6 +9,7 @@ import { WebPushService } from '../push/web-push.service';
 import { CheckAvailabilityUseCase } from '../inventory/application/use-cases/check-availability.use-case';
 import { StockService } from '../inventory/stock.service';
 import { BatchService } from '../inventory/batch.service';
+import { PostingService } from '../accounting/posting.service';
 
 // ─── Shared fixtures ─────────────────────────────────────────────────────────
 
@@ -113,6 +114,10 @@ describe('SalesService', () => {
         {
           provide: BatchService,
           useValue: { mapPurchaseSell: jest.fn().mockResolvedValue([]) },
+        },
+        {
+          provide: PostingService,
+          useValue: { postSaleToGL: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();

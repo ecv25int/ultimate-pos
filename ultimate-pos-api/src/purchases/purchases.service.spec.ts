@@ -94,6 +94,9 @@ describe('LandedCostService', () => {
 
 describe('CreatePurchaseUseCase', () => {
   const landedCost = new LandedCostService();
+  const mockPostingService = {
+    postPurchaseToGL: jest.fn().mockResolvedValue(undefined),
+  } as any;
 
   const buildRepo = (overrides: any = {}) => ({
     generateRefNo: jest.fn().mockResolvedValue('PO-20260504-0001'),
@@ -106,14 +109,14 @@ describe('CreatePurchaseUseCase', () => {
   });
 
   it('rejects empty lines', async () => {
-    const uc = new CreatePurchaseUseCase(buildRepo(), landedCost);
+    const uc = new CreatePurchaseUseCase(buildRepo(), landedCost, mockPostingService);
     const dto = Object.assign(new CreatePurchaseDto(), { lines: [] });
     await expect(uc.execute(10, 1, dto)).rejects.toThrow(BadRequestException);
   });
 
   it('generates ref no when not provided and creates purchase', async () => {
     const repo = buildRepo();
-    const uc = new CreatePurchaseUseCase(repo, landedCost);
+    const uc = new CreatePurchaseUseCase(repo, landedCost, mockPostingService);
     const dto = Object.assign(new CreatePurchaseDto(), {
       lines: [{ productId: 5, quantity: 10, unitCostBefore: 10 }],
       type: PurchaseType.PURCHASE,
@@ -127,7 +130,7 @@ describe('CreatePurchaseUseCase', () => {
 
   it('uses provided refNo and skips generation', async () => {
     const repo = buildRepo();
-    const uc = new CreatePurchaseUseCase(repo, landedCost);
+    const uc = new CreatePurchaseUseCase(repo, landedCost, mockPostingService);
     const dto = Object.assign(new CreatePurchaseDto(), {
       refNo: 'CUSTOM-001',
       lines: [{ productId: 5, quantity: 2, unitCostBefore: 50 }],
@@ -175,6 +178,10 @@ describe('UpdatePurchaseUseCase', () => {
 });
 
 describe('FinalizePurchaseUseCase', () => {
+  const mockPostingService = {
+    postPurchaseToGL: jest.fn().mockResolvedValue(undefined),
+  } as any;
+
   it('finalizes an ordered purchase', async () => {
     const purchase = makePurchase({ status: 'ordered' });
     const finalized = makePurchase({ status: 'received' });
@@ -182,14 +189,14 @@ describe('FinalizePurchaseUseCase', () => {
       findById: jest.fn().mockResolvedValue(purchase),
       update: jest.fn().mockResolvedValue(finalized),
     };
-    const uc = new FinalizePurchaseUseCase(repo);
+    const uc = new FinalizePurchaseUseCase(repo, mockPostingService);
     expect((await uc.execute(1, 10)).status).toBe('received');
   });
 
   it('rejects finalization of already-finalized purchase', async () => {
     const purchase = makePurchase({ status: 'received' });
     const repo: any = { findById: jest.fn().mockResolvedValue(purchase) };
-    await expect(new FinalizePurchaseUseCase(repo).execute(1, 10)).rejects.toThrow(
+    await expect(new FinalizePurchaseUseCase(repo, mockPostingService).execute(1, 10)).rejects.toThrow(
       BadRequestException,
     );
   });
