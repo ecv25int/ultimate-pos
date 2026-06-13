@@ -1,4 +1,14 @@
-import { IsString, IsOptional, IsInt, IsBoolean, IsNumber, IsEnum, MinLength, MaxLength, Min } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsBoolean,
+  IsNumber,
+  IsEnum,
+  MinLength,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 enum ProductType {
@@ -45,10 +55,10 @@ export class CreateProductDto {
   @Type(() => Number)
   subCategoryId?: number;
 
+  @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(255)
-  sku: string;
+  sku?: string;
 
   @IsOptional()
   @IsEnum(BarcodeType)

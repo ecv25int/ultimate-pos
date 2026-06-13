@@ -1,6 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateRoomTypeDto, CreateRoomDto, CreateExtraDto, CreateBookingLineDto } from './dto/hms.dto';
+import {
+  CreateRoomTypeDto,
+  CreateRoomDto,
+  CreateExtraDto,
+  CreateBookingLineDto,
+} from './dto/hms.dto';
 
 @Injectable()
 export class HmsService {

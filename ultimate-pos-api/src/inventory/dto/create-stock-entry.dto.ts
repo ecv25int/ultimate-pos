@@ -1,20 +1,13 @@
-import {
-  IsString,
-  IsOptional,
-  IsInt,
-  IsNumber,
-  IsEnum,
-  Min,
-} from 'class-validator';
+import { IsString, IsOptional, IsInt, IsNumber, IsEnum, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum StockEntryType {
   OPENING_STOCK = 'opening_stock',
-  PURCHASE_IN   = 'purchase_in',
+  PURCHASE_IN = 'purchase_in',
   ADJUSTMENT_IN = 'adjustment_in',
   ADJUSTMENT_OUT = 'adjustment_out',
-  SALE_OUT      = 'sale_out',
-  SALE_RETURN   = 'sale_return',
+  SALE_OUT = 'sale_out',
+  SALE_RETURN = 'sale_return',
 }
 
 export class CreateStockEntryDto {
@@ -27,7 +20,7 @@ export class CreateStockEntryDto {
 
   @IsNumber()
   @Type(() => Number)
-  quantity: number;   // positive = in, negative = out
+  quantity: number; // positive = in, negative = out
 
   @IsOptional()
   @IsNumber()

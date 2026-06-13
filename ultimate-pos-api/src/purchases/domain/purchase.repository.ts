@@ -2,6 +2,7 @@ import type { Purchase } from './purchase.entity';
 
 export interface CreatePurchaseLineData {
   productId: number;
+  variationId?: number;
   quantity: number;
   unitCostBefore: number;
   unitCostAfter: number;
@@ -9,6 +10,8 @@ export interface CreatePurchaseLineData {
   taxAmount: number;
   lineTotal: number;
   note?: string;
+  batchNumber?: string;
+  expiryDate?: Date;
 }
 
 export interface CreatePurchaseData {

@@ -23,7 +23,12 @@ const makePayment = (overrides: Partial<ConstructorParameters<typeof Payment>[0]
     ...overrides,
   });
 
-const makeSale = (overrides: any = {}) => ({ id: 5, totalAmount: 100, paidAmount: 0, ...overrides });
+const makeSale = (overrides: any = {}) => ({
+  id: 5,
+  totalAmount: 100,
+  paidAmount: 0,
+  ...overrides,
+});
 
 describe('Payment entity', () => {
   it('isForSale returns true when saleId is set', () => {
@@ -83,7 +88,7 @@ describe('AddPaymentUseCase', () => {
     updateSalePaymentStatus: jest.fn().mockResolvedValue(undefined),
     updatePurchasePaymentStatus: jest.fn().mockResolvedValue(undefined),
     ...overrides,
-  } as any);
+  });
 
   it('throws if neither saleId nor purchaseId provided', async () => {
     const uc = new AddPaymentUseCase(buildRepo(), statusSvc);
@@ -92,7 +97,10 @@ describe('AddPaymentUseCase', () => {
   });
 
   it('throws NotFoundException when sale not found', async () => {
-    const uc = new AddPaymentUseCase(buildRepo({ findSale: jest.fn().mockResolvedValue(null) }), statusSvc);
+    const uc = new AddPaymentUseCase(
+      buildRepo({ findSale: jest.fn().mockResolvedValue(null) }),
+      statusSvc,
+    );
     const dto = Object.assign(new CreatePaymentDto(), { amount: 50, saleId: 99 });
     await expect(uc.execute(10, 1, dto)).rejects.toThrow(NotFoundException);
   });
@@ -155,7 +163,9 @@ describe('DeletePaymentUseCase', () => {
 
   it('throws NotFoundException when payment not found', async () => {
     const repo: any = { findById: jest.fn().mockResolvedValue(null) };
-    await expect(new DeletePaymentUseCase(repo, statusSvc).execute(99, 10)).rejects.toThrow(NotFoundException);
+    await expect(new DeletePaymentUseCase(repo, statusSvc).execute(99, 10)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });
 
@@ -175,25 +185,33 @@ describe('GetBalanceUseCase', () => {
 
   it('throws NotFoundException for unknown sale', async () => {
     const repo: any = { findSale: jest.fn().mockResolvedValue(null) };
-    await expect(new GetBalanceUseCase(repo, statusSvc).forSale(99, 10)).rejects.toThrow(NotFoundException);
+    await expect(new GetBalanceUseCase(repo, statusSvc).forSale(99, 10)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('throws BadRequestException when neither saleId nor purchaseId provided', async () => {
     const repo: any = {};
-    await expect(new GetBalanceUseCase(repo, statusSvc).execute(10)).rejects.toThrow(BadRequestException);
+    await expect(new GetBalanceUseCase(repo, statusSvc).execute(10)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });
 
 describe('AddBulkPaymentsUseCase', () => {
   it('throws BadRequestException when no payments provided', async () => {
     const addPayment: any = { execute: jest.fn() };
-    await expect(new AddBulkPaymentsUseCase(addPayment).execute(10, 1, [])).rejects.toThrow(BadRequestException);
+    await expect(new AddBulkPaymentsUseCase(addPayment).execute(10, 1, [])).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('processes each payment sequentially and returns all', async () => {
     const p1 = makePayment({ id: 1, amount: 30 });
     const p2 = makePayment({ id: 2, amount: 70 });
-    const addPayment: any = { execute: jest.fn().mockResolvedValueOnce(p1).mockResolvedValueOnce(p2) };
+    const addPayment: any = {
+      execute: jest.fn().mockResolvedValueOnce(p1).mockResolvedValueOnce(p2),
+    };
     const dtos = [
       Object.assign(new CreatePaymentDto(), { amount: 30, saleId: 5 }),
       Object.assign(new CreatePaymentDto(), { amount: 70, saleId: 5 }),

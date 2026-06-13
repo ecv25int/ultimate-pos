@@ -31,14 +31,8 @@ export class TaxRatesController {
 
   /** GET /api/tax-rates */
   @Get()
-  findAll(
-    @Req() req: any,
-    @Query('includeInactive') includeInactive?: string,
-  ) {
-    return this.taxRatesService.findAll(
-      req.user.businessId,
-      includeInactive === 'true',
-    );
+  findAll(@Req() req: any, @Query('includeInactive') includeInactive?: string) {
+    return this.taxRatesService.findAll(req.user.businessId, includeInactive === 'true');
   }
 
   /** GET /api/tax-rates/:id */
@@ -55,11 +49,7 @@ export class TaxRatesController {
 
   /** PATCH /api/tax-rates/:id */
   @Patch(':id')
-  update(
-    @Req() req: any,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateTaxRateDto,
-  ) {
+  update(@Req() req: any, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTaxRateDto) {
     return this.taxRatesService.update(req.user.businessId, id, dto);
   }
 

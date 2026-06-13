@@ -11,7 +11,7 @@ import {
 import { Type } from 'class-transformer';
 
 export const PAYMENT_METHODS = ['cash', 'card', 'bank_transfer', 'check', 'other'] as const;
-export type PaymentMethod = typeof PAYMENT_METHODS[number];
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 export class CreatePaymentDto {
   @IsOptional()

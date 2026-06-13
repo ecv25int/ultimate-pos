@@ -11,7 +11,14 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreatePurchaseUseCase } from './application/use-cases/create-purchase.use-case';
 import { FindPurchaseUseCase } from './application/use-cases/find-purchase.use-case';
@@ -61,7 +68,11 @@ export class PurchasesController {
   @Get()
   @ApiOperation({ summary: 'List purchases' })
   @ApiQuery({ name: 'search', required: false })
-  @ApiQuery({ name: 'status', required: false, enum: ['received', 'ordered', 'pending', 'cancelled'] })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['received', 'ordered', 'pending', 'cancelled'],
+  })
   @ApiQuery({ name: 'paymentStatus', required: false, enum: ['paid', 'due', 'partial'] })
   @ApiQuery({ name: 'type', required: false, enum: ['purchase', 'requisition'] })
   @ApiQuery({ name: 'page', required: false, example: 1 })
@@ -125,7 +136,8 @@ export class PurchasesController {
   async createPurchaseReturn(
     @Request() req: any,
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { lines: { productId: number; quantity: number; unitCost: number }[]; note?: string },
+    @Body()
+    body: { lines: { productId: number; quantity: number; unitCost: number }[]; note?: string },
   ) {
     const entity = await this.createReturn.execute(id, req.user.businessId, req.user.id, {
       lines: body.lines,

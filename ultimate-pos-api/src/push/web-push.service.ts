@@ -121,11 +121,7 @@ export class WebPushService implements OnModuleInit {
    * E.g. low-stock alert for all ADMIN and MANAGER users.
    * If roles is empty, sends to all users in the business.
    */
-  async sendToBusiness(
-    businessId: number,
-    roles: string[],
-    payload: PushPayload,
-  ): Promise<void> {
+  async sendToBusiness(businessId: number, roles: string[], payload: PushPayload): Promise<void> {
     if (!this.vapidConfigured) return;
 
     // Resolve the user IDs that match the required roles

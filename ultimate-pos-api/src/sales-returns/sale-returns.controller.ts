@@ -46,10 +46,7 @@ export class SaleReturnsController {
   @ApiOperation({ summary: 'List all returns for a sale' })
   @ApiParam({ name: 'saleId', description: 'Original sale ID' })
   @ApiResponse({ status: 200, description: 'List of return transactions.' })
-  async listBySale(
-    @Request() req: any,
-    @Param('saleId', ParseIntPipe) saleId: number,
-  ) {
+  async listBySale(@Request() req: any, @Param('saleId', ParseIntPipe) saleId: number) {
     const entities = await this.listUseCase.execute(saleId, req.user.businessId);
     return entities.map(SaleReturnDto.fromEntity);
   }
@@ -59,10 +56,7 @@ export class SaleReturnsController {
   @ApiParam({ name: 'id', description: 'Return ID' })
   @ApiResponse({ status: 200, description: 'Return details with lines.' })
   @ApiResponse({ status: 404, description: 'Return not found.' })
-  async findOne(
-    @Request() req: any,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  async findOne(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
     const entity = await this.findUseCase.execute(id, req.user.businessId);
     return SaleReturnDto.fromEntity(entity);
   }

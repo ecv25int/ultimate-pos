@@ -22,9 +22,7 @@ export class TransactionStateService {
 
   assertCanTransition(currentStatus: string, newStatus: string): void {
     if (!this.canTransition(currentStatus, newStatus)) {
-      throw new Error(
-        `Invalid status transition: ${currentStatus} → ${newStatus}`,
-      );
+      throw new Error(`Invalid status transition: ${currentStatus} → ${newStatus}`);
     }
   }
 

@@ -13,11 +13,7 @@ export class CancelTransactionUseCase {
     private readonly stateService: TransactionStateService,
   ) {}
 
-  async execute(
-    id: number,
-    businessId: number,
-    type?: TransactionType,
-  ): Promise<Transaction> {
+  async execute(id: number, businessId: number, type?: TransactionType): Promise<Transaction> {
     const resolvedType = type ?? (await this.resolveType(id, businessId));
     const existing = await this.repo.findById(id, businessId, resolvedType);
     if (!existing) throw new NotFoundException(`Transaction #${id} not found`);

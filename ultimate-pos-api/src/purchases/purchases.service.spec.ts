@@ -9,7 +9,9 @@ import { DeletePurchaseUseCase } from './application/use-cases/delete-purchase.u
 import { CreatePurchaseReturnUseCase } from './application/use-cases/create-purchase-return.use-case';
 import { CreatePurchaseDto, PurchaseStatus, PurchaseType } from './dto/create-purchase.dto';
 
-const makePurchase = (overrides: Partial<ConstructorParameters<typeof Purchase>[0]> = {}): Purchase =>
+const makePurchase = (
+  overrides: Partial<ConstructorParameters<typeof Purchase>[0]> = {},
+): Purchase =>
   new Purchase({
     id: 1,
     businessId: 10,
@@ -28,7 +30,17 @@ const makePurchase = (overrides: Partial<ConstructorParameters<typeof Purchase>[
     returnOfId: null,
     createdBy: 1,
     lines: [
-      { id: 1, productId: 5, quantity: 10, unitCostBefore: 10, unitCostAfter: 10, discountAmount: 0, taxAmount: 0, lineTotal: 100, note: null },
+      {
+        id: 1,
+        productId: 5,
+        quantity: 10,
+        unitCostBefore: 10,
+        unitCostAfter: 10,
+        discountAmount: 0,
+        taxAmount: 0,
+        lineTotal: 100,
+        note: null,
+      },
     ],
     ...overrides,
   });
@@ -85,11 +97,13 @@ describe('CreatePurchaseUseCase', () => {
 
   const buildRepo = (overrides: any = {}) => ({
     generateRefNo: jest.fn().mockResolvedValue('PO-20260504-0001'),
-    create: jest.fn().mockImplementation(async (data: any) =>
-      makePurchase({ refNo: data.refNo, totalAmount: data.totalAmount }),
-    ),
+    create: jest
+      .fn()
+      .mockImplementation(async (data: any) =>
+        makePurchase({ refNo: data.refNo, totalAmount: data.totalAmount }),
+      ),
     ...overrides,
-  } as any);
+  });
 
   it('rejects empty lines', async () => {
     const uc = new CreatePurchaseUseCase(buildRepo(), landedCost);
@@ -175,7 +189,9 @@ describe('FinalizePurchaseUseCase', () => {
   it('rejects finalization of already-finalized purchase', async () => {
     const purchase = makePurchase({ status: 'received' });
     const repo: any = { findById: jest.fn().mockResolvedValue(purchase) };
-    await expect(new FinalizePurchaseUseCase(repo).execute(1, 10)).rejects.toThrow(BadRequestException);
+    await expect(new FinalizePurchaseUseCase(repo).execute(1, 10)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });
 
@@ -194,7 +210,9 @@ describe('DeletePurchaseUseCase', () => {
   it('rejects deletion of a finalized purchase', async () => {
     const purchase = makePurchase({ status: 'received' });
     const repo: any = { findById: jest.fn().mockResolvedValue(purchase), remove: jest.fn() };
-    await expect(new DeletePurchaseUseCase(repo).execute(1, 10)).rejects.toThrow(BadRequestException);
+    await expect(new DeletePurchaseUseCase(repo).execute(1, 10)).rejects.toThrow(
+      BadRequestException,
+    );
     expect(repo.remove).not.toHaveBeenCalled();
   });
 });
@@ -204,8 +222,9 @@ describe('CreatePurchaseReturnUseCase', () => {
     const purchase = makePurchase({ type: 'purchase_return' });
     const repo: any = { findById: jest.fn().mockResolvedValue(purchase) };
     const uc = new CreatePurchaseReturnUseCase(repo);
-    await expect(uc.execute(1, 10, 1, { lines: [{ productId: 5, quantity: 2, unitCost: 10 }] }))
-      .rejects.toThrow(BadRequestException);
+    await expect(
+      uc.execute(1, 10, 1, { lines: [{ productId: 5, quantity: 2, unitCost: 10 }] }),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('rejects return quantity exceeding original', async () => {
@@ -215,25 +234,34 @@ describe('CreatePurchaseReturnUseCase', () => {
       countReturns: jest.fn().mockResolvedValue(0),
     };
     const uc = new CreatePurchaseReturnUseCase(repo);
-    await expect(uc.execute(1, 10, 1, { lines: [{ productId: 5, quantity: 99, unitCost: 10 }] }))
-      .rejects.toThrow(BadRequestException);
+    await expect(
+      uc.execute(1, 10, 1, { lines: [{ productId: 5, quantity: 99, unitCost: 10 }] }),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('creates return and sets returnOfId + removeStock', async () => {
     const purchase = makePurchase();
-    const returnPurchase = makePurchase({ type: 'purchase_return', status: 'return', returnOfId: 1 });
+    const returnPurchase = makePurchase({
+      type: 'purchase_return',
+      status: 'return',
+      returnOfId: 1,
+    });
     const repo: any = {
       findById: jest.fn().mockResolvedValue(purchase),
       countReturns: jest.fn().mockResolvedValue(0),
       create: jest.fn().mockResolvedValue(returnPurchase),
     };
     const uc = new CreatePurchaseReturnUseCase(repo);
-    const result = await uc.execute(1, 10, 1, { lines: [{ productId: 5, quantity: 3, unitCost: 10 }] });
+    const result = await uc.execute(1, 10, 1, {
+      lines: [{ productId: 5, quantity: 3, unitCost: 10 }],
+    });
     expect(result.type).toBe('purchase_return');
-    expect(repo.create).toHaveBeenCalledWith(expect.objectContaining({
-      returnOfId: 1,
-      removeStock: true,
-      addStock: false,
-    }));
+    expect(repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        returnOfId: 1,
+        removeStock: true,
+        addStock: false,
+      }),
+    );
   });
 });

@@ -84,9 +84,15 @@ export class ImportExportService {
     for (const row of rows) {
       try {
         if (entity === 'products') {
-          if (!row['name']) { results.skipped++; continue; }
+          if (!row['name']) {
+            results.skipped++;
+            continue;
+          }
           const firstUnit = await this.prisma.unit.findFirst({ where: { businessId } });
-          if (!firstUnit) { results.skipped++; continue; }
+          if (!firstUnit) {
+            results.skipped++;
+            continue;
+          }
           await this.prisma.product.create({
             data: {
               businessId,
@@ -99,7 +105,10 @@ export class ImportExportService {
           });
           results.created++;
         } else if (entity === 'contacts') {
-          if (!row['name']) { results.skipped++; continue; }
+          if (!row['name']) {
+            results.skipped++;
+            continue;
+          }
           await this.prisma.contact.create({
             data: {
               businessId,
@@ -125,7 +134,16 @@ export class ImportExportService {
 
   getTemplate(entity: SupportedEntity) {
     const templates: Record<SupportedEntity, string[]> = {
-      products: ['name', 'sku', 'type', 'category', 'brand', 'unit', 'alert_quantity', 'enable_stock'],
+      products: [
+        'name',
+        'sku',
+        'type',
+        'category',
+        'brand',
+        'unit',
+        'alert_quantity',
+        'enable_stock',
+      ],
       contacts: ['name', 'email', 'mobile', 'type', 'contact_id', 'city', 'state', 'country'],
       purchases: ['supplier_name', 'invoice_no', 'date', 'product_sku', 'quantity', 'unit_price'],
     };

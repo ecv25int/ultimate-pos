@@ -121,24 +121,29 @@ export class DocumentsService {
   async generateReceiptHtml(saleId: number, businessId: number): Promise<string> {
     const [{ business, sale }, layout] = await Promise.all([
       this.getInvoiceData(saleId, businessId),
-      this.prisma.invoiceLayout.findFirst({
-        where: { businessId, isDefault: true },
-      }).then(l => l ?? this.prisma.invoiceLayout.findFirst({ where: { businessId } })),
+      this.prisma.invoiceLayout
+        .findFirst({
+          where: { businessId, isDefault: true },
+        })
+        .then((l) => l ?? this.prisma.invoiceLayout.findFirst({ where: { businessId } })),
     ]);
 
     // Apply layout overrides, falling back to sensible defaults
-    const accentColor  = layout?.highlightColor ?? '#1976d2';
-    const heading      = layout?.invoiceHeading ?? 'Tax Invoice';
+    const accentColor = layout?.highlightColor ?? '#1976d2';
+    const heading = layout?.invoiceHeading ?? 'Tax Invoice';
     const invoiceLabel = layout?.invoiceNoLabel ?? 'Invoice #';
-    const dateLabel    = layout?.dateLabel ?? 'Date';
-    const headerText   = layout?.headerText ?? '';
-    const footerText   = layout?.footerText ?? 'Thank you for your business!';
-    const showEmail    = layout?.showEmail ?? false;
-    const showMobile   = layout?.showMobileNumber ?? true;
+    const dateLabel = layout?.dateLabel ?? 'Date';
+    const headerText = layout?.headerText ?? '';
+    const footerText = layout?.footerText ?? 'Thank you for your business!';
+    const showEmail = layout?.showEmail ?? false;
+    const showMobile = layout?.showMobileNumber ?? true;
     const showPayments = layout?.showPaymentMethods ?? false;
-    const subHeadings  = [
-      layout?.subHeading1, layout?.subHeading2, layout?.subHeading3,
-      layout?.subHeading4, layout?.subHeading5,
+    const subHeadings = [
+      layout?.subHeading1,
+      layout?.subHeading2,
+      layout?.subHeading3,
+      layout?.subHeading4,
+      layout?.subHeading5,
     ].filter(Boolean) as string[];
 
     const formatCurrency = (n: number) =>
@@ -171,7 +176,7 @@ export class DocumentsService {
           .join('')
       : `<tr><td>CASH</td><td class="right">$${formatCurrency(Number((sale as any).paidAmount))}</td></tr>`;
 
-    const subHeadingsHtml = subHeadings.map(s => `<p>${s}</p>`).join('');
+    const subHeadingsHtml = subHeadings.map((s) => `<p>${s}</p>`).join('');
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -249,17 +254,23 @@ export class DocumentsService {
 
   <div class="divider"></div>
 
-  ${showPayments ? `
+  ${
+    showPayments
+      ? `
   <table>
     <tr><th colspan="2" style="text-align:left">Payments</th></tr>
     ${paymentsHtml}
     ${Number((sale as any).due) > 0 ? `<tr><td style="color:red"><b>Balance Due</b></td><td class="right" style="color:red"><b>$${formatCurrency(Number((sale as any).due))}</b></td></tr>` : ''}
   </table>
   <div class="divider"></div>
-  ` : Number((sale as any).due) > 0 ? `
+  `
+      : Number((sale as any).due) > 0
+        ? `
   <p class="right" style="color:red;font-weight:bold;margin:4px 0">Balance Due: $${formatCurrency(Number((sale as any).due))}</p>
   <div class="divider"></div>
-  ` : ''}
+  `
+        : ''
+  }
 
   <footer>
     <p>${footerText}</p>

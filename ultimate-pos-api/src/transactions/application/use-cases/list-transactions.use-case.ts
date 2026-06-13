@@ -13,10 +13,7 @@ export class ListTransactionsUseCase {
     private readonly repo: ITransactionRepository,
   ) {}
 
-  async execute(
-    businessId: number,
-    filters: TransactionFilters,
-  ): Promise<PaginatedTransactions> {
+  async execute(businessId: number, filters: TransactionFilters): Promise<PaginatedTransactions> {
     return this.repo.findAll(businessId, filters);
   }
 }

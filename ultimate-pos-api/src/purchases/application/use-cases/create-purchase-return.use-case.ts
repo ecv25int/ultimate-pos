@@ -50,7 +50,7 @@ export class CreatePurchaseReturnUseCase {
 
     const today = new Date();
     const prefix = `PRR-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-    const rows = await (this.repo as any).countReturns?.(businessId) ?? 0;
+    const rows = (await (this.repo as any).countReturns?.(businessId)) ?? 0;
     const refNo = `${prefix}-${String(rows + 1).padStart(4, '0')}`;
 
     let totalAmount = 0;

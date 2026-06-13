@@ -9,6 +9,8 @@ import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { WebPushService } from '../push/web-push.service';
 import { CheckAvailabilityUseCase } from '../inventory/application/use-cases/check-availability.use-case';
+import { StockService } from '../inventory/stock.service';
+import { BatchService } from '../inventory/batch.service';
 
 @Injectable()
 export class SalesService {
@@ -19,6 +21,8 @@ export class SalesService {
     private notifications: NotificationsService,
     private webPush: WebPushService,
     private checkAvailability: CheckAvailabilityUseCase,
+    private readonly stockService: StockService,
+    private readonly batchService: BatchService,
   ) {}
 
   // ------------------------------------------------------------
@@ -29,7 +33,10 @@ export class SalesService {
   // line of defence — Prisma will throw P2002 if a duplicate
   // somehow slips through (callers should retry in that case).
   // ------------------------------------------------------------
-  private async generateInvoiceNo(businessId: number, tx: typeof this.prisma = this.prisma): Promise<string> {
+  private async generateInvoiceNo(
+    businessId: number,
+    tx: typeof this.prisma = this.prisma,
+  ): Promise<string> {
     const today = new Date();
     const prefix = `SALE-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
     // MAX(id) gives a monotonically increasing sequence independent of
@@ -55,23 +62,14 @@ export class SalesService {
 
     // Calculate totals
     let linesSubtotal = new Decimal(0);
-    const saleLines = dto.lines.map((line) => {
+    for (const line of dto.lines) {
       const qty = new Decimal(line.quantity);
       const price = new Decimal(line.unitPrice);
       const disc = new Decimal(line.discountAmount ?? 0);
       const tax = new Decimal(line.taxAmount ?? 0);
       const lineTotal = qty.mul(price).minus(disc).plus(tax);
       linesSubtotal = linesSubtotal.plus(lineTotal);
-      return {
-        productId: line.productId,
-        quantity: qty,
-        unitPrice: price,
-        discountAmount: disc,
-        taxAmount: tax,
-        lineTotal,
-        ...(line.note ? { note: line.note } : {}),
-      };
-    });
+    }
 
     const discount = new Decimal(dto.discountAmount ?? 0);
     const tax = new Decimal(dto.taxAmount ?? 0);
@@ -96,48 +94,148 @@ export class SalesService {
       ),
     );
 
-    const sale = await this.prisma.sale.create({
-      data: {
-        businessId,
-        invoiceNo,
-        ...(dto.contactId ? { contactId: dto.contactId } : {}),
-        status: dto.status ?? 'final',
-        paymentStatus,
-        type: dto.type ?? 'sale',
-        discountType: dto.discountType ?? 'fixed',
-        discountAmount: discount,
-        taxAmount: tax,
-        shippingAmount: shipping,
-        totalAmount,
-        paidAmount,
-        ...(dto.note ? { note: dto.note } : {}),
-        transactionDate: dto.transactionDate ? new Date(dto.transactionDate) : new Date(),
-        createdBy: userId,
-        lines: { create: saleLines },
-      },
-      include: {
-        contact: { select: { id: true, name: true, mobile: true } },
-        lines: {
-          include: { product: { select: { id: true, name: true, sku: true } } },
-        },
-      },
-    });
+    const sale = await this.prisma.$transaction(async (tx) => {
+      const saleLinesData = [];
+      for (const line of dto.lines) {
+        const variation = await tx.variation.findFirst({
+          where: { productId: line.productId },
+          select: { id: true },
+        });
+        const variationId = (line as any).variationId || variation?.id || null;
 
-    // Create stock_out entries for each line
-    await Promise.all(
-      saleLines.map((line) =>
-        this.prisma.stockEntry.create({
-          data: {
-            businessId,
-            productId: line.productId,
-            entryType: 'sale_out',
-            quantity: line.quantity.negated(),
-            referenceNo: invoiceNo,
-            createdBy: userId,
+        const qty = new Decimal(line.quantity);
+        const price = new Decimal(line.unitPrice);
+        const disc = new Decimal(line.discountAmount ?? 0);
+        const tax = new Decimal(line.taxAmount ?? 0);
+        const lineTotal = qty.mul(price).minus(disc).plus(tax);
+
+        saleLinesData.push({
+          productId: line.productId,
+          variationId,
+          quantity: qty,
+          unitPrice: price,
+          discountAmount: disc,
+          taxAmount: tax,
+          lineTotal,
+          note: line.note ?? null,
+        });
+      }
+
+      const createdSale = await tx.sale.create({
+        data: {
+          businessId,
+          invoiceNo,
+          ...(dto.contactId ? { contactId: dto.contactId } : {}),
+          status: dto.status ?? 'final',
+          paymentStatus,
+          type: dto.type ?? 'sale',
+          discountType: dto.discountType ?? 'fixed',
+          discountAmount: discount,
+          taxAmount: tax,
+          shippingAmount: shipping,
+          totalAmount,
+          paidAmount,
+          ...(dto.note ? { note: dto.note } : {}),
+          transactionDate: dto.transactionDate ? new Date(dto.transactionDate) : new Date(),
+          createdBy: userId,
+          lines: { create: saleLinesData },
+        },
+        include: {
+          contact: { select: { id: true, name: true, mobile: true } },
+          lines: {
+            include: { product: { select: { id: true, name: true, sku: true } } },
           },
-        }),
-      ),
-    );
+        },
+      });
+
+      // Create stock_out entries for each line
+      await Promise.all(
+        saleLinesData.map((line) =>
+          tx.stockEntry.create({
+            data: {
+              businessId,
+              productId: line.productId,
+              entryType: 'sale_out',
+              quantity: line.quantity.negated(),
+              referenceNo: invoiceNo,
+              createdBy: userId,
+            },
+          }),
+        ),
+      );
+
+      // Resolve default location for the business
+      const defaultLoc = await tx.businessLocation.findFirst({
+        where: { businessId, isActive: true },
+        orderBy: { id: 'asc' },
+        select: { id: true },
+      });
+
+      let totalCogs = new Decimal(0);
+
+      if (defaultLoc) {
+        for (const line of createdSale.lines) {
+          const qty = Number(line.quantity);
+          const variationId = line.variationId;
+
+          if (variationId) {
+            await this.stockService.updateStockLevel(
+              variationId,
+              defaultLoc.id,
+              -qty,
+              'sale',
+              invoiceNo,
+              dto.note ?? undefined,
+              tx,
+            );
+
+            // If sale is final, perform FIFO batch mapping and COGS calculation
+            if (createdSale.status === 'final') {
+              const mappings = await this.batchService.mapPurchaseSell(
+                line.id,
+                variationId,
+                qty,
+                businessId,
+                defaultLoc.id,
+                tx,
+              );
+
+              let mappedQty = 0;
+              for (const mapping of mappings) {
+                const pl = await tx.purchaseLine.findUnique({
+                  where: { id: mapping.purchaseLineId },
+                  select: { unitCostAfter: true },
+                });
+                if (pl) {
+                  const cost = new Decimal(pl.unitCostAfter);
+                  const mappingQty = new Decimal(mapping.quantity);
+                  totalCogs = totalCogs.plus(mappingQty.mul(cost));
+                  mappedQty += Number(mapping.quantity);
+                }
+              }
+
+              const unmappedQty = qty - mappedQty;
+              if (unmappedQty > 0) {
+                // Fallback: use the variation's default purchase price
+                const variation = await tx.variation.findUnique({
+                  where: { id: variationId },
+                  select: { defaultPurchasePrice: true },
+                });
+                if (variation) {
+                  const defaultCost = new Decimal(variation.defaultPurchasePrice || 0);
+                  totalCogs = totalCogs.plus(new Decimal(unmappedQty).mul(defaultCost));
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return {
+        ...createdSale,
+        cogs: totalCogs.toNumber(),
+      };
+    });
 
     // Invalidate cached data affected by new sale
     await Promise.all([
@@ -145,7 +243,10 @@ export class SalesService {
       this.cacheManager.del(`pos_products_${businessId}`),
     ]);
 
-    this.auditLogs.log(businessId, userId, 'CREATE', 'Sale', sale.id, { invoiceNo: sale.invoiceNo, total: Number(sale.totalAmount) });
+    this.auditLogs.log(businessId, userId, 'CREATE', 'Sale', sale.id, {
+      invoiceNo: sale.invoiceNo,
+      total: Number(sale.totalAmount),
+    });
 
     // SMS sale confirmation — fire-and-forget only when customer has a mobile
     if (dto.contactId) {
@@ -204,10 +305,7 @@ export class SalesService {
     if (contactId) where.contactId = contactId;
     if (type) where.type = type;
     if (search) {
-      where.OR = [
-        { invoiceNo: { contains: search } },
-        { contact: { name: { contains: search } } },
-      ];
+      where.OR = [{ invoiceNo: { contains: search } }, { contact: { name: { contains: search } } }];
     }
 
     const [total, sales] = await Promise.all([
@@ -343,36 +441,72 @@ export class SalesService {
       };
     });
 
-    const returnSale = await this.prisma.sale.create({
-      data: {
-        businessId,
-        invoiceNo,
-        contactId: original.contactId,
-        status: 'return',
-        paymentStatus: 'paid',
-        type: 'sale_return',
-        returnOfId: saleId,
-        totalAmount,
-        paidAmount: totalAmount,
-        note: dto.note ?? `Return for ${original.invoiceNo}`,
-        createdBy: userId,
-        lines: { create: returnLines },
-      },
-      include: {
-        lines: { include: { product: { select: { id: true, name: true, sku: true } } } },
-      },
-    });
+    const returnSale = await this.prisma.$transaction(async (tx) => {
+      const createdReturn = await tx.sale.create({
+        data: {
+          businessId,
+          invoiceNo,
+          contactId: original.contactId,
+          status: 'return',
+          paymentStatus: 'paid',
+          type: 'sale_return',
+          returnOfId: saleId,
+          totalAmount,
+          paidAmount: totalAmount,
+          note: dto.note ?? `Return for ${original.invoiceNo}`,
+          createdBy: userId,
+          lines: { create: returnLines },
+        },
+        include: {
+          lines: { include: { product: { select: { id: true, name: true, sku: true } } } },
+        },
+      });
 
-    // Restock each returned item
-    await this.prisma.stockEntry.createMany({
-      data: dto.lines.map((l) => ({
-        businessId,
-        productId: l.productId,
-        entryType: 'sale_return',
-        quantity: new Decimal(l.quantity),
-        note: `Return for sale #${saleId}`,
-        createdBy: userId,
-      })),
+      // Restock each returned item
+      await Promise.all(
+        dto.lines.map((l) =>
+          tx.stockEntry.create({
+            data: {
+              businessId,
+              productId: l.productId,
+              entryType: 'sale_return',
+              quantity: new Decimal(l.quantity),
+              note: `Return for sale #${saleId}`,
+              createdBy: userId,
+            },
+          }),
+        ),
+      );
+
+      // Resolve default location for the business
+      const defaultLoc = await tx.businessLocation.findFirst({
+        where: { businessId, isActive: true },
+        orderBy: { id: 'asc' },
+        select: { id: true },
+      });
+
+      if (defaultLoc) {
+        for (const line of dto.lines) {
+          const variation = await tx.variation.findFirst({
+            where: { productId: line.productId },
+            select: { id: true },
+          });
+
+          if (variation) {
+            await this.stockService.updateStockLevel(
+              variation.id,
+              defaultLoc.id,
+              Math.abs(Number(line.quantity)),
+              'return',
+              invoiceNo,
+              dto.note ?? undefined,
+              tx,
+            );
+          }
+        }
+      }
+
+      return createdReturn;
     });
 
     return returnSale;
@@ -405,8 +539,9 @@ export class SalesService {
       partial,
       totalRevenue: totals._sum.totalAmount ?? 0,
       totalCollected: totals._sum.paidAmount ?? 0,
-      outstanding: (totals._sum.totalAmount ?? new Decimal(0))
-        .minus(totals._sum.paidAmount ?? new Decimal(0)),
+      outstanding: (totals._sum.totalAmount ?? new Decimal(0)).minus(
+        totals._sum.paidAmount ?? new Decimal(0),
+      ),
     };
   }
 }

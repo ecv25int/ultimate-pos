@@ -6,11 +6,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  ChangeUserPasswordDto,
-  CreateUserDto,
-  UpdateUserDto,
-} from './dto/user.dto';
+import { ChangeUserPasswordDto, CreateUserDto, UpdateUserDto } from './dto/user.dto';
 
 const USER_SELECT = {
   id: true,
@@ -131,11 +127,7 @@ export class UsersService {
     });
   }
 
-  async changePassword(
-    businessId: number,
-    id: number,
-    dto: ChangeUserPasswordDto,
-  ) {
+  async changePassword(businessId: number, id: number, dto: ChangeUserPasswordDto) {
     await this.findOne(businessId, id);
     const hashed = await bcrypt.hash(dto.newPassword, 10);
     await this.prisma.user.update({

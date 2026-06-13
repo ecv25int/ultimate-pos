@@ -15,7 +15,9 @@ export class SaleReturnValidatorService {
     const errors: string[] = [];
 
     if (!['final', 'completed'].includes(original.status)) {
-      errors.push(`Sale #${original.id} must be finalized before a return can be created (current status: ${original.status})`);
+      errors.push(
+        `Sale #${original.id} must be finalized before a return can be created (current status: ${original.status})`,
+      );
     }
 
     if (original.type === 'sale_return') {
@@ -44,7 +46,14 @@ export class SaleReturnValidatorService {
   calculateLineTotals(
     original: OriginalSale,
     returnLines: ReturnLineRequest[],
-  ): Array<{ productId: number; quantity: number; unitPrice: number; discountAmount: number; taxAmount: number; lineTotal: number }> {
+  ): Array<{
+    productId: number;
+    quantity: number;
+    unitPrice: number;
+    discountAmount: number;
+    taxAmount: number;
+    lineTotal: number;
+  }> {
     return returnLines.map((rl) => {
       const orig = original.lines.find((l) => l.productId === rl.productId)!;
       const proportion = orig.quantity > 0 ? rl.quantity / orig.quantity : 0;
@@ -52,7 +61,14 @@ export class SaleReturnValidatorService {
       const discountAmount = Number((orig.discountAmount * proportion).toFixed(4));
       const taxAmount = Number((orig.taxAmount * proportion).toFixed(4));
       const lineTotal = Number((rl.quantity * unitPrice - discountAmount + taxAmount).toFixed(4));
-      return { productId: rl.productId, quantity: rl.quantity, unitPrice, discountAmount, taxAmount, lineTotal };
+      return {
+        productId: rl.productId,
+        quantity: rl.quantity,
+        unitPrice,
+        discountAmount,
+        taxAmount,
+        lineTotal,
+      };
     });
   }
 }

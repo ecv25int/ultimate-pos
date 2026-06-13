@@ -14,7 +14,9 @@ export class FinalizePurchaseUseCase {
     const existing = await this.repo.findById(id, businessId);
     if (!existing) throw new NotFoundException(`Purchase #${id} not found`);
     if (existing.isFinalized()) {
-      throw new BadRequestException(`Purchase #${id} is already finalized (status: ${existing.status})`);
+      throw new BadRequestException(
+        `Purchase #${id} is already finalized (status: ${existing.status})`,
+      );
     }
     return this.repo.update(id, businessId, { status: 'received' });
   }

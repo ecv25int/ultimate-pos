@@ -17,8 +17,24 @@ function makeOriginal(overrides: Partial<OriginalSale> = {}): OriginalSale {
     taxAmount: 10,
     discountAmount: 0,
     lines: [
-      { id: 1, productId: 10, quantity: 5, unitPrice: 20, discountAmount: 0, taxAmount: 2, lineTotal: 102 },
-      { id: 2, productId: 11, quantity: 3, unitPrice: 10, discountAmount: 0, taxAmount: 0, lineTotal: 30 },
+      {
+        id: 1,
+        productId: 10,
+        quantity: 5,
+        unitPrice: 20,
+        discountAmount: 0,
+        taxAmount: 2,
+        lineTotal: 102,
+      },
+      {
+        id: 2,
+        productId: 11,
+        quantity: 3,
+        unitPrice: 10,
+        discountAmount: 0,
+        taxAmount: 0,
+        lineTotal: 30,
+      },
     ],
     ...overrides,
   };
@@ -104,7 +120,9 @@ describe('CreateSaleReturnUseCase', () => {
   it('throws NotFoundException when original sale not found', async () => {
     const repo: any = { findOriginalWithLines: jest.fn().mockResolvedValue(null) };
     const useCase = new CreateSaleReturnUseCase(repo, validator);
-    await expect(useCase.execute(99, 1, 1, { lines: [{ productId: 10, quantity: 1 }] })).rejects.toThrow(NotFoundException);
+    await expect(
+      useCase.execute(99, 1, 1, { lines: [{ productId: 10, quantity: 1 }] }),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('throws BadRequestException when quantities exceed original', async () => {

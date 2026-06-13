@@ -6,12 +6,22 @@ export class StockAdjustmentLineDto {
   @IsNumber()
   variationId?: number;
 
+  @IsOptional()
   @IsNumber()
-  quantity: number;
+  quantity?: number;
 
   @IsOptional()
   @IsNumber()
   unitPrice?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['damage', 'expiry', 'missing', 'found', 'inventory_count'])
+  reason?: string;
+
+  @IsOptional()
+  @IsNumber()
+  actualQty?: number;
 }
 
 export class CreateStockAdjustmentDto {
@@ -24,7 +34,7 @@ export class CreateStockAdjustmentDto {
   referenceNo?: string;
 
   @IsOptional()
-  @IsIn(['normal', 'abnormal'])
+  @IsIn(['normal', 'abnormal', 'inventory_count'])
   adjustmentType?: string;
 
   @IsOptional()

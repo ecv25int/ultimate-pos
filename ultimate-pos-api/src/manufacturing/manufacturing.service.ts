@@ -109,7 +109,9 @@ export class ManufacturingService {
           ...(recipeData.instructions !== undefined && { instructions: recipeData.instructions }),
           ...(recipeData.wastePercent !== undefined && { wastePercent: recipeData.wastePercent }),
           ...(recipeData.extraCost !== undefined && { extraCost: recipeData.extraCost }),
-          ...(recipeData.totalQuantity !== undefined && { totalQuantity: recipeData.totalQuantity }),
+          ...(recipeData.totalQuantity !== undefined && {
+            totalQuantity: recipeData.totalQuantity,
+          }),
           ...(recipeData.finalPrice !== undefined && { finalPrice: recipeData.finalPrice }),
         },
       });

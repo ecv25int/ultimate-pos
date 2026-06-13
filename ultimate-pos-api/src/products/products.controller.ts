@@ -3,13 +3,13 @@ import {
   Get,
   Post,
   Body,
+  Put,
   Patch,
   Param,
   Delete,
   UseGuards,
   Request,
   ParseIntPipe,
-  ParseFloatPipe,
   Res,
   UploadedFile,
   UseInterceptors,
@@ -20,39 +20,68 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage, diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { ProductsService } from './products.service';
+import { PricingService } from './pricing.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { SetGroupPricesDto } from './dto/set-group-prices.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery, ApiParam, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiParam,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
+
+interface AuthenticatedRequest {
+  user: {
+    id: number;
+    businessId: number;
+  };
+}
+
+interface RequestWithParams {
+  params?: {
+    id?: string;
+  };
+}
 
 @ApiTags('Products')
 @ApiBearerAuth('JWT')
 @Controller('products')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly pricingService: PricingService,
+  ) {}
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiOperation({ summary: 'Create a new product', description: 'Creates a product record (admin/manager only).' })
+  @ApiOperation({
+    summary: 'Create a new product',
+    description: 'Creates a product record (admin/manager only).',
+  })
   @ApiResponse({ status: 201, description: 'Product created.' })
   @ApiResponse({ status: 409, description: 'SKU already exists.' })
-  create(@Request() req: any, @Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(
-      req.user.id,
-      req.user.businessId,
-      createProductDto,
-    );
+  create(@Request() req: AuthenticatedRequest, @Body() createProductDto: CreateProductDto) {
+    return this.productsService.create(req.user.id, req.user.businessId, createProductDto);
   }
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
-  @ApiOperation({ summary: 'List all products', description: 'Returns all active products for the authenticated business.' })
+  @ApiOperation({
+    summary: 'List all products',
+    description: 'Returns all active products for the authenticated business.',
+  })
   @ApiResponse({ status: 200, description: 'Array of products.' })
-  findAll(@Request() req: any) {
+  findAll(@Request() req: AuthenticatedRequest) {
     return this.productsService.findAll(req.user.businessId);
   }
 
@@ -62,17 +91,25 @@ export class ProductsController {
    */
   @Get('search')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
-  @ApiOperation({ summary: 'Advanced product search', description: 'Search products by name/SKU with optional filters for category, brand, type, and stock status.' })
+  @ApiOperation({
+    summary: 'Advanced product search',
+    description:
+      'Search products by name/SKU with optional filters for category, brand, type, and stock status.',
+  })
   @ApiQuery({ name: 'q', required: false, description: 'Search term (name, SKU)' })
   @ApiQuery({ name: 'categoryId', required: false, type: Number })
   @ApiQuery({ name: 'brandId', required: false, type: Number })
   @ApiQuery({ name: 'type', required: false, enum: ['single', 'variable'] })
-  @ApiQuery({ name: 'stockStatus', required: false, enum: ['in_stock', 'low_stock', 'out_of_stock'] })
+  @ApiQuery({
+    name: 'stockStatus',
+    required: false,
+    enum: ['in_stock', 'low_stock', 'out_of_stock'],
+  })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Paginated product search results.' })
   searchProducts(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query('q') query?: string,
     @Query('categoryId') categoryId?: string,
     @Query('brandId') brandId?: string,
@@ -98,7 +135,10 @@ export class ProductsController {
    */
   @Patch('bulk-price')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiOperation({ summary: 'Bulk update sell prices on variations', description: 'Updates defaultSellPrice for multiple product variations at once.' })
+  @ApiOperation({
+    summary: 'Bulk update sell prices on variations',
+    description: 'Updates defaultSellPrice for multiple product variations at once.',
+  })
   @ApiBody({
     schema: {
       type: 'object',
@@ -117,7 +157,7 @@ export class ProductsController {
   })
   @ApiResponse({ status: 200, description: 'Number of variations updated.' })
   bulkUpdatePrices(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Body() body: { updates: { variationId: number; defaultSellPrice: number }[] },
   ) {
     return this.productsService.bulkUpdatePrices(req.user.businessId, body.updates);
@@ -130,9 +170,12 @@ export class ProductsController {
    */
   @Get('export')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiOperation({ summary: 'Export products to CSV', description: 'Downloads all products as a CSV file.' })
+  @ApiOperation({
+    summary: 'Export products to CSV',
+    description: 'Downloads all products as a CSV file.',
+  })
   @ApiResponse({ status: 200, description: 'CSV file download.' })
-  async exportCsv(@Request() req: any, @Res() res: Response) {
+  async exportCsv(@Request() req: AuthenticatedRequest, @Res() res: Response) {
     const csv = await this.productsService.exportToCsv(req.user.businessId);
     const filename = `products-${new Date().toISOString().slice(0, 10)}.csv`;
     res.set({
@@ -149,22 +192,21 @@ export class ProductsController {
   @Post('import')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
-  @ApiOperation({ summary: 'Import products from CSV', description: 'Upload a CSV file (field name: file) to bulk-create products.' })
+  @ApiOperation({
+    summary: 'Import products from CSV',
+    description: 'Upload a CSV file (field name: file) to bulk-create products.',
+  })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ description: 'CSV file with columns: name, sku, purchasePrice, sellingPrice, type, categoryId, unitId' })
+  @ApiBody({
+    description:
+      'CSV file with columns: name, sku, purchasePrice, sellingPrice, type, categoryId, unitId',
+  })
   @ApiResponse({ status: 200, description: 'Import summary: created/updated/failed counts.' })
-  async importCsv(
-    @Request() req: any,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async importCsv(@Request() req: AuthenticatedRequest, @UploadedFile() file: Express.Multer.File) {
     if (!file) {
       return { error: 'No file uploaded. Use multipart/form-data with field name "file".' };
     }
-    return this.productsService.importFromCsv(
-      req.user.id,
-      req.user.businessId,
-      file.buffer,
-    );
+    return this.productsService.importFromCsv(req.user.id, req.user.businessId, file.buffer);
   }
 
   @Get(':id')
@@ -173,10 +215,11 @@ export class ProductsController {
   @ApiParam({ name: 'id', description: 'Product ID' })
   @ApiResponse({ status: 200, description: 'Product details.' })
   @ApiResponse({ status: 404, description: 'Product not found.' })
-  findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req: AuthenticatedRequest) {
     return this.productsService.findOne(id, req.user.businessId);
   }
 
+  @Put(':id')
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Update product' })
@@ -184,7 +227,7 @@ export class ProductsController {
   @ApiResponse({ status: 200, description: 'Updated product.' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Body() updateProductDto: UpdateProductDto,
   ) {
     return this.productsService.update(id, req.user.businessId, updateProductDto);
@@ -196,7 +239,7 @@ export class ProductsController {
   @ApiParam({ name: 'id', description: 'Product ID' })
   @ApiResponse({ status: 200, description: 'Deletion confirmation.' })
   @ApiResponse({ status: 404, description: 'Product not found.' })
-  remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  remove(@Param('id', ParseIntPipe) id: number, @Request() req: AuthenticatedRequest) {
     return this.productsService.remove(id, req.user.businessId);
   }
 
@@ -211,7 +254,7 @@ export class ProductsController {
       storage: diskStorage({
         destination: join(process.cwd(), 'public', 'uploads', 'products'),
         filename: (_req, file, cb) => {
-          const productId = (_req as any).params?.id ?? 'unknown';
+          const productId = (_req as unknown as RequestWithParams).params?.id ?? 'unknown';
           const ext = extname(file.originalname).toLowerCase();
           cb(null, `product-${productId}-${Date.now()}${ext}`);
         },
@@ -227,14 +270,20 @@ export class ProductsController {
       limits: { fileSize: 8 * 1024 * 1024 }, // 8 MB
     }),
   )
-  @ApiOperation({ summary: 'Upload product image', description: 'Upload or replace the product image. Field name: image. Max 8 MB. Allowed: jpg, png, gif, webp.' })
+  @ApiOperation({
+    summary: 'Upload product image',
+    description:
+      'Upload or replace the product image. Field name: image. Max 8 MB. Allowed: jpg, png, gif, webp.',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'id', description: 'Product ID' })
-  @ApiBody({ schema: { type: 'object', properties: { image: { type: 'string', format: 'binary' } } } })
+  @ApiBody({
+    schema: { type: 'object', properties: { image: { type: 'string', format: 'binary' } } },
+  })
   @ApiResponse({ status: 200, description: 'Product with updated imageUrl.' })
   async uploadImage(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
@@ -252,7 +301,41 @@ export class ProductsController {
   @ApiOperation({ summary: 'Remove product image' })
   @ApiParam({ name: 'id', description: 'Product ID' })
   @ApiResponse({ status: 200, description: 'Image removed.' })
-  async removeImage(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  async removeImage(@Param('id', ParseIntPipe) id: number, @Request() req: AuthenticatedRequest) {
     return this.productsService.removeImage(id, req.user.businessId);
+  }
+
+  @Get(':id/pricing')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
+  @ApiOperation({ summary: 'Get detailed product pricing' })
+  @ApiParam({ name: 'id', description: 'Product ID' })
+  @ApiQuery({ name: 'customerGroupId', required: false, type: Number })
+  @ApiQuery({ name: 'sellingPriceGroupId', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'Product variations pricing details.' })
+  getProductPricing(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: AuthenticatedRequest,
+    @Query('customerGroupId') customerGroupId?: string,
+    @Query('sellingPriceGroupId') sellingPriceGroupId?: string,
+  ) {
+    return this.pricingService.getProductPricingDetails(
+      id,
+      req.user.businessId,
+      customerGroupId ? +customerGroupId : undefined,
+      sellingPriceGroupId ? +sellingPriceGroupId : undefined,
+    );
+  }
+
+  @Post(':id/group-prices')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Set selling price group overrides' })
+  @ApiParam({ name: 'id', description: 'Product ID' })
+  @ApiResponse({ status: 200, description: 'Overrides set successfully.' })
+  setGroupPrices(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: SetGroupPricesDto,
+  ) {
+    return this.pricingService.setGroupPrices(id, req.user.businessId, dto);
   }
 }

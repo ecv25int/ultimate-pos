@@ -9,7 +9,9 @@ import { GetProductHistoryUseCase } from './application/use-cases/get-product-hi
 import { CreateStockEntryUseCase } from './application/use-cases/create-stock-entry.use-case';
 import { DeleteStockEntryUseCase } from './application/use-cases/delete-stock-entry.use-case';
 
-const makeEntry = (overrides: Partial<ConstructorParameters<typeof StockEntry>[0]> = {}): StockEntry =>
+const makeEntry = (
+  overrides: Partial<ConstructorParameters<typeof StockEntry>[0]> = {},
+): StockEntry =>
   new StockEntry({
     id: 1,
     businessId: 10,
@@ -82,9 +84,10 @@ describe('StockValidationService', () => {
 describe('CheckAvailabilityUseCase', () => {
   const validator = new StockValidationService();
 
-  const buildRepo = (currentStock: number) => ({
-    getStockLevel: jest.fn().mockResolvedValue(currentStock),
-  } as any);
+  const buildRepo = (currentStock: number) =>
+    ({
+      getStockLevel: jest.fn().mockResolvedValue(currentStock),
+    }) as any;
 
   it('execute returns true when stock is sufficient', async () => {
     const uc = new CheckAvailabilityUseCase(buildRepo(50), validator);
@@ -164,7 +167,9 @@ describe('GetProductHistoryUseCase', () => {
 
   it('throws NotFoundException for unknown product', async () => {
     const repo: any = { findProduct: jest.fn().mockResolvedValue(null) };
-    await expect(new GetProductHistoryUseCase(repo).execute(99, 10)).rejects.toThrow(NotFoundException);
+    await expect(new GetProductHistoryUseCase(repo).execute(99, 10)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });
 
@@ -183,8 +188,9 @@ describe('CreateStockEntryUseCase', () => {
   it('throws NotFoundException when product not found', async () => {
     const repo: any = { findProduct: jest.fn().mockResolvedValue(null) };
     const uc = new CreateStockEntryUseCase(repo);
-    await expect(uc.execute(10, 1, { productId: 99, entryType: 'purchase_in', quantity: 10 } as any))
-      .rejects.toThrow(NotFoundException);
+    await expect(
+      uc.execute(10, 1, { productId: 99, entryType: 'purchase_in', quantity: 10 } as any),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('throws BadRequestException when stock tracking is disabled', async () => {
@@ -192,8 +198,9 @@ describe('CreateStockEntryUseCase', () => {
       findProduct: jest.fn().mockResolvedValue(makeProduct({ enableStock: false })),
     };
     const uc = new CreateStockEntryUseCase(repo);
-    await expect(uc.execute(10, 1, { productId: 5, entryType: 'adjustment_in', quantity: 10 } as any))
-      .rejects.toThrow(BadRequestException);
+    await expect(
+      uc.execute(10, 1, { productId: 5, entryType: 'adjustment_in', quantity: 10 } as any),
+    ).rejects.toThrow(BadRequestException);
   });
 });
 

@@ -63,10 +63,7 @@ export class NotificationsController {
   @Get('unread-count')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
   async getUnreadCount(@Request() req: any) {
-    const count = await this.notificationsService.getUnreadCount(
-      req.user.id,
-      req.user.businessId,
-    );
+    const count = await this.notificationsService.getUnreadCount(req.user.id, req.user.businessId);
     return { count };
   }
 
@@ -129,11 +126,7 @@ export class NotificationsController {
   @Patch(':id/read')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
   markAsRead(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
-    return this.notificationsService.markAsRead(
-      id,
-      req.user.id,
-      req.user.businessId,
-    );
+    return this.notificationsService.markAsRead(id, req.user.id, req.user.businessId);
   }
 
   /**
@@ -143,10 +136,7 @@ export class NotificationsController {
   @Patch('mark-all-read')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
   markAllRead(@Request() req: any) {
-    return this.notificationsService.markAllRead(
-      req.user.id,
-      req.user.businessId,
-    );
+    return this.notificationsService.markAllRead(req.user.id, req.user.businessId);
   }
 
   /**
@@ -156,10 +146,7 @@ export class NotificationsController {
   @Delete('clear-all')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
   clearAll(@Request() req: any) {
-    return this.notificationsService.clearAll(
-      req.user.id,
-      req.user.businessId,
-    );
+    return this.notificationsService.clearAll(req.user.id, req.user.businessId);
   }
 
   /**
@@ -169,11 +156,7 @@ export class NotificationsController {
   @Delete(':id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
   remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
-    return this.notificationsService.remove(
-      id,
-      req.user.id,
-      req.user.businessId,
-    );
+    return this.notificationsService.remove(id, req.user.id, req.user.businessId);
   }
 
   // ─────────────────────────────────────────────────────────

@@ -3,5 +3,9 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { EssentialsService } from './essentials.service';
 import { EssentialsController } from './essentials.controller';
 
-@Module({ imports: [PrismaModule], providers: [EssentialsService], controllers: [EssentialsController] })
+@Module({
+  imports: [PrismaModule],
+  providers: [EssentialsService],
+  controllers: [EssentialsController],
+})
 export class EssentialsModule {}

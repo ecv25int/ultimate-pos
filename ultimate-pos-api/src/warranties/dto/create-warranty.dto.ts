@@ -1,6 +1,4 @@
-import {
-  IsString, IsNotEmpty, MaxLength, IsOptional, IsInt, IsEnum,
-} from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, IsOptional, IsInt, IsEnum } from 'class-validator';
 
 export enum DurationType {
   days = 'days',
@@ -9,10 +7,13 @@ export enum DurationType {
 }
 
 export class CreateWarrantyDto {
-  @IsString() @IsNotEmpty() @MaxLength(255)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
   name: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   description?: string;
 
   @IsInt()

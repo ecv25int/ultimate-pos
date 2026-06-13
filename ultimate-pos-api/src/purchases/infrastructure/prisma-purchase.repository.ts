@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PurchaseMapper } from './purchase.mapper';
+import { StockService } from '../../inventory/stock.service';
 import type {
   IPurchaseRepository,
   CreatePurchaseData,
@@ -20,7 +21,10 @@ const PURCHASE_INCLUDE = {
 
 @Injectable()
 export class PrismaPurchaseRepository implements IPurchaseRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly stockService: StockService,
+  ) {}
 
   async generateRefNo(businessId: number): Promise<string> {
     const today = new Date();
@@ -61,12 +65,15 @@ export class PrismaPurchaseRepository implements IPurchaseRepository {
           lines: {
             create: data.lines.map((l) => ({
               productId: l.productId,
+              variationId: l.variationId ?? null,
               quantity: l.quantity,
               unitCostBefore: l.unitCostBefore,
               unitCostAfter: l.unitCostAfter,
               discountAmount: l.discountAmount,
               taxAmount: l.taxAmount,
               lineTotal: l.lineTotal,
+              batchNumber: l.batchNumber ?? null,
+              expiryDate: l.expiryDate ?? null,
               ...(l.note != null ? { note: l.note } : {}),
             })),
           },
@@ -86,6 +93,37 @@ export class PrismaPurchaseRepository implements IPurchaseRepository {
             createdBy: data.userId,
           })),
         });
+
+        // Update Location stock levels
+        const defaultLoc = await tx.businessLocation.findFirst({
+          where: { businessId: data.businessId, isActive: true },
+          orderBy: { id: 'asc' },
+          select: { id: true },
+        });
+
+        if (defaultLoc) {
+          for (const line of data.lines) {
+            const variationId =
+              line.variationId ||
+              (
+                await tx.variation.findFirst({
+                  where: { productId: line.productId },
+                  select: { id: true },
+                })
+              )?.id;
+            if (variationId) {
+              await this.stockService.updateStockLevel(
+                variationId,
+                defaultLoc.id,
+                Math.abs(Number(line.quantity)),
+                'purchase',
+                data.refNo ?? undefined,
+                undefined,
+                tx,
+              );
+            }
+          }
+        }
       } else if (data.removeStock) {
         await tx.stockEntry.createMany({
           data: data.lines.map((l) => ({
@@ -97,6 +135,37 @@ export class PrismaPurchaseRepository implements IPurchaseRepository {
             createdBy: data.userId,
           })),
         });
+
+        // Update Location stock levels (decrement for return)
+        const defaultLoc = await tx.businessLocation.findFirst({
+          where: { businessId: data.businessId, isActive: true },
+          orderBy: { id: 'asc' },
+          select: { id: true },
+        });
+
+        if (defaultLoc) {
+          for (const line of data.lines) {
+            const variationId =
+              line.variationId ||
+              (
+                await tx.variation.findFirst({
+                  where: { productId: line.productId },
+                  select: { id: true },
+                })
+              )?.id;
+            if (variationId) {
+              await this.stockService.updateStockLevel(
+                variationId,
+                defaultLoc.id,
+                -Math.abs(Number(line.quantity)),
+                'return',
+                data.refNo ?? undefined,
+                `Purchase return for ${data.refNo}`,
+                tx,
+              );
+            }
+          }
+        }
       }
 
       return purchase;
@@ -122,10 +191,7 @@ export class PrismaPurchaseRepository implements IPurchaseRepository {
     if (paymentStatus) where.paymentStatus = paymentStatus;
     if (contactId) where.contactId = contactId;
     if (search) {
-      where.OR = [
-        { refNo: { contains: search } },
-        { contact: { name: { contains: search } } },
-      ];
+      where.OR = [{ refNo: { contains: search } }, { contact: { name: { contains: search } } }];
     }
 
     const [total, rows] = await Promise.all([
@@ -183,7 +249,9 @@ export class PrismaPurchaseRepository implements IPurchaseRepository {
       this.prisma.purchase.count({ where: { businessId, deletedAt: null, status: 'received' } }),
       this.prisma.purchase.count({ where: { businessId, deletedAt: null, status: 'pending' } }),
       this.prisma.purchase.count({ where: { businessId, deletedAt: null, paymentStatus: 'due' } }),
-      this.prisma.purchase.count({ where: { businessId, deletedAt: null, paymentStatus: 'partial' } }),
+      this.prisma.purchase.count({
+        where: { businessId, deletedAt: null, paymentStatus: 'partial' },
+      }),
       this.prisma.purchase.aggregate({
         where: { businessId, deletedAt: null },
         _sum: { totalAmount: true, paidAmount: true },

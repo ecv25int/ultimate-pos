@@ -107,7 +107,9 @@ export class AccountingService {
     const acc = await this.prisma.account.findFirst({ where: { id, businessId } });
     if (!acc) throw new NotFoundException('Account not found');
     if (dto.accountTypeId) {
-      const type = await this.prisma.accountType.findFirst({ where: { id: dto.accountTypeId, businessId } });
+      const type = await this.prisma.accountType.findFirst({
+        where: { id: dto.accountTypeId, businessId },
+      });
       if (!type) throw new NotFoundException('Account type not found');
     }
     return this.prisma.account.update({

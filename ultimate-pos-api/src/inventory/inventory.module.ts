@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
+import { ProductsModule } from '../products/products.module';
 import { INVENTORY_REPOSITORY } from './domain/inventory.repository';
 import { StockValidationService } from './domain/stock-validation.service';
 import { PrismaInventoryRepository } from './infrastructure/prisma-inventory.repository';
@@ -13,6 +14,8 @@ import { GetAdjustmentsUseCase } from './application/use-cases/get-adjustments.u
 import { CreateStockEntryUseCase } from './application/use-cases/create-stock-entry.use-case';
 import { DeleteStockEntryUseCase } from './application/use-cases/delete-stock-entry.use-case';
 import { InventoryController } from './inventory.controller';
+import { StockService } from './stock.service';
+import { BatchService } from './batch.service';
 
 const USE_CASES = [
   CheckAvailabilityUseCase,
@@ -27,13 +30,15 @@ const USE_CASES = [
 ];
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, ProductsModule],
   controllers: [InventoryController],
   providers: [
     StockValidationService,
     { provide: INVENTORY_REPOSITORY, useClass: PrismaInventoryRepository },
+    StockService,
+    BatchService,
     ...USE_CASES,
   ],
-  exports: [CheckAvailabilityUseCase, ...USE_CASES],
+  exports: [CheckAvailabilityUseCase, StockService, BatchService, ...USE_CASES],
 })
 export class InventoryModule {}

@@ -78,9 +78,9 @@ export class AuthService {
 
     // Send verification email asynchronously (don't await — don't block login)
     if (registerDto.email) {
-      this.mailService
-        .sendVerificationEmail(registerDto.email, verificationToken)
-        .catch(() => { /* errors already logged in MailService */ });
+      this.mailService.sendVerificationEmail(registerDto.email, verificationToken).catch(() => {
+        /* errors already logged in MailService */
+      });
     }
 
     const tokens = await this.generateTokens(user);
@@ -128,10 +128,7 @@ export class AuthService {
       );
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
+    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
 
     if (!isPasswordValid) {
       const newAttempts = (user.failedAttempts ?? 0) + 1;
@@ -140,9 +137,7 @@ export class AuthService {
         where: { id: user.id },
         data: {
           failedAttempts: newAttempts,
-          lockedUntil: shouldLock
-            ? new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000)
-            : undefined,
+          lockedUntil: shouldLock ? new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000) : undefined,
         },
       });
       if (shouldLock) {
@@ -220,11 +215,12 @@ export class AuthService {
       userType: user.userType,
     };
 
-    const jwtRefreshSecret =
-      this.configService.get<string>('JWT_REFRESH_SECRET');
+    const jwtRefreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
     if (!jwtRefreshSecret) throw new Error('JWT_REFRESH_SECRET environment variable is not set');
 
-    const accessExpiresIn = rememberMe ? '30d' : (this.configService.get<string>('JWT_EXPIRATION') || '15m');
+    const accessExpiresIn = rememberMe
+      ? '30d'
+      : this.configService.get<string>('JWT_EXPIRATION') || '15m';
     const refreshExpiresIn = rememberMe ? '90d' : '7d';
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -330,17 +326,13 @@ export class AuthService {
     if (!user) {
       // Don't reveal if email exists or not for security
       return {
-        message:
-          'If an account with that email exists, a password reset link has been sent.',
+        message: 'If an account with that email exists, a password reset link has been sent.',
       };
     }
 
     // Generate a secure random token
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
     // Token expires in 1 hour
     const resetExpires = new Date(Date.now() + 3600000);
@@ -356,29 +348,20 @@ export class AuthService {
     // TODO: Send email with reset token
     // For now, return the token in the response (remove in production)
     if (user.email) {
-      this.mailService
-        .sendPasswordResetEmail(user.email, resetToken)
-        .catch(() => { /* errors already logged in MailService */ });
+      this.mailService.sendPasswordResetEmail(user.email, resetToken).catch(() => {
+        /* errors already logged in MailService */
+      });
     }
 
     return {
-      message:
-        'If an account with that email exists, a password reset link has been sent.',
+      message: 'If an account with that email exists, a password reset link has been sent.',
       // Only include token in development mode
-      resetToken:
-        this.configService.get('NODE_ENV') === 'production'
-          ? undefined
-          : resetToken,
+      resetToken: this.configService.get('NODE_ENV') === 'production' ? undefined : resetToken,
     };
   }
 
-  async resetPassword(
-    resetPasswordDto: ResetPasswordDto,
-  ): Promise<{ message: string }> {
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(resetPasswordDto.token)
-      .digest('hex');
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+    const hashedToken = crypto.createHash('sha256').update(resetPasswordDto.token).digest('hex');
 
     const user = await this.prisma.user.findFirst({
       where: {
@@ -455,10 +438,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      changePasswordDto.currentPassword,
-      user.password,
-    );
+    const isPasswordValid = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');

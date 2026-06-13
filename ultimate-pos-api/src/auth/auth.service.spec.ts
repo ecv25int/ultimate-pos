@@ -59,10 +59,10 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: PrismaService,  useValue: mockPrismaService },
-        { provide: JwtService,     useValue: mockJwtService },
-        { provide: ConfigService,  useValue: mockConfigService },
-        { provide: MailService,    useValue: mockMailService },
+        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: JwtService, useValue: mockJwtService },
+        { provide: ConfigService, useValue: mockConfigService },
+        { provide: MailService, useValue: mockMailService },
       ],
     }).compile();
 
@@ -107,9 +107,7 @@ describe('AuthService', () => {
     });
 
     it('throws ConflictException when email already taken', async () => {
-      mockPrismaService.user.findUnique
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(mockUser);
+      mockPrismaService.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(mockUser);
 
       await expect(service.register(dto)).rejects.toThrow(ConflictException);
     });
@@ -131,9 +129,9 @@ describe('AuthService', () => {
     it('throws UnauthorizedException when user not found', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.login({ username: 'ghost', password: 'pass' }),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.login({ username: 'ghost', password: 'pass' })).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('throws UnauthorizedException for inactive account', async () => {
@@ -146,7 +144,11 @@ describe('AuthService', () => {
 
     it('throws UnauthorizedException for wrong password', async () => {
       const hash = await bcrypt.hash('correct-password', 10);
-      mockPrismaService.user.findUnique.mockResolvedValue({ ...mockUser, password: hash, failedAttempts: 0 });
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        password: hash,
+        failedAttempts: 0,
+      });
 
       await expect(
         service.login({ username: 'testuser', password: 'wrong-password' }),
@@ -157,7 +159,10 @@ describe('AuthService', () => {
       const hash = await bcrypt.hash('password123', 10);
       const lockedUntil = new Date(Date.now() + 10 * 60 * 1000); // 10 min from now
       mockPrismaService.user.findUnique.mockResolvedValue({
-        ...mockUser, password: hash, failedAttempts: 5, lockedUntil,
+        ...mockUser,
+        password: hash,
+        failedAttempts: 5,
+        lockedUntil,
       });
 
       await expect(
@@ -169,7 +174,10 @@ describe('AuthService', () => {
       const hash = await bcrypt.hash('password123', 10);
       const expiredLock = new Date(Date.now() - 60 * 1000); // 1 min ago
       mockPrismaService.user.findUnique.mockResolvedValue({
-        ...mockUser, password: hash, failedAttempts: 5, lockedUntil: expiredLock,
+        ...mockUser,
+        password: hash,
+        failedAttempts: 5,
+        lockedUntil: expiredLock,
       });
 
       const result = await service.login({ username: 'testuser', password: 'password123' });
@@ -179,12 +187,15 @@ describe('AuthService', () => {
     it('locks account after 5 consecutive failures', async () => {
       const hash = await bcrypt.hash('correct', 10);
       mockPrismaService.user.findUnique.mockResolvedValue({
-        ...mockUser, password: hash, failedAttempts: 4, lockedUntil: null,
+        ...mockUser,
+        password: hash,
+        failedAttempts: 4,
+        lockedUntil: null,
       });
 
-      await expect(
-        service.login({ username: 'testuser', password: 'wrong' }),
-      ).rejects.toThrow(/Too many failed attempts/);
+      await expect(service.login({ username: 'testuser', password: 'wrong' })).rejects.toThrow(
+        /Too many failed attempts/,
+      );
 
       expect(mockPrismaService.user.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -209,7 +220,9 @@ describe('AuthService', () => {
     });
 
     it('throws UnauthorizedException for expired/invalid token', async () => {
-      mockJwtService.verify.mockImplementation(() => { throw new Error('jwt expired'); });
+      mockJwtService.verify.mockImplementation(() => {
+        throw new Error('jwt expired');
+      });
 
       await expect(service.refreshToken('bad-token')).rejects.toThrow(UnauthorizedException);
     });

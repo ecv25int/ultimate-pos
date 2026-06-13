@@ -10,7 +10,16 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import { IsString, IsNotEmpty, IsIn, IsArray, IsEmail, ArrayNotEmpty, IsBoolean, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsIn,
+  IsArray,
+  IsEmail,
+  ArrayNotEmpty,
+  IsBoolean,
+  IsOptional,
+} from 'class-validator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -18,7 +27,8 @@ import { UserRole } from '../auth/enums/user-role.enum';
 import { ReportSchedulerService } from './report-scheduler.service';
 
 class CreateScheduledReportDto {
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   name!: string;
 
   @IsIn(['sales_summary', 'profit_loss', 'inventory', 'expenses', 'contacts'])
@@ -27,25 +37,33 @@ class CreateScheduledReportDto {
   @IsIn(['daily', 'weekly', 'monthly'])
   frequency!: 'daily' | 'weekly' | 'monthly';
 
-  @IsArray() @ArrayNotEmpty()
+  @IsArray()
+  @ArrayNotEmpty()
   @IsEmail({}, { each: true })
   recipients!: string[];
 }
 
 class UpdateScheduledReportDto {
-  @IsOptional() @IsString() @IsNotEmpty()
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   name?: string;
 
-  @IsOptional() @IsIn(['sales_summary', 'profit_loss', 'inventory', 'expenses', 'contacts'])
+  @IsOptional()
+  @IsIn(['sales_summary', 'profit_loss', 'inventory', 'expenses', 'contacts'])
   reportType?: string;
 
-  @IsOptional() @IsIn(['daily', 'weekly', 'monthly'])
+  @IsOptional()
+  @IsIn(['daily', 'weekly', 'monthly'])
   frequency?: string;
 
-  @IsOptional() @IsArray() @IsEmail({}, { each: true })
+  @IsOptional()
+  @IsArray()
+  @IsEmail({}, { each: true })
   recipients?: string[];
 
-  @IsOptional() @IsBoolean()
+  @IsOptional()
+  @IsBoolean()
   isActive?: boolean;
 }
 

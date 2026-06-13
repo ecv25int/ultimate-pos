@@ -29,8 +29,7 @@ export class MailService {
   }
 
   async sendVerificationEmail(to: string, token: string): Promise<void> {
-    const appUrl =
-      this.config.get<string>('APP_URL') || 'http://localhost:3000';
+    const appUrl = this.config.get<string>('APP_URL') || 'http://localhost:3000';
     const verifyUrl = `${appUrl}/api/auth/verify-email?token=${token}`;
 
     const html = `
@@ -56,8 +55,7 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(to: string, token: string): Promise<void> {
-    const frontendUrl =
-      this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200';
+    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200';
     const resetUrl = `${frontendUrl}/auth/reset-password?token=${token}`;
 
     const html = `
@@ -84,13 +82,8 @@ export class MailService {
     });
   }
 
-  private async send(opts: {
-    to: string;
-    subject: string;
-    html: string;
-  }): Promise<void> {
-    const from =
-      this.config.get<string>('EMAIL_FROM') || 'noreply@ultimatepos.com';
+  private async send(opts: { to: string; subject: string; html: string }): Promise<void> {
+    const from = this.config.get<string>('EMAIL_FROM') || 'noreply@ultimatepos.com';
 
     if (!this.transporter) {
       // Dev fallback — log to console

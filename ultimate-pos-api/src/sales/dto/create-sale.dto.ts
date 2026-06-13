@@ -59,6 +59,10 @@ export class CreateSaleLineDto {
   taxAmount?: number;
 
   @IsOptional()
+  @IsInt()
+  variationId?: number;
+
+  @IsOptional()
   @IsString()
   note?: string;
 }

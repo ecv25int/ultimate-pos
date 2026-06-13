@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Req, UseGuards } from '@nestjs/common';
 import { ImportExportService } from './import-export.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -46,10 +38,7 @@ export class ImportExportController {
   }
 
   @Post('import/commit')
-  commitImport(
-    @Req() req: any,
-    @Body() body: { entity: string; rows: Record<string, unknown>[] },
-  ) {
+  commitImport(@Req() req: any, @Body() body: { entity: string; rows: Record<string, unknown>[] }) {
     return this.service.commitImport(
       req.user.businessId,
       body.entity as any,

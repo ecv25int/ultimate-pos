@@ -1,6 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateCampaignDto, CreateScheduleDto, UpdateScheduleDto, CreateCallLogDto } from './dto/crm.dto';
+import {
+  CreateCampaignDto,
+  CreateScheduleDto,
+  UpdateScheduleDto,
+  CreateCallLogDto,
+} from './dto/crm.dto';
 
 @Injectable()
 export class CrmService {
@@ -56,7 +61,10 @@ export class CrmService {
 
   // ─── Schedules ─────────────────────────────────────────────────────────────
 
-  async getSchedules(businessId: number, filters: { contactId?: number; status?: string; type?: string }) {
+  async getSchedules(
+    businessId: number,
+    filters: { contactId?: number; status?: string; type?: string },
+  ) {
     const where: Record<string, unknown> = { businessId };
     if (filters.contactId) where['contactId'] = filters.contactId;
     if (filters.status) where['status'] = filters.status;
@@ -111,7 +119,10 @@ export class CrmService {
 
   // ─── Call Logs ─────────────────────────────────────────────────────────────
 
-  async getCallLogs(businessId: number, filters: { contactId?: number; page?: number; limit?: number }) {
+  async getCallLogs(
+    businessId: number,
+    filters: { contactId?: number; page?: number; limit?: number },
+  ) {
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;
     const where: Record<string, unknown> = { businessId };

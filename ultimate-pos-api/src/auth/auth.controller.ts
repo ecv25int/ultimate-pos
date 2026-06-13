@@ -43,7 +43,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: 'Login with username/password — returns JWT tokens' })
-  @ApiResponse({ status: 200, description: 'Login successful, returns { accessToken, refreshToken, user }' })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful, returns { accessToken, refreshToken, user }',
+  })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
@@ -98,20 +101,14 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Update current user profile' })
-  async updateProfile(
-    @Request() req: any,
-    @Body() updateProfileDto: UpdateProfileDto,
-  ) {
+  async updateProfile(@Request() req: any, @Body() updateProfileDto: UpdateProfileDto) {
     return this.authService.updateProfile(req.user.id, updateProfileDto);
   }
 
   @Post('change-password')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async changePassword(
-    @Request() req: any,
-    @Body() changePasswordDto: ChangePasswordDto,
-  ) {
+  async changePassword(@Request() req: any, @Body() changePasswordDto: ChangePasswordDto) {
     return this.authService.changePassword(req.user.id, changePasswordDto);
   }
 

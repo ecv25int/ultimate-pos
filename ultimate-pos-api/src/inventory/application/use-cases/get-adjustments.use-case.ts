@@ -9,7 +9,12 @@ export class GetAdjustmentsUseCase {
     private readonly repo: IInventoryRepository,
   ) {}
 
-  execute(businessId: number, page: number, limit: number, productId?: number): Promise<PaginatedEntries> {
+  execute(
+    businessId: number,
+    page: number,
+    limit: number,
+    productId?: number,
+  ): Promise<PaginatedEntries> {
     return this.repo.getAdjustments(businessId, page, limit, productId);
   }
 }

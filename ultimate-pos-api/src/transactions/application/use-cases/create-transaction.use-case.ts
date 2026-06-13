@@ -57,8 +57,7 @@ export class CreateTransactionUseCase {
     const totalBeforeTax = dto.totalBeforeTax ?? 0;
     const taxAmount = dto.taxAmount ?? 0;
     const discountAmount = dto.discountAmount ?? 0;
-    const totalAmount =
-      dto.totalAmount ?? Math.max(totalBeforeTax + taxAmount - discountAmount, 0);
+    const totalAmount = dto.totalAmount ?? Math.max(totalBeforeTax + taxAmount - discountAmount, 0);
     return { totalBeforeTax, taxAmount, discountAmount, totalAmount };
   }
 }

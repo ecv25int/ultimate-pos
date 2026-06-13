@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuditLogsService } from './audit-logs.service';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
@@ -18,13 +12,23 @@ export class AuditLogsController {
 
   /** GET /api/audit-logs */
   @Get()
-  @ApiOperation({ summary: 'List audit log entries', description: 'Returns paginated audit log entries for the business.' })
-  @ApiQuery({ name: 'entity', required: false, description: 'Filter by entity type (e.g. Sale, Purchase, Product)' })
+  @ApiOperation({
+    summary: 'List audit log entries',
+    description: 'Returns paginated audit log entries for the business.',
+  })
+  @ApiQuery({
+    name: 'entity',
+    required: false,
+    description: 'Filter by entity type (e.g. Sale, Purchase, Product)',
+  })
   @ApiQuery({ name: 'action', required: false, enum: ['CREATE', 'UPDATE', 'DELETE', 'VIEW'] })
   @ApiQuery({ name: 'userId', required: false })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 30 })
-  @ApiResponse({ status: 200, description: 'Paginated { total, page, limit, totalPages, data[] }.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated { total, page, limit, totalPages, data[] }.',
+  })
   findAll(
     @Req() req: any,
     @Query('entity') entity?: string,

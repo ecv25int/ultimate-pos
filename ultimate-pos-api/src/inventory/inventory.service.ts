@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStockEntryDto } from './dto/create-stock-entry.dto';
 
@@ -58,8 +54,8 @@ export class InventoryService {
           type: true,
           alertQuantity: true,
           category: { select: { id: true, name: true } },
-          brand:    { select: { id: true, name: true } },
-          unit:     { select: { id: true, actualName: true, shortName: true } },
+          brand: { select: { id: true, name: true } },
+          unit: { select: { id: true, actualName: true, shortName: true } },
         },
         orderBy: { name: 'asc' },
       }),
@@ -70,9 +66,7 @@ export class InventoryService {
       }),
     ]);
 
-    const stockMap = new Map(
-      stockAgg.map((s) => [s.productId, Number(s._sum.quantity ?? 0)]),
-    );
+    const stockMap = new Map(stockAgg.map((s) => [s.productId, Number(s._sum.quantity ?? 0)]));
 
     return products.map((p) => {
       const currentStock = stockMap.get(p.id) ?? 0;
@@ -92,11 +86,7 @@ export class InventoryService {
   }
 
   // ── Stock history for one product ────────────────────────────────────────────
-  async getProductHistory(
-    productId: number,
-    businessId: number,
-    limit = 50,
-  ) {
+  async getProductHistory(productId: number, businessId: number, limit = 50) {
     // Verify product belongs to business
     const product = await this.prisma.product.findFirst({
       where: { id: productId, businessId },
@@ -160,12 +150,8 @@ export class InventoryService {
       `,
     ]);
 
-    const stockMap = new Map(
-      stockAgg.map((s) => [s.productId, Number(s._sum.quantity ?? 0)]),
-    );
-    const costMap = new Map(
-      lastCostRows.map((r) => [Number(r.product_id), Number(r.unit_cost)]),
-    );
+    const stockMap = new Map(stockAgg.map((s) => [s.productId, Number(s._sum.quantity ?? 0)]));
+    const costMap = new Map(lastCostRows.map((r) => [Number(r.product_id), Number(r.unit_cost)]));
 
     let lowStockCount = 0;
     let outOfStockCount = 0;
@@ -193,12 +179,7 @@ export class InventoryService {
   /**
    * List stock adjustment entries (adjustment_in / adjustment_out) paginated
    */
-  async getAdjustments(
-    businessId: number,
-    page = 1,
-    limit = 30,
-    productId?: number,
-  ) {
+  async getAdjustments(businessId: number, page = 1, limit = 30, productId?: number) {
     const skip = (page - 1) * limit;
     const where = {
       businessId,

@@ -1,6 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreatePackageDto, UpdatePackageDto, CreateSubscriptionDto, UpdateSubscriptionStatusDto } from './dto/superadmin.dto';
+import {
+  CreatePackageDto,
+  UpdatePackageDto,
+  CreateSubscriptionDto,
+  UpdateSubscriptionStatusDto,
+} from './dto/superadmin.dto';
 
 @Injectable()
 export class SuperadminService {
@@ -46,7 +51,10 @@ export class SuperadminService {
   }
 
   async getSubscription(id: number) {
-    const sub = await this.prisma.subscription.findFirst({ where: { id, deletedAt: null }, include: { package: true } });
+    const sub = await this.prisma.subscription.findFirst({
+      where: { id, deletedAt: null },
+      include: { package: true },
+    });
     if (!sub) throw new NotFoundException('Subscription not found');
     return sub;
   }
@@ -80,10 +88,16 @@ export class SuperadminService {
     const now = new Date();
     const [totalPackages, activeSubscriptions, pendingSubscriptions, expiring] = await Promise.all([
       this.prisma.package.count({ where: { deletedAt: null, isActive: true } }),
-      this.prisma.subscription.count({ where: { deletedAt: null, status: 'approved', endDate: { gte: now } } }),
+      this.prisma.subscription.count({
+        where: { deletedAt: null, status: 'approved', endDate: { gte: now } },
+      }),
       this.prisma.subscription.count({ where: { deletedAt: null, status: 'waiting' } }),
       this.prisma.subscription.count({
-        where: { deletedAt: null, status: 'approved', endDate: { gte: now, lte: new Date(now.getTime() + 30 * 86400000) } },
+        where: {
+          deletedAt: null,
+          status: 'approved',
+          endDate: { gte: now, lte: new Date(now.getTime() + 30 * 86400000) },
+        },
       }),
     ]);
     return { totalPackages, activeSubscriptions, pendingSubscriptions, expiringIn30Days: expiring };

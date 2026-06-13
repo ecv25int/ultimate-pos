@@ -13,6 +13,7 @@ import { GetPurchasesSummaryUseCase } from './application/use-cases/get-purchase
 import { ConvertRequisitionUseCase } from './application/use-cases/convert-requisition.use-case';
 import { DeletePurchaseUseCase } from './application/use-cases/delete-purchase.use-case';
 import { PurchasesController } from './purchases.controller';
+import { InventoryModule } from '../inventory/inventory.module';
 
 const USE_CASES = [
   CreatePurchaseUseCase,
@@ -27,7 +28,7 @@ const USE_CASES = [
 ];
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, InventoryModule],
   controllers: [PurchasesController],
   providers: [
     LandedCostService,

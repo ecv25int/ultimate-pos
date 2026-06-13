@@ -1,8 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type {
-  IPurchaseRepository,
-  PurchaseSummary,
-} from '../../domain/purchase.repository';
+import type { IPurchaseRepository, PurchaseSummary } from '../../domain/purchase.repository';
 import { PURCHASE_REPOSITORY } from '../../domain/purchase.repository';
 
 @Injectable()

@@ -109,14 +109,22 @@ export class PrismaPaymentRepository implements IPaymentRepository {
     return { id: row.id, totalAmount: Number(row.totalAmount), paidAmount: Number(row.paidAmount) };
   }
 
-  async updateSalePaymentStatus(saleId: number, paidAmount: number, paymentStatus: string): Promise<void> {
+  async updateSalePaymentStatus(
+    saleId: number,
+    paidAmount: number,
+    paymentStatus: string,
+  ): Promise<void> {
     await this.prisma.sale.update({
       where: { id: saleId },
       data: { paidAmount, paymentStatus },
     });
   }
 
-  async updatePurchasePaymentStatus(purchaseId: number, paidAmount: number, paymentStatus: string): Promise<void> {
+  async updatePurchasePaymentStatus(
+    purchaseId: number,
+    paidAmount: number,
+    paymentStatus: string,
+  ): Promise<void> {
     await this.prisma.purchase.update({
       where: { id: purchaseId },
       data: { paidAmount, paymentStatus },

@@ -100,9 +100,9 @@ describe('ReportsService', () => {
       mockPrismaService.purchase.count.mockResolvedValue(5);
       mockPrismaService.purchase.aggregate.mockResolvedValue({ _sum: { totalAmount: '500.00' } });
       mockPrismaService.stockEntry.groupBy.mockResolvedValue([
-        { productId: 1, _sum: { quantity: '0' } },    // out of stock
-        { productId: 2, _sum: { quantity: '2' } },    // low stock (alert=5)
-        { productId: 3, _sum: { quantity: '50' } },   // normal
+        { productId: 1, _sum: { quantity: '0' } }, // out of stock
+        { productId: 2, _sum: { quantity: '2' } }, // low stock (alert=5)
+        { productId: 3, _sum: { quantity: '50' } }, // normal
       ]);
       mockPrismaService.product.findMany.mockResolvedValue([
         { id: 1, alertQuantity: '5' },
@@ -110,7 +110,7 @@ describe('ReportsService', () => {
         { id: 3, alertQuantity: '5' },
       ]);
 
-      const result = await service.getDashboard(BUSINESS_ID) as any;
+      const result = (await service.getDashboard(BUSINESS_ID)) as any;
 
       expect(result.totalSales).toBe(10);
       expect(result.totalRevenue).toBe(1000);
@@ -127,8 +127,13 @@ describe('ReportsService', () => {
   // ─── getSalesReport ────────────────────────────────────────────────────────
 
   describe('getSalesReport', () => {
-    const mockAgg = { _sum: { totalAmount: '2000', paidAmount: '1800', discountAmount: '0', taxAmount: '100' }, _count: { id: 4 } };
-    const mockSales = [{ id: 1, invoiceNo: 'SALE-001', totalAmount: '500', contact: null, _count: { lines: 2 } }];
+    const mockAgg = {
+      _sum: { totalAmount: '2000', paidAmount: '1800', discountAmount: '0', taxAmount: '100' },
+      _count: { id: 4 },
+    };
+    const mockSales = [
+      { id: 1, invoiceNo: 'SALE-001', totalAmount: '500', contact: null, _count: { lines: 2 } },
+    ];
 
     beforeEach(() => {
       mockPrismaService.sale.findMany.mockResolvedValue(mockSales);
@@ -175,12 +180,26 @@ describe('ReportsService', () => {
   describe('getStockReport', () => {
     it('enriches products with stock quantities and computes total value', async () => {
       mockPrismaService.product.findMany.mockResolvedValue([
-        { id: 1, name: 'Widget', sku: 'WGT-01', alertQuantity: '5', unit: { actualName: 'PC', shortName: 'PC' }, category: { name: 'Electronics' } },
-        { id: 2, name: 'Gadget', sku: 'GDG-01', alertQuantity: '3', unit: { actualName: 'PC', shortName: 'PC' }, category: null },
+        {
+          id: 1,
+          name: 'Widget',
+          sku: 'WGT-01',
+          alertQuantity: '5',
+          unit: { actualName: 'PC', shortName: 'PC' },
+          category: { name: 'Electronics' },
+        },
+        {
+          id: 2,
+          name: 'Gadget',
+          sku: 'GDG-01',
+          alertQuantity: '3',
+          unit: { actualName: 'PC', shortName: 'PC' },
+          category: null,
+        },
       ]);
       mockPrismaService.stockEntry.groupBy.mockResolvedValue([
         { productId: 1, _sum: { quantity: '10', unitCost: '25.00' } },
-        { productId: 2, _sum: { quantity: '0',  unitCost: null } },
+        { productId: 2, _sum: { quantity: '0', unitCost: null } },
       ]);
 
       const result = await service.getStockReport(BUSINESS_ID);
@@ -214,14 +233,14 @@ describe('ReportsService', () => {
       ]);
       mockPrismaService.product.findMany.mockResolvedValue([
         { id: 1, name: 'Best Seller', sku: 'BS-01' },
-        { id: 2, name: 'Runner Up',  sku: 'RU-01' },
+        { id: 2, name: 'Runner Up', sku: 'RU-01' },
       ]);
 
       const result = await service.getTopProducts(BUSINESS_ID, 10);
 
       expect(result).toHaveLength(2);
       expect(result[0].productId).toBe(1);
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
       expect(result[0].product!.name).toBe('Best Seller');
     });
   });
@@ -231,7 +250,13 @@ describe('ReportsService', () => {
   describe('getExpenseReport', () => {
     it('returns expenses grouped by category', async () => {
       const mockExpenses = [
-        { id: 1, amount: '100', totalAmount: '100', category: { name: 'Utilities' }, expenseDate: new Date() },
+        {
+          id: 1,
+          amount: '100',
+          totalAmount: '100',
+          category: { name: 'Utilities' },
+          expenseDate: new Date(),
+        },
       ];
       mockPrismaService.expense.findMany.mockResolvedValue(mockExpenses);
       mockPrismaService.expense.aggregate.mockResolvedValue({
@@ -243,7 +268,7 @@ describe('ReportsService', () => {
       ]);
       mockPrismaService.expenseCategory.findMany.mockResolvedValue([{ id: 1, name: 'Utilities' }]);
 
-      const result = await service.getExpenseReport(BUSINESS_ID) as any;
+      const result = (await service.getExpenseReport(BUSINESS_ID)) as any;
 
       expect(result.expenses).toHaveLength(1);
       expect(result.summary.count).toBe(1);
@@ -257,14 +282,13 @@ describe('ReportsService', () => {
   describe('getProfitLoss', () => {
     it('computes grossRevenue, grossProfit, netProfit, and margins', async () => {
       // totalRevenue=1000, COGS=600, totalExpenses=100 → grossProfit=400, netProfit=300
-      mockPrismaService.sale.aggregate
-        .mockResolvedValueOnce({ _sum: { totalAmount: '1000', discountAmount: '0', taxAmount: '80' } });
-      mockPrismaService.purchase.aggregate
-        .mockResolvedValueOnce({ _sum: { totalAmount: '600' } });
-      mockPrismaService.expense.aggregate
-        .mockResolvedValueOnce({ _sum: { totalAmount: '100' } });
+      mockPrismaService.sale.aggregate.mockResolvedValueOnce({
+        _sum: { totalAmount: '1000', discountAmount: '0', taxAmount: '80' },
+      });
+      mockPrismaService.purchase.aggregate.mockResolvedValueOnce({ _sum: { totalAmount: '600' } });
+      mockPrismaService.expense.aggregate.mockResolvedValueOnce({ _sum: { totalAmount: '100' } });
 
-      const result = await service.getProfitLoss(BUSINESS_ID) as any;
+      const result = (await service.getProfitLoss(BUSINESS_ID)) as any;
 
       expect(result.grossRevenue).toBe(1000);
       expect(result.totalCOGS).toBe(600);
@@ -280,7 +304,7 @@ describe('ReportsService', () => {
       mockPrismaService.purchase.aggregate.mockResolvedValue({ _sum: { totalAmount: null } });
       mockPrismaService.expense.aggregate.mockResolvedValue({ _sum: { totalAmount: null } });
 
-      const result = await service.getProfitLoss(BUSINESS_ID) as any;
+      const result = (await service.getProfitLoss(BUSINESS_ID)) as any;
 
       expect(result.grossRevenue).toBe(0);
       expect(result.grossMarginPct).toBe(0);

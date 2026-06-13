@@ -10,7 +10,14 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -24,6 +31,8 @@ import { GetAdjustmentsUseCase } from './application/use-cases/get-adjustments.u
 import { CreateStockEntryUseCase } from './application/use-cases/create-stock-entry.use-case';
 import { DeleteStockEntryUseCase } from './application/use-cases/delete-stock-entry.use-case';
 import { CreateStockEntryDto } from './dto/create-stock-entry.dto';
+import { StockService } from './stock.service';
+import { BatchService } from './batch.service';
 
 @ApiTags('Inventory')
 @ApiBearerAuth('JWT')
@@ -39,6 +48,8 @@ export class InventoryController {
     private readonly getAdjustments: GetAdjustmentsUseCase,
     private readonly createStockEntry: CreateStockEntryUseCase,
     private readonly deleteStockEntry: DeleteStockEntryUseCase,
+    private readonly stockService: StockService,
+    private readonly batchService: BatchService,
   ) {}
 
   @Get('summary')
@@ -46,6 +57,43 @@ export class InventoryController {
   @ApiOperation({ summary: 'Inventory dashboard summary (totals, low-stock count, stock value)' })
   summary(@Request() req: any) {
     return this.getInventorySummary.execute(req.user.businessId);
+  }
+
+  @Get('stock-levels')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Get all stock levels across locations' })
+  stockLevels(@Request() req: any) {
+    return this.stockService.getAllStockLevels(req.user.businessId);
+  }
+
+  @Get('valuation')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Get stock valuation' })
+  @ApiQuery({ name: 'locationId', required: false })
+  valuation(@Request() req: any, @Query('locationId') locationId?: string) {
+    return this.stockService.getStockValuation(
+      req.user.businessId,
+      locationId ? parseInt(locationId, 10) : undefined,
+    );
+  }
+
+  @Get('low-stock')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Get low stock items across locations' })
+  @ApiQuery({ name: 'locationId', required: false })
+  lowStockAlerts(@Request() req: any, @Query('locationId') locationId?: string) {
+    return this.stockService.getStockAlerts(
+      req.user.businessId,
+      locationId ? parseInt(locationId, 10) : undefined,
+    );
+  }
+
+  @Get('location/:id/stock')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
+  @ApiOperation({ summary: 'Get variations stock details for a location' })
+  @ApiParam({ name: 'id' })
+  locationStock(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.stockService.getLocationStock(req.user.businessId, id);
   }
 
   @Get('stock')
@@ -68,10 +116,7 @@ export class InventoryController {
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
   @ApiOperation({ summary: 'Current stock level for a single product' })
   @ApiParam({ name: 'productId' })
-  productStockLevel(
-    @Param('productId', ParseIntPipe) productId: number,
-    @Request() req: any,
-  ) {
+  productStockLevel(@Param('productId', ParseIntPipe) productId: number, @Request() req: any) {
     return this.getStockLevel.execute(productId, req.user.businessId);
   }
 
@@ -126,5 +171,24 @@ export class InventoryController {
   async deleteEntry(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     await this.deleteStockEntry.execute(id, req.user.businessId);
     return { message: 'Stock entry deleted' };
+  }
+
+  @Get('expiry-items')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Get expiring or expired stock items with alerts' })
+  @ApiQuery({ name: 'locationId', required: false })
+  async getExpiryItems(@Request() req: any, @Query('locationId') locationId?: string) {
+    return this.batchService.checkExpiryItems(
+      req.user.businessId,
+      locationId ? parseInt(locationId, 10) : undefined,
+    );
+  }
+
+  @Post('items/:id/mark-expired')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Mark a specific purchase line batch as expired' })
+  @ApiParam({ name: 'id', description: 'Purchase Line ID' })
+  async markExpired(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.batchService.markExpired(id, req.user.businessId, req.user.id);
   }
 }

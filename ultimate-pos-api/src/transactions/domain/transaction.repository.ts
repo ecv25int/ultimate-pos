@@ -64,10 +64,24 @@ export interface ITransactionRepository {
   create(data: CreateTransactionData): Promise<Transaction>;
   findById(id: number, businessId: number, type?: TransactionType): Promise<Transaction | null>;
   findAll(businessId: number, filters: TransactionFilters): Promise<PaginatedTransactions>;
-  update(id: number, businessId: number, data: UpdateTransactionData, type?: TransactionType): Promise<Transaction>;
-  updateStatus(id: number, businessId: number, newStatus: string, type?: TransactionType): Promise<Transaction>;
+  update(
+    id: number,
+    businessId: number,
+    data: UpdateTransactionData,
+    type?: TransactionType,
+  ): Promise<Transaction>;
+  updateStatus(
+    id: number,
+    businessId: number,
+    newStatus: string,
+    type?: TransactionType,
+  ): Promise<Transaction>;
   inferType(id: number, businessId: number): Promise<TransactionType | null>;
-  findRefNos(type: TransactionType, businessId: number, prefix: string): Promise<Array<string | null>>;
+  findRefNos(
+    type: TransactionType,
+    businessId: number,
+    prefix: string,
+  ): Promise<Array<string | null>>;
 }
 
 export const TRANSACTION_REPOSITORY = Symbol('ITransactionRepository');

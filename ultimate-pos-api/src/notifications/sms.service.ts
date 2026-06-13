@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import Twilio from 'twilio';
 
 export interface SmsOptions {
-  to: string;   // E.164 format, e.g. +1234567890
+  to: string; // E.164 format, e.g. +1234567890
   body: string;
 }
 
@@ -36,7 +36,7 @@ export class SmsService {
       this.client = null;
       this.logger.warn(
         'Twilio credentials not configured — SMS sending disabled. ' +
-        'Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER in .env',
+          'Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER in .env',
       );
     }
   }
@@ -47,9 +47,7 @@ export class SmsService {
     this.client.messages
       .create({ from: this.from, to: opts.to, body: opts.body })
       .then((msg) => this.logger.debug(`SMS sent to ${opts.to}: ${msg.sid}`))
-      .catch((err) =>
-        this.logger.error(`SMS failed to ${opts.to}: ${(err as Error).message}`),
-      );
+      .catch((err) => this.logger.error(`SMS failed to ${opts.to}: ${(err as Error).message}`));
   }
 
   /** Awaitable version — rejects on Twilio error. Prefer sendAsync for hooks. */

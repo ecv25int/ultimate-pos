@@ -11,11 +11,7 @@ export class FindTransactionUseCase {
     private readonly repo: ITransactionRepository,
   ) {}
 
-  async execute(
-    id: number,
-    businessId: number,
-    type?: TransactionType,
-  ): Promise<Transaction> {
+  async execute(id: number, businessId: number, type?: TransactionType): Promise<Transaction> {
     const transaction = await this.repo.findById(id, businessId, type);
     if (!transaction) {
       throw new NotFoundException(`Transaction #${id} not found`);

@@ -1,9 +1,22 @@
 import {
-  Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe,
-  Query, Req, UseGuards,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ManufacturingService } from './manufacturing.service';
-import { CreateIngredientGroupDto, CreateRecipeDto, UpdateRecipeDto } from './dto/manufacturing.dto';
+import {
+  CreateIngredientGroupDto,
+  CreateRecipeDto,
+  UpdateRecipeDto,
+} from './dto/manufacturing.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';

@@ -1,22 +1,27 @@
-
 import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '../enums/user-role.enum';
 
 const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   [UserRole.ADMIN]: [
-    'sales.view', 'sales.create', 'sales.update', 'sales.delete',
-    'purchase.view', 'purchase.create', 'purchase.update',
+    'sales.view',
+    'sales.create',
+    'sales.update',
+    'sales.delete',
+    'purchase.view',
+    'purchase.create',
+    'purchase.update',
     'reports.view',
   ],
   [UserRole.MANAGER]: [
-    'sales.view', 'sales.create', 'sales.update',
-    'purchase.view', 'purchase.create',
+    'sales.view',
+    'sales.create',
+    'sales.update',
+    'purchase.view',
+    'purchase.create',
     'reports.view',
   ],
-  [UserRole.CASHIER]: [
-    'sales.view', 'sales.create',
-  ],
+  [UserRole.CASHIER]: ['sales.view', 'sales.create'],
   [UserRole.USER]: [],
   [UserRole.SUPERADMIN]: [], // Superadmin bypasses all
 };

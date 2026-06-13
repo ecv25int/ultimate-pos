@@ -10,7 +10,14 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AddPaymentUseCase } from './application/use-cases/add-payment.use-case';
 import { AddBulkPaymentsUseCase } from './application/use-cases/add-bulk-payments.use-case';
@@ -39,7 +46,10 @@ export class PaymentsController {
 
   @Post()
   @ApiOperation({ summary: 'Record a payment for a sale or purchase' })
-  @ApiResponse({ status: 201, description: 'Payment created. Parent paymentStatus updated automatically.' })
+  @ApiResponse({
+    status: 201,
+    description: 'Payment created. Parent paymentStatus updated automatically.',
+  })
   async create(@Request() req: any, @Body() dto: CreatePaymentDto) {
     const entity = await this.addPayment.execute(req.user.businessId, req.user.id, dto);
     return PaymentDto.fromEntity(entity);
@@ -48,7 +58,11 @@ export class PaymentsController {
   @Post('bulk')
   @ApiOperation({ summary: 'Record multiple payments in sequence' })
   async createBulk(@Request() req: any, @Body() dto: BulkPaymentDto) {
-    const result = await this.addBulkPayments.execute(req.user.businessId, req.user.id, dto.payments);
+    const result = await this.addBulkPayments.execute(
+      req.user.businessId,
+      req.user.id,
+      dto.payments,
+    );
     return { created: result.created, payments: result.payments.map(PaymentDto.fromEntity) };
   }
 
@@ -56,7 +70,11 @@ export class PaymentsController {
   @ApiOperation({ summary: 'List payments' })
   @ApiQuery({ name: 'saleId', required: false })
   @ApiQuery({ name: 'purchaseId', required: false })
-  @ApiQuery({ name: 'method', required: false, enum: ['cash', 'card', 'bank_transfer', 'check', 'other'] })
+  @ApiQuery({
+    name: 'method',
+    required: false,
+    enum: ['cash', 'card', 'bank_transfer', 'check', 'other'],
+  })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 30 })
   async findAll(

@@ -3,7 +3,7 @@ import { IsString, IsOptional, IsInt, IsDateString, IsIn, IsNumber } from 'class
 export class CreateLeaveTypeDto {
   @IsString() leaveType: string;
   @IsOptional() @IsInt() maxLeaveCount?: number;
-  @IsOptional() @IsString() @IsIn(['month','year']) leaveCountInterval?: string;
+  @IsOptional() @IsString() @IsIn(['month', 'year']) leaveCountInterval?: string;
 }
 
 export class CreateLeaveDto {
@@ -16,7 +16,7 @@ export class CreateLeaveDto {
 }
 
 export class UpdateLeaveStatusDto {
-  @IsString() @IsIn(['pending','approved','cancelled']) status: string;
+  @IsString() @IsIn(['pending', 'approved', 'cancelled']) status: string;
   @IsOptional() @IsString() statusNote?: string;
 }
 
@@ -44,5 +44,5 @@ export class CreateReminderDto {
   @IsString() name: string;
   @IsDateString() date: string;
   @IsString() time: string;
-  @IsString() @IsIn(['one_time','every_day','every_week','every_month']) repeat: string;
+  @IsString() @IsIn(['one_time', 'every_day', 'every_week', 'every_month']) repeat: string;
 }

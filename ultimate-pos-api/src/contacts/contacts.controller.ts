@@ -20,7 +20,14 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 
 @ApiTags('Contacts')
 @ApiBearerAuth('JWT')
@@ -31,7 +38,10 @@ export class ContactsController {
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiOperation({ summary: 'Create a contact', description: 'Creates a customer, supplier, or both.' })
+  @ApiOperation({
+    summary: 'Create a contact',
+    description: 'Creates a customer, supplier, or both.',
+  })
   @ApiResponse({ status: 201, description: 'Contact created.' })
   create(@Request() req: any, @Body() dto: CreateContactDto) {
     return this.contactsService.create(req.user.id, req.user.businessId, dto);
@@ -39,7 +49,11 @@ export class ContactsController {
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
-  @ApiOperation({ summary: 'List contacts', description: 'Returns all contacts for the business. Filter by type (customer|supplier|both) and status.' })
+  @ApiOperation({
+    summary: 'List contacts',
+    description:
+      'Returns all contacts for the business. Filter by type (customer|supplier|both) and status.',
+  })
   @ApiQuery({ name: 'type', required: false, enum: ['customer', 'supplier', 'both'] })
   @ApiQuery({ name: 'status', required: false, enum: ['active', 'inactive'] })
   @ApiQuery({ name: 'search', required: false })
@@ -50,12 +64,7 @@ export class ContactsController {
     @Query('status') status?: string,
     @Query('search') search?: string,
   ) {
-    return this.contactsService.findAll(
-      req.user.businessId,
-      type,
-      status,
-      search,
-    );
+    return this.contactsService.findAll(req.user.businessId, type, status, search);
   }
 
   /**
@@ -64,12 +73,12 @@ export class ContactsController {
    */
   @Post('import')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiOperation({ summary: 'Import contacts', description: 'Bulk import contacts from a rows array (JSON body).' })
+  @ApiOperation({
+    summary: 'Import contacts',
+    description: 'Bulk import contacts from a rows array (JSON body).',
+  })
   @ApiResponse({ status: 200, description: 'Import summary.' })
-  importContacts(
-    @Request() req: any,
-    @Body() dto: { rows: any[] },
-  ) {
+  importContacts(@Request() req: any, @Body() dto: { rows: any[] }) {
     return this.contactsService.importContacts(req.user.businessId, req.user.id, dto.rows);
   }
 
@@ -79,7 +88,10 @@ export class ContactsController {
    */
   @Get('export')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiOperation({ summary: 'Export contacts to CSV', description: 'Downloads all contacts as a CSV file.' })
+  @ApiOperation({
+    summary: 'Export contacts to CSV',
+    description: 'Downloads all contacts as a CSV file.',
+  })
   @ApiResponse({ status: 200, description: 'CSV file download.' })
   async exportCsv(@Request() req: any, @Res() res: Response) {
     const csv = await this.contactsService.exportToCsv(req.user.businessId);
@@ -104,7 +116,10 @@ export class ContactsController {
   /** GET /api/contacts/:id/ledger */
   @Get(':id/ledger')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiOperation({ summary: 'Contact ledger', description: 'Returns running balance ledger for a contact — sales, purchases, and payments.' })
+  @ApiOperation({
+    summary: 'Contact ledger',
+    description: 'Returns running balance ledger for a contact — sales, purchases, and payments.',
+  })
   @ApiParam({ name: 'id', description: 'Contact ID' })
   @ApiResponse({ status: 200, description: 'Ledger entries array.' })
   getLedger(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
@@ -114,7 +129,10 @@ export class ContactsController {
   /** GET /api/contacts/:id/overdue */
   @Get(':id/overdue')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiOperation({ summary: 'Contact overdue invoices', description: 'Returns unpaid/partially-paid sales and purchases for a contact.' })
+  @ApiOperation({
+    summary: 'Contact overdue invoices',
+    description: 'Returns unpaid/partially-paid sales and purchases for a contact.',
+  })
   @ApiParam({ name: 'id', description: 'Contact ID' })
   @ApiResponse({ status: 200, description: 'Overdue sales and purchases with owed totals.' })
   getOverdueInvoices(@Param('id', ParseIntPipe) id: number, @Request() req: any) {

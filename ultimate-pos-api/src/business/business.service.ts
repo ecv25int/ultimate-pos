@@ -145,4 +145,3 @@ export class BusinessService {
     return this.prisma.businessLocation.delete({ where: { id } });
   }
 }
-

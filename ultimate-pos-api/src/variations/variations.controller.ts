@@ -1,6 +1,14 @@
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete,
-  UseGuards, Request, ParseIntPipe,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { VariationsService } from './variations.service';
 import { CreateVariationTemplateDto } from './dto/create-variation-template.dto';
@@ -13,6 +21,13 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
 
+interface AuthenticatedRequest {
+  user: {
+    id: number;
+    businessId: number;
+  };
+}
+
 @Controller('variations')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class VariationsController {
@@ -22,19 +37,19 @@ export class VariationsController {
 
   @Post('templates')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  createTemplate(@Request() req: any, @Body() dto: CreateVariationTemplateDto) {
+  createTemplate(@Request() req: AuthenticatedRequest, @Body() dto: CreateVariationTemplateDto) {
     return this.variationsService.createTemplate(req.user.businessId, dto);
   }
 
   @Get('templates')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
-  findAllTemplates(@Request() req: any) {
+  findAllTemplates(@Request() req: AuthenticatedRequest) {
     return this.variationsService.findAllTemplates(req.user.businessId);
   }
 
   @Get('templates/:id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  findOneTemplate(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  findOneTemplate(@Param('id', ParseIntPipe) id: number, @Request() req: AuthenticatedRequest) {
     return this.variationsService.findOneTemplate(id, req.user.businessId);
   }
 
@@ -42,7 +57,7 @@ export class VariationsController {
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   updateTemplate(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Body() dto: UpdateVariationTemplateDto,
   ) {
     return this.variationsService.updateTemplate(id, req.user.businessId, dto);
@@ -50,7 +65,7 @@ export class VariationsController {
 
   @Delete('templates/:id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  removeTemplate(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+  removeTemplate(@Param('id', ParseIntPipe) id: number, @Request() req: AuthenticatedRequest) {
     return this.variationsService.removeTemplate(id, req.user.businessId);
   }
 
@@ -58,7 +73,10 @@ export class VariationsController {
 
   @Post('value-templates')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  createValueTemplate(@Request() req: any, @Body() dto: CreateVariationValueTemplateDto) {
+  createValueTemplate(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: CreateVariationValueTemplateDto,
+  ) {
     return this.variationsService.createValueTemplate(req.user.businessId, dto);
   }
 

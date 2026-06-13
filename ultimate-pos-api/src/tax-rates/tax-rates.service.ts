@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaxRateDto } from './dto/create-tax-rate.dto';
 import { UpdateTaxRateDto } from './dto/update-tax-rate.dto';
@@ -53,11 +49,7 @@ export class TaxRatesService {
     return taxRate;
   }
 
-  async update(
-    businessId: number,
-    id: number,
-    dto: UpdateTaxRateDto,
-  ) {
+  async update(businessId: number, id: number, dto: UpdateTaxRateDto) {
     await this.findOne(businessId, id);
 
     // If setting as default, unset others
@@ -115,11 +107,7 @@ export class TaxRatesService {
   }
 
   /** Replace all sub-taxes for a group tax rate */
-  async setSubTaxes(
-    businessId: number,
-    groupTaxId: number,
-    dto: SetGroupSubTaxesDto,
-  ) {
+  async setSubTaxes(businessId: number, groupTaxId: number, dto: SetGroupSubTaxesDto) {
     await this.findOne(businessId, groupTaxId);
 
     // Delete existing pivot rows then re-create

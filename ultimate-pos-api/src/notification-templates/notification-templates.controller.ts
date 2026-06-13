@@ -1,6 +1,15 @@
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete, Query,
-  UseGuards, Request, ParseIntPipe,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+  Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { NotificationTemplatesService } from './notification-templates.service';
 import { CreateNotificationTemplateDto } from './dto/create-notification-template.dto';

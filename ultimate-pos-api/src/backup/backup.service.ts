@@ -7,7 +7,15 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { createWriteStream, createReadStream, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'fs';
+import {
+  createWriteStream,
+  createReadStream,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  statSync,
+  unlinkSync,
+} from 'fs';
 import { join } from 'path';
 import { spawn } from 'child_process';
 import { createGzip, createGunzip } from 'zlib';
@@ -71,7 +79,9 @@ export class BackupService {
   async restoreFromBuffer(buffer: Buffer): Promise<void> {
     const nodeEnv = this.config.get<string>('NODE_ENV', 'production');
     if (nodeEnv === 'production') {
-      throw new BadRequestException('Restore is disabled in production. Use a staging environment.');
+      throw new BadRequestException(
+        'Restore is disabled in production. Use a staging environment.',
+      );
     }
 
     const { host, port, user, password, name } = this.getDbConfig();

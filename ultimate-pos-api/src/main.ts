@@ -31,7 +31,10 @@ async function bootstrap() {
     'http://ultimatepos.local:8080',
   ];
   app.enableCors({
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       // Allow requests with no origin (curl, Postman, server-to-server)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -60,10 +63,7 @@ async function bootstrap() {
       .setTitle('Ultimate POS API')
       .setDescription('REST API for Ultimate POS — NestJS + Prisma')
       .setVersion('1.0')
-      .addBearerAuth(
-        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-        'JWT',
-      )
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document, {

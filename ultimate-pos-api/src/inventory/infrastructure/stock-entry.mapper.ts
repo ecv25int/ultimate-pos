@@ -7,14 +7,16 @@ export class StockEntryMapper {
       businessId: row.businessId,
       productId: row.productId,
       entryType: row.entryType,
-      quantity: typeof row.quantity === 'object' && 'toNumber' in row.quantity
-        ? row.quantity.toNumber()
-        : Number(row.quantity ?? 0),
-      unitCost: row.unitCost != null
-        ? (typeof row.unitCost === 'object' && 'toNumber' in row.unitCost
-          ? row.unitCost.toNumber()
-          : Number(row.unitCost))
-        : null,
+      quantity:
+        typeof row.quantity === 'object' && 'toNumber' in row.quantity
+          ? row.quantity.toNumber()
+          : Number(row.quantity ?? 0),
+      unitCost:
+        row.unitCost != null
+          ? typeof row.unitCost === 'object' && 'toNumber' in row.unitCost
+            ? row.unitCost.toNumber()
+            : Number(row.unitCost)
+          : null,
       referenceNo: row.referenceNo ?? null,
       note: row.note ?? null,
       createdBy: row.createdBy,

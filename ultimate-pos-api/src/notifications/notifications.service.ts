@@ -32,13 +32,7 @@ export class NotificationsService {
   /**
    * Get all notifications for the requesting user (paginated)
    */
-  async findAll(
-    userId: number,
-    businessId: number,
-    unreadOnly = false,
-    page = 1,
-    limit = 20,
-  ) {
+  async findAll(userId: number, businessId: number, unreadOnly = false, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
     const where = {
       userId,
@@ -208,11 +202,7 @@ export class NotificationsService {
                   <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0">
                   <p style="color:#6b7280;font-size:12px">Ultimate POS Notification System</p>
                 </div>`;
-              await this.sendEmail(
-                admin.email,
-                `Low Stock Alert: ${product.name}`,
-                html,
-              );
+              await this.sendEmail(admin.email, `Low Stock Alert: ${product.name}`, html);
             }
 
             // Web push
@@ -299,7 +289,13 @@ export class NotificationsService {
    * Send SMS low-stock alert to admins who have a mobile number.
    * Called alongside sendLowStockAlerts().
    */
-  sendLowStockSms(businessName: string, productName: string, sku: string, currentStock: number, mobile: string): void {
+  sendLowStockSms(
+    businessName: string,
+    productName: string,
+    sku: string,
+    currentStock: number,
+    mobile: string,
+  ): void {
     this.sms.sendAsync({
       to: mobile,
       body: `[${businessName}] Low Stock Alert: ${productName} (${sku}) has only ${currentStock} units left. Please restock.`,

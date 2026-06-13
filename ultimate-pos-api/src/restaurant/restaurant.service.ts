@@ -1,6 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateResTableDto, UpdateResTableDto, CreateBookingDto, UpdateBookingDto } from './dto/restaurant.dto';
+import {
+  CreateResTableDto,
+  UpdateResTableDto,
+  CreateBookingDto,
+  UpdateBookingDto,
+} from './dto/restaurant.dto';
 
 @Injectable()
 export class RestaurantService {
@@ -57,7 +62,10 @@ export class RestaurantService {
 
   // ─── Bookings ──────────────────────────────────────────────────────────────
 
-  async getBookings(businessId: number, filters: { date?: string; status?: string; locationId?: number }) {
+  async getBookings(
+    businessId: number,
+    filters: { date?: string; status?: string; locationId?: number },
+  ) {
     const where: Record<string, unknown> = { businessId };
     if (filters.status) where['bookingStatus'] = filters.status;
     if (filters.locationId) where['locationId'] = filters.locationId;

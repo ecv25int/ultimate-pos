@@ -1,10 +1,26 @@
-import { Controller, Get, Post, Delete, Body, Param, ParseIntPipe, Query, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
 import { HmsService } from './hms.service';
-import { CreateRoomTypeDto, CreateRoomDto, CreateExtraDto, CreateBookingLineDto } from './dto/hms.dto';
+import {
+  CreateRoomTypeDto,
+  CreateRoomDto,
+  CreateExtraDto,
+  CreateBookingLineDto,
+} from './dto/hms.dto';
 
 @Controller('hms')
 @UseGuards(JwtAuthGuard, RolesGuard)

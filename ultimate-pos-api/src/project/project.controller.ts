@@ -1,10 +1,29 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, Query, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
 import { ProjectService } from './project.service';
-import { CreateProjectDto, UpdateProjectDto, CreateTaskDto, UpdateTaskDto, CreateTimeLogDto, CreateCommentDto } from './dto/project.dto';
+import {
+  CreateProjectDto,
+  UpdateProjectDto,
+  CreateTaskDto,
+  UpdateTaskDto,
+  CreateTimeLogDto,
+  CreateCommentDto,
+} from './dto/project.dto';
 
 @Controller('projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -33,7 +52,11 @@ export class ProjectController {
   }
 
   @Patch(':id')
-  updateProject(@Req() req: any, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
+  updateProject(
+    @Req() req: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProjectDto,
+  ) {
     return this.svc.updateProject(id, req.user.businessId, dto);
   }
 
@@ -44,8 +67,16 @@ export class ProjectController {
 
   // Tasks
   @Get('tasks/list')
-  getTasks(@Req() req: any, @Query('projectId') projectId?: string, @Query('status') status?: string) {
-    return this.svc.getTasks(req.user.businessId, projectId ? Number(projectId) : undefined, status);
+  getTasks(
+    @Req() req: any,
+    @Query('projectId') projectId?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.svc.getTasks(
+      req.user.businessId,
+      projectId ? Number(projectId) : undefined,
+      status,
+    );
   }
 
   @Post('tasks')

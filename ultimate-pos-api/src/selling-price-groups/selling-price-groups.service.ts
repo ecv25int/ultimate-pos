@@ -9,7 +9,12 @@ export class SellingPriceGroupsService {
 
   create(businessId: number, dto: CreateSellingPriceGroupDto) {
     return this.prisma.sellingPriceGroup.create({
-      data: { businessId, name: dto.name, description: dto.description, isActive: dto.isActive ?? true },
+      data: {
+        businessId,
+        name: dto.name,
+        description: dto.description,
+        isActive: dto.isActive ?? true,
+      },
     });
   }
 

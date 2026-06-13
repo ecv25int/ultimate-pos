@@ -14,11 +14,7 @@ export class UpdateTransactionUseCase {
     private readonly stateService: TransactionStateService,
   ) {}
 
-  async execute(
-    id: number,
-    businessId: number,
-    dto: UpdateTransactionDto,
-  ): Promise<Transaction> {
+  async execute(id: number, businessId: number, dto: UpdateTransactionDto): Promise<Transaction> {
     const type = dto.type ?? (await this.resolveType(id, businessId));
     const existing = await this.repo.findById(id, businessId, type);
     if (!existing) throw new NotFoundException(`Transaction #${id} not found`);
@@ -32,8 +28,7 @@ export class UpdateTransactionUseCase {
     const totalBeforeTax = dto.totalBeforeTax ?? existing.totalBeforeTax;
     const taxAmount = dto.taxAmount ?? existing.taxAmount;
     const discountAmount = dto.discountAmount ?? existing.discountAmount;
-    const totalAmount =
-      dto.totalAmount ?? Math.max(totalBeforeTax + taxAmount - discountAmount, 0);
+    const totalAmount = dto.totalAmount ?? Math.max(totalBeforeTax + taxAmount - discountAmount, 0);
 
     return this.repo.update(
       id,

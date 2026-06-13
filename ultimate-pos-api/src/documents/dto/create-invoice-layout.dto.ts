@@ -1,6 +1,4 @@
-import {
-  IsString, IsEmail, IsOptional, IsBoolean, IsInt, MaxLength, Min,
-} from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsBoolean, IsInt, MaxLength, Min } from 'class-validator';
 
 export class CreateInvoiceLayoutDto {
   @IsString()

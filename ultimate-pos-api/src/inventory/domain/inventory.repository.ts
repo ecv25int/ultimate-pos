@@ -51,7 +51,12 @@ export interface IInventoryRepository {
   getLowStockItems(businessId: number): Promise<ProductStockInfo[]>;
   getProductHistory(productId: number, businessId: number, limit: number): Promise<StockEntry[]>;
   getSummary(businessId: number): Promise<InventorySummary>;
-  getAdjustments(businessId: number, page: number, limit: number, productId?: number): Promise<PaginatedEntries>;
+  getAdjustments(
+    businessId: number,
+    page: number,
+    limit: number,
+    productId?: number,
+  ): Promise<PaginatedEntries>;
   createEntry(businessId: number, userId: number, data: CreateEntryData): Promise<StockEntry>;
   deleteEntry(entryId: number, businessId: number): Promise<void>;
   findProduct(productId: number, businessId: number): Promise<ProductInfo | null>;

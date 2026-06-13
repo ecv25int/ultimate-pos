@@ -1,8 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  CreateLeaveTypeDto, CreateLeaveDto, UpdateLeaveStatusDto,
-  CreatePayrollDto, CreateDocumentDto, CreateReminderDto,
+  CreateLeaveTypeDto,
+  CreateLeaveDto,
+  UpdateLeaveStatusDto,
+  CreatePayrollDto,
+  CreateDocumentDto,
+  CreateReminderDto,
 } from './dto/essentials.dto';
 
 @Injectable()
@@ -125,8 +129,15 @@ export class EssentialsService {
       this.prisma.essentialsLeave.count({ where: { businessId, status: 'pending' } }),
       this.prisma.essentialsLeave.count({ where: { businessId, userId, status: 'approved' } }),
       this.prisma.essentialsPayroll.count({ where: { businessId, userId } }),
-      this.prisma.essentialsReminder.count({ where: { businessId, userId, date: { gte: new Date() } } }),
+      this.prisma.essentialsReminder.count({
+        where: { businessId, userId, date: { gte: new Date() } },
+      }),
     ]);
-    return { pendingLeaves, myApprovedLeaves: approvedLeaves, myPayrolls: payrolls, upcomingReminders: reminders };
+    return {
+      pendingLeaves,
+      myApprovedLeaves: approvedLeaves,
+      myPayrolls: payrolls,
+      upcomingReminders: reminders,
+    };
   }
 }

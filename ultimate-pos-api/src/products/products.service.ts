@@ -1,11 +1,7 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -79,16 +75,49 @@ export class ProductsService {
       }
     }
 
-    // Check if SKU already exists in the business
-    const existingSku = await this.prisma.product.findFirst({
-      where: {
-        sku: createProductDto.sku,
-        businessId,
-      },
-    });
+    let sku = createProductDto.sku;
+    if (!sku || sku.trim() === '') {
+      const business = await this.prisma.business.findUnique({
+        where: { id: businessId },
+      });
+      const prefix = business
+        ? business.name
+            .slice(0, 3)
+            .toUpperCase()
+            .replace(/[^A-Z]/g, '')
+        : 'PROD';
 
-    if (existingSku) {
-      throw new BadRequestException('SKU already exists in your business');
+      const lastProduct = await this.prisma.product.findFirst({
+        where: { businessId },
+        orderBy: { id: 'desc' },
+      });
+      const nextId = (lastProduct?.id ?? 0) + 1;
+      sku = `${prefix}${String(nextId).padStart(4, '0')}`;
+
+      let isUnique = false;
+      let counter = 0;
+      while (!isUnique) {
+        const dup = await this.prisma.product.findFirst({
+          where: { sku, businessId },
+        });
+        if (!dup) {
+          isUnique = true;
+        } else {
+          counter++;
+          sku = `${prefix}${String(nextId + counter).padStart(4, '0')}`;
+        }
+      }
+    } else {
+      const existingSku = await this.prisma.product.findFirst({
+        where: {
+          sku,
+          businessId,
+        },
+      });
+
+      if (existingSku) {
+        throw new BadRequestException('SKU already exists in your business');
+      }
     }
 
     const created = await this.prisma.product.create({
@@ -99,7 +128,7 @@ export class ProductsService {
         brandId: createProductDto.brandId,
         categoryId: createProductDto.categoryId,
         subCategoryId: createProductDto.subCategoryId,
-        sku: createProductDto.sku,
+        sku,
         barcodeType: createProductDto.barcodeType || 'C128',
         enableStock: createProductDto.enableStock ?? false,
         alertQuantity: createProductDto.alertQuantity ?? 0,
@@ -202,16 +231,15 @@ export class ProductsService {
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
 
-    const where: any = { businessId };
-    if (query) {
-      where.OR = [
-        { name: { contains: query } },
-        { sku: { contains: query } },
-      ];
-    }
-    if (categoryId) where.categoryId = categoryId;
-    if (brandId) where.brandId = brandId;
-    if (type) where.type = type;
+    const where: Prisma.ProductWhereInput = {
+      businessId,
+      ...(query && {
+        OR: [{ name: { contains: query } }, { sku: { contains: query } }],
+      }),
+      ...(categoryId && { categoryId }),
+      ...(brandId && { brandId }),
+      ...(type && { type }),
+    };
 
     const include = {
       unit: { select: { id: true, shortName: true } },
@@ -220,7 +248,13 @@ export class ProductsService {
     };
 
     const [products, total] = await Promise.all([
-      this.prisma.product.findMany({ where, include, orderBy: { name: 'asc' }, skip, take: safeLimit }),
+      this.prisma.product.findMany({
+        where,
+        include,
+        orderBy: { name: 'asc' },
+        skip,
+        take: safeLimit,
+      }),
       this.prisma.product.count({ where }),
     ]);
 
@@ -254,12 +288,18 @@ export class ProductsService {
     const results: { id: number; updated: boolean }[] = [];
     await Promise.all(
       updates.map(async ({ variationId, defaultSellPrice }) => {
-        if (defaultSellPrice < 0) { results.push({ id: variationId, updated: false }); return; }
+        if (defaultSellPrice < 0) {
+          results.push({ id: variationId, updated: false });
+          return;
+        }
         // Verify the variation belongs to a product of this business
         const variation = await this.prisma.variation.findFirst({
           where: { id: variationId, product: { businessId } },
         });
-        if (!variation) { results.push({ id: variationId, updated: false }); return; }
+        if (!variation) {
+          results.push({ id: variationId, updated: false });
+          return;
+        }
         await this.prisma.variation.update({
           where: { id: variationId },
           data: { defaultSellPrice },
@@ -485,28 +525,47 @@ export class ProductsService {
     });
 
     const headers = [
-      'id', 'name', 'sku', 'type', 'barcode_type',
-      'unit_id', 'unit_name',
-      'brand_id', 'brand_name',
-      'category_id', 'category_name',
-      'enable_stock', 'alert_quantity',
+      'id',
+      'name',
+      'sku',
+      'type',
+      'barcode_type',
+      'unit_id',
+      'unit_name',
+      'brand_id',
+      'brand_name',
+      'category_id',
+      'category_name',
+      'enable_stock',
+      'alert_quantity',
     ];
 
-    const escape = (v: unknown) => {
-      const s = String(v ?? '');
+    const escape = (v: string | number | boolean | null | undefined) => {
+      const s = v === null || v === undefined ? '' : String(v);
       return s.includes(',') || s.includes('"') || s.includes('\n')
         ? `"${s.replace(/"/g, '""')}"`
         : s;
     };
 
-    const rows = products.map((p) => [
-      p.id, p.name, p.sku, p.type, p.barcodeType,
-      p.unit?.id ?? '', p.unit?.actualName ?? '',
-      p.brand?.id ?? '', p.brand?.name ?? '',
-      p.category?.id ?? '', p.category?.name ?? '',
-      p.enableStock ? 'true' : 'false',
-      Number(p.alertQuantity),
-    ].map(escape).join(','));
+    const rows = products.map((p) =>
+      [
+        p.id,
+        p.name,
+        p.sku,
+        p.type,
+        p.barcodeType,
+        p.unit?.id ?? '',
+        p.unit?.actualName ?? '',
+        p.brand?.id ?? '',
+        p.brand?.name ?? '',
+        p.category?.id ?? '',
+        p.category?.name ?? '',
+        p.enableStock ? 'true' : 'false',
+        Number(p.alertQuantity),
+      ]
+        .map(escape)
+        .join(','),
+    );
 
     return [headers.join(','), ...rows].join('\n');
   }
@@ -529,7 +588,8 @@ export class ProductsService {
         trim: true,
       });
     } catch (e) {
-      throw new BadRequestException('Invalid CSV file: ' + e.message);
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new BadRequestException('Invalid CSV file: ' + msg);
     }
 
     let created = 0;
@@ -584,7 +644,8 @@ export class ProductsService {
         });
         created++;
       } catch (e) {
-        errors.push(`Row ${rowNum}: failed to create — ${e.message}`);
+        const msg = e instanceof Error ? e.message : String(e);
+        errors.push(`Row ${rowNum}: failed to create — ${msg}`);
         skipped++;
       }
     }
@@ -606,11 +667,7 @@ export class ProductsService {
 
     // Delete old image file if it existed
     if (product.imageUrl) {
-      const oldFile = join(
-        process.cwd(),
-        'public',
-        product.imageUrl.replace(/^\/static\//, ''),
-      );
+      const oldFile = join(process.cwd(), 'public', product.imageUrl.replace(/^\/static\//, ''));
       if (existsSync(oldFile)) unlinkSync(oldFile);
     }
 
@@ -631,11 +688,7 @@ export class ProductsService {
     if (!product) throw new NotFoundException('Product not found');
     if (!product.imageUrl) return { message: 'No image to remove' };
 
-    const filePath = join(
-      process.cwd(),
-      'public',
-      product.imageUrl.replace(/^\/static\//, ''),
-    );
+    const filePath = join(process.cwd(), 'public', product.imageUrl.replace(/^\/static\//, ''));
     if (existsSync(filePath)) unlinkSync(filePath);
 
     await this.prisma.product.update({

@@ -27,19 +27,44 @@ export class PrismaTransactionRepository implements ITransactionRepository {
 
   async create(data: CreateTransactionData): Promise<Transaction> {
     const {
-      type, businessId, userId, refNo, status, contactId, locationId,
-      paymentStatus, note, date, totalBeforeTax, taxAmount, discountAmount, totalAmount,
-      expenseCategoryId, productId, quantity, fromLocation, toLocation, adjustmentType,
+      type,
+      businessId,
+      userId,
+      refNo,
+      status,
+      contactId,
+      locationId,
+      paymentStatus,
+      note,
+      date,
+      totalBeforeTax,
+      taxAmount,
+      discountAmount,
+      totalAmount,
+      expenseCategoryId,
+      productId,
+      quantity,
+      fromLocation,
+      toLocation,
+      adjustmentType,
     } = data;
 
     switch (type) {
       case 'sale': {
         const row = await this.prisma.sale.create({
           data: {
-            businessId, contactId: contactId ?? null, invoiceNo: refNo, status,
+            businessId,
+            contactId: contactId ?? null,
+            invoiceNo: refNo,
+            status,
             paymentStatus: paymentStatus ?? 'due',
-            taxAmount, discountAmount, totalAmount, note: note ?? null,
-            transactionDate: date, type: 'sale', createdBy: userId,
+            taxAmount,
+            discountAmount,
+            totalAmount,
+            note: note ?? null,
+            transactionDate: date,
+            type: 'sale',
+            createdBy: userId,
           },
           include: SALE_INCLUDE,
         });
@@ -48,10 +73,18 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       case 'purchase': {
         const row = await this.prisma.purchase.create({
           data: {
-            businessId, contactId: contactId ?? null, refNo, status,
+            businessId,
+            contactId: contactId ?? null,
+            refNo,
+            status,
             paymentStatus: paymentStatus ?? 'due',
-            taxAmount, discountAmount, totalAmount, note: note ?? null,
-            purchaseDate: date, type: 'purchase', createdBy: userId,
+            taxAmount,
+            discountAmount,
+            totalAmount,
+            note: note ?? null,
+            purchaseDate: date,
+            type: 'purchase',
+            createdBy: userId,
           },
           include: PURCHASE_INCLUDE,
         });
@@ -60,9 +93,15 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       case 'expense': {
         const row = await this.prisma.expense.create({
           data: {
-            businessId, expenseCategoryId: expenseCategoryId ?? null,
-            refNo, amount: totalBeforeTax, taxAmount, totalAmount,
-            note: note ?? null, expenseDate: date, createdBy: userId,
+            businessId,
+            expenseCategoryId: expenseCategoryId ?? null,
+            refNo,
+            amount: totalBeforeTax,
+            taxAmount,
+            totalAmount,
+            note: note ?? null,
+            expenseDate: date,
+            createdBy: userId,
           },
           include: EXPENSE_INCLUDE,
         });
@@ -71,9 +110,15 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       case 'stock_transfer': {
         const row = await this.prisma.stockTransfer.create({
           data: {
-            businessId, productId: productId!, quantity: quantity!,
-            fromLocation: fromLocation!, toLocation: toLocation!,
-            referenceNo: refNo, note: note ?? null, status, createdBy: userId,
+            businessId,
+            productId: productId!,
+            quantity: quantity!,
+            fromLocation: fromLocation!,
+            toLocation: toLocation!,
+            referenceNo: refNo,
+            note: note ?? null,
+            status,
+            createdBy: userId,
           },
           include: TRANSFER_INCLUDE,
         });
@@ -82,9 +127,13 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       case 'stock_adjustment': {
         const row = await this.prisma.stockAdjustment.create({
           data: {
-            businessId, locationId: locationId ?? null, referenceNo: refNo,
+            businessId,
+            locationId: locationId ?? null,
+            referenceNo: refNo,
             adjustmentType: adjustmentType ?? 'normal',
-            totalAmount, note: note ?? null, status,
+            totalAmount,
+            note: note ?? null,
+            status,
             finalised: status !== 'draft',
             finalisedAt: status !== 'draft' ? date : null,
             createdBy: userId,
@@ -143,10 +192,7 @@ export class PrismaTransactionRepository implements ITransactionRepository {
     }
   }
 
-  async findAll(
-    businessId: number,
-    filters: TransactionFilters,
-  ): Promise<PaginatedTransactions> {
+  async findAll(businessId: number, filters: TransactionFilters): Promise<PaginatedTransactions> {
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;
     const types = filters.type ? [filters.type] : [...TRANSACTION_TYPES];
@@ -155,9 +201,7 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       types.map((type) => this.queryByType(type, businessId, filters)),
     );
 
-    const items = collections
-      .flat()
-      .sort((a, b) => b.date.getTime() - a.date.getTime());
+    const items = collections.flat().sort((a, b) => b.date.getTime() - a.date.getTime());
 
     const start = (page - 1) * limit;
     const data = items.slice(start, start + limit);
@@ -181,9 +225,21 @@ export class PrismaTransactionRepository implements ITransactionRepository {
     if (!resolvedType) throw new NotFoundException(`Transaction #${id} not found`);
 
     const {
-      contactId, locationId, paymentStatus, note, date,
-      totalBeforeTax, taxAmount, discountAmount, totalAmount,
-      expenseCategoryId, productId, quantity, fromLocation, toLocation, adjustmentType,
+      contactId,
+      locationId,
+      paymentStatus,
+      note,
+      date,
+      totalBeforeTax,
+      taxAmount,
+      discountAmount,
+      totalAmount,
+      expenseCategoryId,
+      productId,
+      quantity,
+      fromLocation,
+      toLocation,
+      adjustmentType,
     } = data;
 
     switch (resolvedType) {
@@ -266,9 +322,8 @@ export class PrismaTransactionRepository implements ITransactionRepository {
     const resolvedType = type ?? (await this.inferType(id, businessId));
     if (!resolvedType) throw new NotFoundException(`Transaction #${id} not found`);
 
-    const persistedStatus = newStatus === 'final'
-      ? this.stateService.finalStatusForType(resolvedType)
-      : newStatus;
+    const persistedStatus =
+      newStatus === 'final' ? this.stateService.finalStatusForType(resolvedType) : newStatus;
 
     switch (resolvedType) {
       case 'sale':
@@ -283,7 +338,10 @@ export class PrismaTransactionRepository implements ITransactionRepository {
         }
         break;
       case 'stock_transfer':
-        await this.prisma.stockTransfer.update({ where: { id }, data: { status: persistedStatus } });
+        await this.prisma.stockTransfer.update({
+          where: { id },
+          data: { status: persistedStatus },
+        });
         break;
       case 'stock_adjustment': {
         const isFinal = ['received', 'final'].includes(persistedStatus);
@@ -375,17 +433,26 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       case 'sale': {
         const rows = await this.prisma.sale.findMany({
           where: {
-            businessId, deletedAt: null,
+            businessId,
+            deletedAt: null,
             ...(status ? { status } : {}),
-            ...(search ? { OR: [
-              { invoiceNo: { contains: search } },
-              { note: { contains: search } },
-              { contact: { name: { contains: search } } },
-            ]} : {}),
-            ...(from || to ? { transactionDate: {
-              ...(from ? { gte: new Date(from) } : {}),
-              ...(to ? { lte: new Date(to) } : {}),
-            }} : {}),
+            ...(search
+              ? {
+                  OR: [
+                    { invoiceNo: { contains: search } },
+                    { note: { contains: search } },
+                    { contact: { name: { contains: search } } },
+                  ],
+                }
+              : {}),
+            ...(from || to
+              ? {
+                  transactionDate: {
+                    ...(from ? { gte: new Date(from) } : {}),
+                    ...(to ? { lte: new Date(to) } : {}),
+                  },
+                }
+              : {}),
           },
           include: SALE_INCLUDE,
           orderBy: { transactionDate: 'desc' },
@@ -395,17 +462,26 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       case 'purchase': {
         const rows = await this.prisma.purchase.findMany({
           where: {
-            businessId, deletedAt: null,
+            businessId,
+            deletedAt: null,
             ...(status ? { status } : {}),
-            ...(search ? { OR: [
-              { refNo: { contains: search } },
-              { note: { contains: search } },
-              { contact: { name: { contains: search } } },
-            ]} : {}),
-            ...(from || to ? { purchaseDate: {
-              ...(from ? { gte: new Date(from) } : {}),
-              ...(to ? { lte: new Date(to) } : {}),
-            }} : {}),
+            ...(search
+              ? {
+                  OR: [
+                    { refNo: { contains: search } },
+                    { note: { contains: search } },
+                    { contact: { name: { contains: search } } },
+                  ],
+                }
+              : {}),
+            ...(from || to
+              ? {
+                  purchaseDate: {
+                    ...(from ? { gte: new Date(from) } : {}),
+                    ...(to ? { lte: new Date(to) } : {}),
+                  },
+                }
+              : {}),
           },
           include: PURCHASE_INCLUDE,
           orderBy: { purchaseDate: 'desc' },
@@ -417,14 +493,17 @@ export class PrismaTransactionRepository implements ITransactionRepository {
           where: {
             businessId,
             ...(status === 'cancelled' ? { deletedAt: { not: null } } : { deletedAt: null }),
-            ...(search ? { OR: [
-              { refNo: { contains: search } },
-              { note: { contains: search } },
-            ]} : {}),
-            ...(from || to ? { expenseDate: {
-              ...(from ? { gte: new Date(from) } : {}),
-              ...(to ? { lte: new Date(to) } : {}),
-            }} : {}),
+            ...(search
+              ? { OR: [{ refNo: { contains: search } }, { note: { contains: search } }] }
+              : {}),
+            ...(from || to
+              ? {
+                  expenseDate: {
+                    ...(from ? { gte: new Date(from) } : {}),
+                    ...(to ? { lte: new Date(to) } : {}),
+                  },
+                }
+              : {}),
           },
           include: EXPENSE_INCLUDE,
           orderBy: { expenseDate: 'desc' },
@@ -436,15 +515,23 @@ export class PrismaTransactionRepository implements ITransactionRepository {
           where: {
             businessId,
             ...(status ? { status } : {}),
-            ...(search ? { OR: [
-              { referenceNo: { contains: search } },
-              { note: { contains: search } },
-              { product: { name: { contains: search } } },
-            ]} : {}),
-            ...(from || to ? { createdAt: {
-              ...(from ? { gte: new Date(from) } : {}),
-              ...(to ? { lte: new Date(to) } : {}),
-            }} : {}),
+            ...(search
+              ? {
+                  OR: [
+                    { referenceNo: { contains: search } },
+                    { note: { contains: search } },
+                    { product: { name: { contains: search } } },
+                  ],
+                }
+              : {}),
+            ...(from || to
+              ? {
+                  createdAt: {
+                    ...(from ? { gte: new Date(from) } : {}),
+                    ...(to ? { lte: new Date(to) } : {}),
+                  },
+                }
+              : {}),
           },
           include: TRANSFER_INCLUDE,
           orderBy: { createdAt: 'desc' },
@@ -456,14 +543,17 @@ export class PrismaTransactionRepository implements ITransactionRepository {
           where: {
             businessId,
             ...(status ? { status } : {}),
-            ...(search ? { OR: [
-              { referenceNo: { contains: search } },
-              { note: { contains: search } },
-            ]} : {}),
-            ...(from || to ? { createdAt: {
-              ...(from ? { gte: new Date(from) } : {}),
-              ...(to ? { lte: new Date(to) } : {}),
-            }} : {}),
+            ...(search
+              ? { OR: [{ referenceNo: { contains: search } }, { note: { contains: search } }] }
+              : {}),
+            ...(from || to
+              ? {
+                  createdAt: {
+                    ...(from ? { gte: new Date(from) } : {}),
+                    ...(to ? { lte: new Date(to) } : {}),
+                  },
+                }
+              : {}),
           },
           include: ADJUSTMENT_INCLUDE,
           orderBy: { createdAt: 'desc' },

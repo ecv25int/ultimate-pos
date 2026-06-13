@@ -7,6 +7,8 @@ import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { WebPushService } from '../push/web-push.service';
 import { CheckAvailabilityUseCase } from '../inventory/application/use-cases/check-availability.use-case';
+import { StockService } from '../inventory/stock.service';
+import { BatchService } from '../inventory/batch.service';
 
 // ─── Shared fixtures ─────────────────────────────────────────────────────────
 
@@ -45,11 +47,11 @@ const mockSale = {
 
 const mockPrismaService = {
   sale: {
-    count:     jest.fn(),
-    create:    jest.fn(),
+    count: jest.fn(),
+    create: jest.fn(),
     findFirst: jest.fn(),
-    findMany:  jest.fn(),
-    update:    jest.fn(),
+    findMany: jest.fn(),
+    update: jest.fn(),
   },
   stockEntry: {
     create: jest.fn().mockResolvedValue({}),
@@ -61,7 +63,14 @@ const mockPrismaService = {
     findFirst: jest.fn(),
     update: jest.fn(),
   },
+  businessLocation: {
+    findFirst: jest.fn().mockResolvedValue({ id: 1, name: 'Main Location' }),
+  },
+  variation: {
+    findFirst: jest.fn().mockResolvedValue({ id: 2 }),
+  },
   $queryRaw: jest.fn(),
+  $transaction: jest.fn((cb) => cb(mockPrismaService)),
 };
 
 const mockCacheManager = {
@@ -96,6 +105,14 @@ describe('SalesService', () => {
         {
           provide: CheckAvailabilityUseCase,
           useValue: { assertAvailable: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: StockService,
+          useValue: { updateStockLevel: jest.fn() },
+        },
+        {
+          provide: BatchService,
+          useValue: { mapPurchaseSell: jest.fn().mockResolvedValue([]) },
         },
       ],
     }).compile();
@@ -135,9 +152,9 @@ describe('SalesService', () => {
     });
 
     it('throws BadRequestException when no lines provided', async () => {
-      await expect(
-        service.create(BUSINESS_ID, USER_ID, { lines: [] } as any),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.create(BUSINESS_ID, USER_ID, { lines: [] } as any)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('sets paymentStatus to PAID when paidAmount >= total', async () => {

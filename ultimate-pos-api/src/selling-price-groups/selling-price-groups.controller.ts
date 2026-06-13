@@ -1,6 +1,14 @@
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete,
-  UseGuards, Request, ParseIntPipe,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { SellingPriceGroupsService } from './selling-price-groups.service';
 import { CreateSellingPriceGroupDto } from './dto/create-selling-price-group.dto';

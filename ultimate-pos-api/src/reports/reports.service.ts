@@ -24,19 +24,18 @@ export class ReportsService {
   }
 
   private async _computeDashboard(businessId: number) {
-    const [totalSales, totalRevenue, totalPurchases, totalSpend] =
-      await Promise.all([
-        this.prisma.sale.count({ where: { businessId, deletedAt: null } }),
-        this.prisma.sale.aggregate({
-          where: { businessId, deletedAt: null },
-          _sum: { totalAmount: true },
-        }),
-        this.prisma.purchase.count({ where: { businessId, deletedAt: null } }),
-        this.prisma.purchase.aggregate({
-          where: { businessId, deletedAt: null },
-          _sum: { totalAmount: true },
-        }),
-      ]);
+    const [totalSales, totalRevenue, totalPurchases, totalSpend] = await Promise.all([
+      this.prisma.sale.count({ where: { businessId, deletedAt: null } }),
+      this.prisma.sale.aggregate({
+        where: { businessId, deletedAt: null },
+        _sum: { totalAmount: true },
+      }),
+      this.prisma.purchase.count({ where: { businessId, deletedAt: null } }),
+      this.prisma.purchase.aggregate({
+        where: { businessId, deletedAt: null },
+        _sum: { totalAmount: true },
+      }),
+    ]);
 
     const stockAgg = await this.prisma.stockEntry.groupBy({
       by: ['productId'],
@@ -48,9 +47,7 @@ export class ReportsService {
       where: { businessId },
       select: { id: true, alertQuantity: true },
     });
-    const alertMap = new Map(
-      productsAlert.map((p) => [p.id, Number(p.alertQuantity ?? 5)]),
-    );
+    const alertMap = new Map(productsAlert.map((p) => [p.id, Number(p.alertQuantity ?? 5)]));
 
     let lowStockCount = 0;
     let outOfStockCount = 0;
@@ -168,10 +165,7 @@ export class ReportsService {
       };
     });
 
-    const totalValue = enriched.reduce(
-      (sum, p) => sum + p.currentStock * p.unitCost,
-      0,
-    );
+    const totalValue = enriched.reduce((sum, p) => sum + p.currentStock * p.unitCost, 0);
 
     return {
       products: enriched.sort((a, b) => a.currentStock - b.currentStock),
@@ -205,11 +199,7 @@ export class ReportsService {
   }
 
   /** Revenue by period (day / month) */
-  async getRevenueByPeriod(
-    businessId: number,
-    groupBy: 'day' | 'month',
-    days: number,
-  ) {
+  async getRevenueByPeriod(businessId: number, groupBy: 'day' | 'month', days: number) {
     const since = new Date();
     since.setDate(since.getDate() - days);
 
@@ -227,7 +217,11 @@ export class ReportsService {
         GROUP BY DATE(transaction_date)
         ORDER BY period ASC
       `;
-      return rows.map((r) => ({ period: r.period, revenue: Number(r.revenue), orders: Number(r.orders) }));
+      return rows.map((r) => ({
+        period: r.period,
+        revenue: Number(r.revenue),
+        orders: Number(r.orders),
+      }));
     } else {
       const rows = await this.prisma.$queryRaw<
         { period: string; revenue: number; orders: bigint }[]
@@ -242,7 +236,11 @@ export class ReportsService {
         GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
         ORDER BY period ASC
       `;
-      return rows.map((r) => ({ period: r.period, revenue: Number(r.revenue), orders: Number(r.orders) }));
+      return rows.map((r) => ({
+        period: r.period,
+        revenue: Number(r.revenue),
+        orders: Number(r.orders),
+      }));
     }
   }
 
@@ -268,26 +266,22 @@ export class ReportsService {
     ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: colCount } };
   }
 
-  async exportSalesExcel(
-    businessId: number,
-    from?: string,
-    to?: string,
-  ): Promise<Buffer> {
+  async exportSalesExcel(businessId: number, from?: string, to?: string): Promise<Buffer> {
     const { sales } = await this.getSalesReport(businessId, from, to);
     const { wb, ws } = this.createWorkbook('Sales Report');
 
     ws.columns = [
-      { header: 'Invoice #',   key: 'invoiceNo',        width: 18 },
-      { header: 'Date',        key: 'date',             width: 14 },
-      { header: 'Customer',    key: 'customer',         width: 24 },
-      { header: 'Status',      key: 'status',           width: 12 },
-      { header: 'Items',       key: 'items',            width: 8  },
-      { header: 'Subtotal',    key: 'subtotal',         width: 14 },
-      { header: 'Discount',    key: 'discount',         width: 12 },
-      { header: 'Tax',         key: 'tax',              width: 12 },
-      { header: 'Total',       key: 'total',            width: 14 },
-      { header: 'Paid',        key: 'paid',             width: 14 },
-      { header: 'Balance Due', key: 'due',              width: 14 },
+      { header: 'Invoice #', key: 'invoiceNo', width: 18 },
+      { header: 'Date', key: 'date', width: 14 },
+      { header: 'Customer', key: 'customer', width: 24 },
+      { header: 'Status', key: 'status', width: 12 },
+      { header: 'Items', key: 'items', width: 8 },
+      { header: 'Subtotal', key: 'subtotal', width: 14 },
+      { header: 'Discount', key: 'discount', width: 12 },
+      { header: 'Tax', key: 'tax', width: 12 },
+      { header: 'Total', key: 'total', width: 14 },
+      { header: 'Paid', key: 'paid', width: 14 },
+      { header: 'Balance Due', key: 'due', width: 14 },
     ];
     this.styleHeaderRow(ws, ws.columns.length);
 
@@ -307,7 +301,7 @@ export class ReportsService {
       });
     }
     // Currency columns
-    ['subtotal','discount','tax','total','paid','due'].forEach((key) => {
+    ['subtotal', 'discount', 'tax', 'total', 'paid', 'due'].forEach((key) => {
       const col = ws.getColumn(key);
       col.numFmt = '"$"#,##0.00';
     });
@@ -316,22 +310,18 @@ export class ReportsService {
     return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
   }
 
-  async exportPurchasesExcel(
-    businessId: number,
-    from?: string,
-    to?: string,
-  ): Promise<Buffer> {
+  async exportPurchasesExcel(businessId: number, from?: string, to?: string): Promise<Buffer> {
     const { purchases } = await this.getPurchasesReport(businessId, from, to);
     const { wb, ws } = this.createWorkbook('Purchases Report');
 
     ws.columns = [
-      { header: 'PO #',        key: 'referenceNo',  width: 18 },
-      { header: 'Date',        key: 'date',         width: 14 },
-      { header: 'Supplier',    key: 'supplier',     width: 24 },
-      { header: 'Status',      key: 'status',       width: 12 },
-      { header: 'Total',       key: 'total',        width: 14 },
-      { header: 'Paid',        key: 'paid',         width: 14 },
-      { header: 'Balance Due', key: 'due',          width: 14 },
+      { header: 'PO #', key: 'referenceNo', width: 18 },
+      { header: 'Date', key: 'date', width: 14 },
+      { header: 'Supplier', key: 'supplier', width: 24 },
+      { header: 'Status', key: 'status', width: 12 },
+      { header: 'Total', key: 'total', width: 14 },
+      { header: 'Paid', key: 'paid', width: 14 },
+      { header: 'Balance Due', key: 'due', width: 14 },
     ];
     this.styleHeaderRow(ws, ws.columns.length);
 
@@ -346,7 +336,7 @@ export class ReportsService {
         due: Math.max(Number(p.totalAmount) - Number(p.paidAmount ?? 0), 0),
       });
     }
-    ['total','paid','due'].forEach((key) => {
+    ['total', 'paid', 'due'].forEach((key) => {
       ws.getColumn(key).numFmt = '"$"#,##0.00';
     });
 
@@ -358,15 +348,15 @@ export class ReportsService {
     const { wb, ws } = this.createWorkbook('Stock Report');
 
     ws.columns = [
-      { header: 'SKU',          key: 'sku',          width: 16 },
-      { header: 'Product',      key: 'name',         width: 32 },
-      { header: 'Category',     key: 'category',     width: 18 },
-      { header: 'Unit',         key: 'unit',         width: 10 },
-      { header: 'Stock Qty',    key: 'qty',          width: 12 },
-      { header: 'Alert Qty',    key: 'alert',        width: 12 },
-      { header: 'Unit Cost',    key: 'cost',         width: 14 },
-      { header: 'Total Value',  key: 'value',        width: 16 },
-      { header: 'Status',       key: 'status',       width: 12 },
+      { header: 'SKU', key: 'sku', width: 16 },
+      { header: 'Product', key: 'name', width: 32 },
+      { header: 'Category', key: 'category', width: 18 },
+      { header: 'Unit', key: 'unit', width: 10 },
+      { header: 'Stock Qty', key: 'qty', width: 12 },
+      { header: 'Alert Qty', key: 'alert', width: 12 },
+      { header: 'Unit Cost', key: 'cost', width: 14 },
+      { header: 'Total Value', key: 'value', width: 16 },
+      { header: 'Status', key: 'status', width: 12 },
     ];
     this.styleHeaderRow(ws, ws.columns.length);
 
@@ -401,7 +391,7 @@ export class ReportsService {
       }
     }
 
-    ['cost','value'].forEach((key) => {
+    ['cost', 'value'].forEach((key) => {
       ws.getColumn(key).numFmt = '"$"#,##0.00';
     });
 
@@ -415,7 +405,7 @@ export class ReportsService {
     if (from || to) {
       where.expenseDate = {};
       if (from) where.expenseDate.gte = new Date(from);
-      if (to)   where.expenseDate.lte = new Date(to);
+      if (to) where.expenseDate.lte = new Date(to);
     }
 
     const [expenses, summary, byCategory] = await Promise.all([
@@ -455,7 +445,9 @@ export class ReportsService {
       },
       byCategory: byCategory.map((r) => ({
         categoryId: r.expenseCategoryId,
-        categoryName: r.expenseCategoryId ? (catMap[r.expenseCategoryId] ?? 'Unknown') : 'Uncategorised',
+        categoryName: r.expenseCategoryId
+          ? (catMap[r.expenseCategoryId] ?? 'Unknown')
+          : 'Uncategorised',
         total: Number(r._sum.totalAmount ?? 0),
         count: r._count.id,
       })),
@@ -470,33 +462,33 @@ export class ReportsService {
     if (from || to) {
       const range: any = {};
       if (from) range.gte = new Date(from);
-      if (to)   range.lte = new Date(to);
+      if (to) range.lte = new Date(to);
       saleWhere.transactionDate = range;
       purchaseWhere.purchaseDate = range;
     }
 
-    const [saleTax, purchaseTax, expenseTax, saleCount, purchaseCount] =
-      await Promise.all([
-        this.prisma.sale.aggregate({
-          where: saleWhere,
-          _sum: { taxAmount: true, totalAmount: true },
-          _count: { id: true },
-        }),
-        this.prisma.purchase.aggregate({
-          where: purchaseWhere,
-          _sum: { taxAmount: true, totalAmount: true },
-          _count: { id: true },
-        }),
-        this.prisma.expense.aggregate({
-          where: { ...saleWhere, expenseDate: saleWhere.transactionDate },
-          _sum: { taxAmount: true },
-        }),
-        this.prisma.sale.count({ where: saleWhere }),
-        this.prisma.purchase.count({ where: purchaseWhere }),
-      ]);
+    const [saleTax, purchaseTax, expenseTax, saleCount, purchaseCount] = await Promise.all([
+      this.prisma.sale.aggregate({
+        where: saleWhere,
+        _sum: { taxAmount: true, totalAmount: true },
+        _count: { id: true },
+      }),
+      this.prisma.purchase.aggregate({
+        where: purchaseWhere,
+        _sum: { taxAmount: true, totalAmount: true },
+        _count: { id: true },
+      }),
+      this.prisma.expense.aggregate({
+        where: { ...saleWhere, expenseDate: saleWhere.transactionDate },
+        _sum: { taxAmount: true },
+      }),
+      this.prisma.sale.count({ where: saleWhere }),
+      this.prisma.purchase.count({ where: purchaseWhere }),
+    ]);
 
-    const taxCollected  = Number(saleTax._sum.taxAmount ?? 0);
-    const taxPaid       = Number(purchaseTax._sum.taxAmount ?? 0) + Number(expenseTax._sum.taxAmount ?? 0);
+    const taxCollected = Number(saleTax._sum.taxAmount ?? 0);
+    const taxPaid =
+      Number(purchaseTax._sum.taxAmount ?? 0) + Number(expenseTax._sum.taxAmount ?? 0);
     const netTaxLiability = taxCollected - taxPaid;
 
     return {
@@ -513,17 +505,17 @@ export class ReportsService {
   // ─── Profit & Loss ───────────────────────────────────────────────────────────
 
   async getProfitLoss(businessId: number, from?: string, to?: string) {
-    const saleWhere: any    = { businessId, deletedAt: null };
+    const saleWhere: any = { businessId, deletedAt: null };
     const purchaseWhere: any = { businessId, deletedAt: null };
-    const expenseWhere: any  = { businessId, deletedAt: null };
+    const expenseWhere: any = { businessId, deletedAt: null };
 
     if (from || to) {
       const range: any = {};
       if (from) range.gte = new Date(from);
-      if (to)   range.lte = new Date(to);
-      saleWhere.transactionDate    = range;
-      purchaseWhere.purchaseDate   = range;
-      expenseWhere.expenseDate     = range;
+      if (to) range.lte = new Date(to);
+      saleWhere.transactionDate = range;
+      purchaseWhere.purchaseDate = range;
+      expenseWhere.expenseDate = range;
     }
 
     const [revenue, cogs, expenses] = await Promise.all([
@@ -541,13 +533,13 @@ export class ReportsService {
       }),
     ]);
 
-    const grossRevenue     = Number(revenue._sum.totalAmount ?? 0);
-    const totalCOGS        = Number(cogs._sum.totalAmount ?? 0);
-    const totalExpenses    = Number(expenses._sum.totalAmount ?? 0);
-    const grossProfit      = grossRevenue - totalCOGS;
-    const netProfit        = grossProfit - totalExpenses;
-    const grossMarginPct   = grossRevenue > 0 ? (grossProfit / grossRevenue) * 100 : 0;
-    const netMarginPct     = grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0;
+    const grossRevenue = Number(revenue._sum.totalAmount ?? 0);
+    const totalCOGS = Number(cogs._sum.totalAmount ?? 0);
+    const totalExpenses = Number(expenses._sum.totalAmount ?? 0);
+    const grossProfit = grossRevenue - totalCOGS;
+    const netProfit = grossProfit - totalExpenses;
+    const grossMarginPct = grossRevenue > 0 ? (grossProfit / grossRevenue) * 100 : 0;
+    const netMarginPct = grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0;
 
     return {
       grossRevenue,
@@ -556,7 +548,7 @@ export class ReportsService {
       totalExpenses,
       netProfit,
       grossMarginPct: Math.round(grossMarginPct * 100) / 100,
-      netMarginPct:   Math.round(netMarginPct * 100) / 100,
+      netMarginPct: Math.round(netMarginPct * 100) / 100,
     };
   }
 
@@ -655,8 +647,16 @@ export class ReportsService {
 
       // ── Header ──────────────────────────────────────────────────────────────
       doc.rect(40, 30, pageWidth, 42).fill('#3F51B5');
-      doc.fillColor('#ffffff').fontSize(16).font('Helvetica-Bold').text(title, 50, 38, { width: pageWidth - 20 });
-      doc.fillColor('#ccd3ff').fontSize(9).font('Helvetica').text(subtitle, 50, 57, { width: pageWidth - 20 });
+      doc
+        .fillColor('#ffffff')
+        .fontSize(16)
+        .font('Helvetica-Bold')
+        .text(title, 50, 38, { width: pageWidth - 20 });
+      doc
+        .fillColor('#ccd3ff')
+        .fontSize(9)
+        .font('Helvetica')
+        .text(subtitle, 50, 57, { width: pageWidth - 20 });
       doc.fillColor('#111827');
 
       // ── Column header row ────────────────────────────────────────────────────
@@ -671,7 +671,10 @@ export class ReportsService {
       doc.fillColor('#1a237e').fontSize(9).font('Helvetica-Bold');
       let xPos = 40;
       headers.forEach((h, i) => {
-        doc.text(h, xPos + 4, tableTop + 6, { width: scaledWidths[i] - 8, align: i > 0 ? 'right' : 'left' });
+        doc.text(h, xPos + 4, tableTop + 6, {
+          width: scaledWidths[i] - 8,
+          align: i > 0 ? 'right' : 'left',
+        });
         xPos += scaledWidths[i];
       });
 
@@ -688,7 +691,10 @@ export class ReportsService {
         doc.fillColor('#111827');
         xPos = 40;
         row.forEach((cell, i) => {
-          doc.text(cell ?? '', xPos + 4, y + 6, { width: scaledWidths[i] - 8, align: i > 0 ? 'right' : 'left' });
+          doc.text(cell ?? '', xPos + 4, y + 6, {
+            width: scaledWidths[i] - 8,
+            align: i > 0 ? 'right' : 'left',
+          });
           xPos += scaledWidths[i];
         });
         y += rowH;
@@ -709,9 +715,13 @@ export class ReportsService {
       }
 
       // ── Footer ───────────────────────────────────────────────────────────────
-      doc.fontSize(8).font('Helvetica').fillColor('#9ca3af')
+      doc
+        .fontSize(8)
+        .font('Helvetica')
+        .fillColor('#9ca3af')
         .text(`Generated on ${new Date().toLocaleString()}`, 40, doc.page.height - 30, {
-          width: pageWidth, align: 'center',
+          width: pageWidth,
+          align: 'center',
         });
 
       doc.end();
@@ -773,7 +783,8 @@ export class ReportsService {
     const headers = ['SKU', 'Product', 'Category', 'Unit', 'Stock', 'Alert', 'Value', 'Status'];
     const colWidths = [12, 25, 15, 8, 8, 8, 12, 10];
     const rows = (products as any[]).map((p) => {
-      const status = p.currentStock <= 0 ? 'Out' : p.currentStock <= (p.alertQuantity ?? 5) ? 'Low' : 'OK';
+      const status =
+        p.currentStock <= 0 ? 'Out' : p.currentStock <= (p.alertQuantity ?? 5) ? 'Low' : 'OK';
       return [
         p.sku ?? '—',
         p.name,
@@ -791,7 +802,14 @@ export class ReportsService {
       `Total Stock Value: $${Number(totalValue).toFixed(2)}`,
     ];
 
-    return this.buildPdf('Stock Report', `As of ${new Date().toLocaleDateString()}`, headers, colWidths, rows, summaryLines);
+    return this.buildPdf(
+      'Stock Report',
+      `As of ${new Date().toLocaleDateString()}`,
+      headers,
+      colWidths,
+      rows,
+      summaryLines,
+    );
   }
 
   async exportExpensesPdf(businessId: number, from?: string, to?: string): Promise<Buffer> {
@@ -855,4 +873,3 @@ export class ReportsService {
     return this.buildPdf('Profit & Loss Statement', subtitle, headers, colWidths, rows);
   }
 }
-

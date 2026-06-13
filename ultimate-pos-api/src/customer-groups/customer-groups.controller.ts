@@ -1,6 +1,14 @@
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete,
-  UseGuards, Request, ParseIntPipe,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CustomerGroupsService } from './customer-groups.service';
 import { CreateCustomerGroupDto } from './dto/create-customer-group.dto';

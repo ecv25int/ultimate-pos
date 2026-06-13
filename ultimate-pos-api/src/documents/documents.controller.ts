@@ -83,10 +83,7 @@ export class DocumentsController {
    */
   @Get('invoice/:saleId')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER)
-  getInvoiceData(
-    @Param('saleId', ParseIntPipe) saleId: number,
-    @Request() req: any,
-  ) {
+  getInvoiceData(@Param('saleId', ParseIntPipe) saleId: number, @Request() req: any) {
     return this.documentsService.getInvoiceData(saleId, req.user.businessId);
   }
 
@@ -101,10 +98,7 @@ export class DocumentsController {
     @Request() req: any,
     @Res() res: Response,
   ) {
-    const html = await this.documentsService.generateReceiptHtml(
-      saleId,
-      req.user.businessId,
-    );
+    const html = await this.documentsService.generateReceiptHtml(saleId, req.user.businessId);
     res.set({
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-cache',

@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserRole } from '../auth/enums/user-role.enum';
@@ -25,18 +24,24 @@ export class RolesService {
     // Use PermissionGuard logic
     const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
       [UserRole.ADMIN]: [
-        'sales.view', 'sales.create', 'sales.update', 'sales.delete',
-        'purchase.view', 'purchase.create', 'purchase.update',
+        'sales.view',
+        'sales.create',
+        'sales.update',
+        'sales.delete',
+        'purchase.view',
+        'purchase.create',
+        'purchase.update',
         'reports.view',
       ],
       [UserRole.MANAGER]: [
-        'sales.view', 'sales.create', 'sales.update',
-        'purchase.view', 'purchase.create',
+        'sales.view',
+        'sales.create',
+        'sales.update',
+        'purchase.view',
+        'purchase.create',
         'reports.view',
       ],
-      [UserRole.CASHIER]: [
-        'sales.view', 'sales.create',
-      ],
+      [UserRole.CASHIER]: ['sales.view', 'sales.create'],
       [UserRole.USER]: [],
       [UserRole.SUPERADMIN]: [], // Superadmin bypasses all
     };
@@ -45,19 +50,31 @@ export class RolesService {
 
   async listRoles() {
     return [
-      { name: 'admin', permissions: [
-        'sales.view', 'sales.create', 'sales.update', 'sales.delete',
-        'purchase.view', 'purchase.create', 'purchase.update',
-        'reports.view',
-      ] },
-      { name: 'manager', permissions: [
-        'sales.view', 'sales.create', 'sales.update',
-        'purchase.view', 'purchase.create',
-        'reports.view',
-      ] },
-      { name: 'cashier', permissions: [
-        'sales.view', 'sales.create',
-      ] },
+      {
+        name: 'admin',
+        permissions: [
+          'sales.view',
+          'sales.create',
+          'sales.update',
+          'sales.delete',
+          'purchase.view',
+          'purchase.create',
+          'purchase.update',
+          'reports.view',
+        ],
+      },
+      {
+        name: 'manager',
+        permissions: [
+          'sales.view',
+          'sales.create',
+          'sales.update',
+          'purchase.view',
+          'purchase.create',
+          'reports.view',
+        ],
+      },
+      { name: 'cashier', permissions: ['sales.view', 'sales.create'] },
       { name: 'user', permissions: [] },
     ];
   }

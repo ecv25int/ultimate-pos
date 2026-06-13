@@ -43,7 +43,11 @@ export interface IPaymentRepository {
   findSale(saleId: number, businessId: number): Promise<TransactionRef | null>;
   findPurchase(purchaseId: number, businessId: number): Promise<TransactionRef | null>;
   updateSalePaymentStatus(saleId: number, paidAmount: number, paymentStatus: string): Promise<void>;
-  updatePurchasePaymentStatus(purchaseId: number, paidAmount: number, paymentStatus: string): Promise<void>;
+  updatePurchasePaymentStatus(
+    purchaseId: number,
+    paidAmount: number,
+    paymentStatus: string,
+  ): Promise<void>;
 }
 
 export const PAYMENT_REPOSITORY = Symbol('IPaymentRepository');

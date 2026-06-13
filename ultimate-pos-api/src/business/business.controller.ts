@@ -85,20 +85,14 @@ export class BusinessController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @HttpCode(HttpStatus.CREATED)
-  createLocation(
-    @Body() dto: CreateBusinessLocationDto,
-    @Request() req: any,
-  ) {
+  createLocation(@Body() dto: CreateBusinessLocationDto, @Request() req: any) {
     return this.businessService.createLocation(req.user.businessId, dto);
   }
 
   @Get('locations/:locationId')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  getLocation(
-    @Param('locationId', ParseIntPipe) locationId: number,
-    @Request() req: any,
-  ) {
+  getLocation(@Param('locationId', ParseIntPipe) locationId: number, @Request() req: any) {
     return this.businessService.getLocation(locationId, req.user.businessId);
   }
 
@@ -116,10 +110,7 @@ export class BusinessController {
   @Delete('locations/:locationId')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
-  removeLocation(
-    @Param('locationId', ParseIntPipe) locationId: number,
-    @Request() req: any,
-  ) {
+  removeLocation(@Param('locationId', ParseIntPipe) locationId: number, @Request() req: any) {
     return this.businessService.removeLocation(locationId, req.user.businessId);
   }
 }

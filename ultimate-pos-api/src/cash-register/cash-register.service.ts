@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AddTransactionDto,
@@ -14,19 +10,13 @@ import {
 export class CashRegisterService {
   constructor(private prisma: PrismaService) {}
 
-  async openRegister(
-    businessId: number,
-    userId: number,
-    dto: CreateCashRegisterDto,
-  ) {
+  async openRegister(businessId: number, userId: number, dto: CreateCashRegisterDto) {
     // Check if user already has an open register
     const existing = await this.prisma.cashRegister.findFirst({
       where: { businessId, userId, status: 'open' },
     });
     if (existing) {
-      throw new BadRequestException(
-        'You already have an open cash register session',
-      );
+      throw new BadRequestException('You already have an open cash register session');
     }
 
     const register = await this.prisma.cashRegister.create({
@@ -143,10 +133,7 @@ export class CashRegisterService {
     return { ...updated, expectedClosingAmount, discrepancy };
   }
 
-  async findAll(
-    businessId: number,
-    opts: { page?: number; limit?: number; status?: string },
-  ) {
+  async findAll(businessId: number, opts: { page?: number; limit?: number; status?: string }) {
     const page = opts.page ?? 1;
     const limit = opts.limit ?? 20;
     const skip = (page - 1) * limit;

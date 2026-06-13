@@ -35,9 +35,6 @@ const USE_CASES = [
     },
     ...USE_CASES,
   ],
-  exports: [
-    TransactionStateService,
-    ...USE_CASES,
-  ],
+  exports: [TransactionStateService, ...USE_CASES],
 })
 export class TransactionsModule {}

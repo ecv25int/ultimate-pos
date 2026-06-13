@@ -26,11 +26,7 @@ export class BrandsController {
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   create(@Request() req: any, @Body() createBrandDto: CreateBrandDto) {
-    return this.brandsService.create(
-      req.user.id,
-      req.user.businessId,
-      createBrandDto,
-    );
+    return this.brandsService.create(req.user.id, req.user.businessId, createBrandDto);
   }
 
   @Get()

@@ -9,11 +9,21 @@ import { Transaction } from './domain/transaction.entity';
 
 const stateService = new TransactionStateService();
 
-function makeTransaction(overrides: Partial<ConstructorParameters<typeof Transaction>[0]> = {}): Transaction {
+function makeTransaction(
+  overrides: Partial<ConstructorParameters<typeof Transaction>[0]> = {},
+): Transaction {
   return new Transaction({
-    id: 1, type: 'sale', status: 'draft', refNo: 'SALE-202604-0001',
-    businessId: 1, userId: 1, date: new Date(),
-    totalBeforeTax: 100, taxAmount: 10, discountAmount: 0, totalAmount: 110,
+    id: 1,
+    type: 'sale',
+    status: 'draft',
+    refNo: 'SALE-202604-0001',
+    businessId: 1,
+    userId: 1,
+    date: new Date(),
+    totalBeforeTax: 100,
+    taxAmount: 10,
+    discountAmount: 0,
+    totalAmount: 110,
     ...overrides,
   });
 }
@@ -139,7 +149,10 @@ describe('CancelTransactionUseCase', () => {
 describe('CreateTransactionUseCase', () => {
   it('creates a sale with a generated ref number', async () => {
     const expected = makeTransaction({ type: 'sale', status: 'draft', refNo: 'SALE-202604-0001' });
-    const repo: any = { create: jest.fn().mockResolvedValue(expected), findRefNos: jest.fn().mockResolvedValue([]) };
+    const repo: any = {
+      create: jest.fn().mockResolvedValue(expected),
+      findRefNos: jest.fn().mockResolvedValue([]),
+    };
     const refNumbers = new RefNumberService(repo);
     const useCase = new CreateTransactionUseCase(repo, refNumbers, stateService);
     const result = await useCase.execute(1, 1, { type: 'sale' } as any);

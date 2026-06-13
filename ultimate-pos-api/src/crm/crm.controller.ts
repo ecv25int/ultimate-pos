@@ -1,9 +1,23 @@
 import {
-  Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe,
-  Query, Req, UseGuards,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { CrmService } from './crm.service';
-import { CreateCampaignDto, CreateScheduleDto, UpdateScheduleDto, CreateCallLogDto } from './dto/crm.dto';
+import {
+  CreateCampaignDto,
+  CreateScheduleDto,
+  UpdateScheduleDto,
+  CreateCallLogDto,
+} from './dto/crm.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';

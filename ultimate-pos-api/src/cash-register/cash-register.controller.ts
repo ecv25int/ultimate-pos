@@ -31,20 +31,13 @@ export class CashRegisterController {
   /** GET /api/cash-register/active */
   @Get('active')
   getActiveSession(@Req() req: any) {
-    return this.cashRegisterService.getActiveSession(
-      req.user.businessId,
-      req.user.id,
-    );
+    return this.cashRegisterService.getActiveSession(req.user.businessId, req.user.id);
   }
 
   /** POST /api/cash-register/open */
   @Post('open')
   openRegister(@Req() req: any, @Body() dto: CreateCashRegisterDto) {
-    return this.cashRegisterService.openRegister(
-      req.user.businessId,
-      req.user.id,
-      dto,
-    );
+    return this.cashRegisterService.openRegister(req.user.businessId, req.user.id, dto);
   }
 
   /** GET /api/cash-register */
@@ -75,12 +68,7 @@ export class CashRegisterController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AddTransactionDto,
   ) {
-    return this.cashRegisterService.addTransaction(
-      req.user.businessId,
-      id,
-      req.user.id,
-      dto,
-    );
+    return this.cashRegisterService.addTransaction(req.user.businessId, id, req.user.id, dto);
   }
 
   /** POST /api/cash-register/:id/close */
@@ -90,11 +78,6 @@ export class CashRegisterController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CloseRegisterDto,
   ) {
-    return this.cashRegisterService.closeRegister(
-      req.user.businessId,
-      id,
-      req.user.id,
-      dto,
-    );
+    return this.cashRegisterService.closeRegister(req.user.businessId, id, req.user.id, dto);
   }
 }

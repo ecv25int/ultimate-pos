@@ -7,7 +7,11 @@ import type { CreatePaymentDto } from '../../dto/create-payment.dto';
 export class AddBulkPaymentsUseCase {
   constructor(private readonly addPayment: AddPaymentUseCase) {}
 
-  async execute(businessId: number, userId: number, dtos: CreatePaymentDto[]): Promise<{ created: number; payments: Payment[] }> {
+  async execute(
+    businessId: number,
+    userId: number,
+    dtos: CreatePaymentDto[],
+  ): Promise<{ created: number; payments: Payment[] }> {
     if (!dtos.length) throw new BadRequestException('No payments provided');
 
     const payments: Payment[] = [];

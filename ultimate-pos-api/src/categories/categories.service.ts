@@ -24,7 +24,9 @@ export class CategoriesService {
       });
 
       if (!parentCategory) {
-        throw new BadRequestException('Parent category not found or does not belong to your business');
+        throw new BadRequestException(
+          'Parent category not found or does not belong to your business',
+        );
       }
     }
 
@@ -67,19 +69,18 @@ export class CategoriesService {
             name: true,
           },
         },
-        subcategories: includeSubcategories ? {
-          where: { deletedAt: null },
-          select: {
-            id: true,
-            name: true,
-            shortCode: true,
-          },
-        } : false,
+        subcategories: includeSubcategories
+          ? {
+              where: { deletedAt: null },
+              select: {
+                id: true,
+                name: true,
+                shortCode: true,
+              },
+            }
+          : false,
       },
-      orderBy: [
-        { parentId: 'asc' },
-        { name: 'asc' },
-      ],
+      orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
     });
 
     return categories;
@@ -117,7 +118,12 @@ export class CategoriesService {
     return category;
   }
 
-  async update(id: number, userId: number, businessId: number, updateCategoryDto: UpdateCategoryDto) {
+  async update(
+    id: number,
+    userId: number,
+    businessId: number,
+    updateCategoryDto: UpdateCategoryDto,
+  ) {
     // Verify category exists and belongs to the user's business
     const category = await this.prisma.category.findFirst({
       where: {
@@ -155,7 +161,9 @@ export class CategoriesService {
         // Prevent circular references (parent cannot be a subcategory of this category)
         const isCircular = await this.checkCircularReference(id, updateCategoryDto.parentId);
         if (isCircular) {
-          throw new BadRequestException('Circular reference detected: the selected parent is a subcategory of this category');
+          throw new BadRequestException(
+            'Circular reference detected: the selected parent is a subcategory of this category',
+          );
         }
       }
     }
@@ -206,7 +214,9 @@ export class CategoriesService {
 
     // Check if category has subcategories
     if (category.subcategories.length > 0) {
-      throw new BadRequestException('Cannot delete category with subcategories. Delete subcategories first.');
+      throw new BadRequestException(
+        'Cannot delete category with subcategories. Delete subcategories first.',
+      );
     }
 
     // Soft delete

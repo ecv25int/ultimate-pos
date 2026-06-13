@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsInt, IsBoolean, IsNumber, IsIn, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsBoolean,
+  IsNumber,
+  IsIn,
+  IsDateString,
+} from 'class-validator';
 
 export class CreatePackageDto {
   @IsString() name: string;
@@ -7,7 +15,7 @@ export class CreatePackageDto {
   @IsInt() userCount: number;
   @IsInt() productCount: number;
   @IsInt() invoiceCount: number;
-  @IsString() @IsIn(['days','months','years']) interval: string;
+  @IsString() @IsIn(['days', 'months', 'years']) interval: string;
   @IsInt() intervalCount: number;
   @IsInt() trialDays: number;
   @IsNumber() price: number;
@@ -35,5 +43,5 @@ export class CreateSubscriptionDto {
 }
 
 export class UpdateSubscriptionStatusDto {
-  @IsString() @IsIn(['approved','waiting','declined']) status: string;
+  @IsString() @IsIn(['approved', 'waiting', 'declined']) status: string;
 }

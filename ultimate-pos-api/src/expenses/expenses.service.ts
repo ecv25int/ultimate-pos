@@ -26,13 +26,17 @@ export class ExpensesService {
   }
 
   async updateCategory(businessId: number, id: number, dto: UpdateExpenseCategoryDto) {
-    const cat = await this.prisma.expenseCategory.findFirst({ where: { id, businessId, deletedAt: null } });
+    const cat = await this.prisma.expenseCategory.findFirst({
+      where: { id, businessId, deletedAt: null },
+    });
     if (!cat) throw new NotFoundException('Category not found');
     return this.prisma.expenseCategory.update({ where: { id }, data: { ...dto } });
   }
 
   async removeCategory(businessId: number, id: number) {
-    const cat = await this.prisma.expenseCategory.findFirst({ where: { id, businessId, deletedAt: null } });
+    const cat = await this.prisma.expenseCategory.findFirst({
+      where: { id, businessId, deletedAt: null },
+    });
     if (!cat) throw new NotFoundException('Category not found');
     await this.prisma.expenseCategory.update({ where: { id }, data: { deletedAt: new Date() } });
     return { message: 'Category deleted' };
@@ -114,7 +118,9 @@ export class ExpensesService {
   }
 
   async update(businessId: number, id: number, dto: UpdateExpenseDto) {
-    const expense = await this.prisma.expense.findFirst({ where: { id, businessId, deletedAt: null } });
+    const expense = await this.prisma.expense.findFirst({
+      where: { id, businessId, deletedAt: null },
+    });
     if (!expense) throw new NotFoundException('Expense not found');
 
     const amount = dto.amount ?? Number(expense.amount);
@@ -128,7 +134,9 @@ export class ExpensesService {
         totalAmount: amount + taxAmount,
         ...(dto.note !== undefined ? { note: dto.note } : {}),
         ...(dto.refNo ? { refNo: dto.refNo } : {}),
-        ...(dto.expenseCategoryId !== undefined ? { expenseCategoryId: dto.expenseCategoryId } : {}),
+        ...(dto.expenseCategoryId !== undefined
+          ? { expenseCategoryId: dto.expenseCategoryId }
+          : {}),
         ...(dto.expenseDate ? { expenseDate: new Date(dto.expenseDate) } : {}),
       },
       include: { category: { select: { id: true, name: true } } },
@@ -136,7 +144,9 @@ export class ExpensesService {
   }
 
   async remove(businessId: number, id: number) {
-    const expense = await this.prisma.expense.findFirst({ where: { id, businessId, deletedAt: null } });
+    const expense = await this.prisma.expense.findFirst({
+      where: { id, businessId, deletedAt: null },
+    });
     if (!expense) throw new NotFoundException('Expense not found');
     await this.prisma.expense.update({ where: { id }, data: { deletedAt: new Date() } });
     return { message: 'Expense deleted' };

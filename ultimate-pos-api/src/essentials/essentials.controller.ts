@@ -1,12 +1,28 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, Query, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
 import { EssentialsService } from './essentials.service';
 import {
-  CreateLeaveTypeDto, CreateLeaveDto, UpdateLeaveStatusDto,
-  CreatePayrollDto, CreateDocumentDto, CreateReminderDto,
+  CreateLeaveTypeDto,
+  CreateLeaveDto,
+  UpdateLeaveStatusDto,
+  CreatePayrollDto,
+  CreateDocumentDto,
+  CreateReminderDto,
 } from './dto/essentials.dto';
 
 @Controller('essentials')
@@ -48,7 +64,11 @@ export class EssentialsController {
   }
 
   @Patch('leaves/:id/status')
-  updateLeaveStatus(@Req() req: any, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateLeaveStatusDto) {
+  updateLeaveStatus(
+    @Req() req: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateLeaveStatusDto,
+  ) {
     return this.svc.updateLeaveStatus(id, req.user.businessId, dto);
   }
 

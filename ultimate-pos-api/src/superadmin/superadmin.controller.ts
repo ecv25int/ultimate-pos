@@ -1,10 +1,27 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, Query, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
 import { SuperadminService } from './superadmin.service';
-import { CreatePackageDto, UpdatePackageDto, CreateSubscriptionDto, UpdateSubscriptionStatusDto } from './dto/superadmin.dto';
+import {
+  CreatePackageDto,
+  UpdatePackageDto,
+  CreateSubscriptionDto,
+  UpdateSubscriptionStatusDto,
+} from './dto/superadmin.dto';
 
 @Controller('superadmin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -60,7 +77,10 @@ export class SuperadminController {
   }
 
   @Patch('subscriptions/:id/status')
-  updateSubscriptionStatus(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSubscriptionStatusDto) {
+  updateSubscriptionStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateSubscriptionStatusDto,
+  ) {
     return this.svc.updateSubscriptionStatus(id, dto);
   }
 

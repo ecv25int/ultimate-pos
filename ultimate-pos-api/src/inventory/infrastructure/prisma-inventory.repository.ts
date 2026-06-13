@@ -52,9 +52,7 @@ export class PrismaInventoryRepository implements IInventoryRepository {
       }),
     ]);
 
-    const stockMap = new Map(
-      stockAgg.map((s) => [s.productId, Number(s._sum.quantity ?? 0)]),
-    );
+    const stockMap = new Map(stockAgg.map((s) => [s.productId, Number(s._sum.quantity ?? 0)]));
 
     return products.map((p) => {
       const currentStock = stockMap.get(p.id) ?? 0;
@@ -79,7 +77,11 @@ export class PrismaInventoryRepository implements IInventoryRepository {
     return all.filter((p) => p.isLowStock);
   }
 
-  async getProductHistory(productId: number, businessId: number, limit: number): Promise<StockEntry[]> {
+  async getProductHistory(
+    productId: number,
+    businessId: number,
+    limit: number,
+  ): Promise<StockEntry[]> {
     const rows = await this.prisma.stockEntry.findMany({
       where: { productId, businessId },
       orderBy: { createdAt: 'desc' },
@@ -138,7 +140,12 @@ export class PrismaInventoryRepository implements IInventoryRepository {
     };
   }
 
-  async getAdjustments(businessId: number, page: number, limit: number, productId?: number): Promise<PaginatedEntries> {
+  async getAdjustments(
+    businessId: number,
+    page: number,
+    limit: number,
+    productId?: number,
+  ): Promise<PaginatedEntries> {
     const skip = (page - 1) * limit;
     const where = {
       businessId,
@@ -166,7 +173,11 @@ export class PrismaInventoryRepository implements IInventoryRepository {
     };
   }
 
-  async createEntry(businessId: number, userId: number, data: CreateEntryData): Promise<StockEntry> {
+  async createEntry(
+    businessId: number,
+    userId: number,
+    data: CreateEntryData,
+  ): Promise<StockEntry> {
     const row = await this.prisma.stockEntry.create({
       data: {
         businessId,
@@ -192,7 +203,12 @@ export class PrismaInventoryRepository implements IInventoryRepository {
       select: { id: true, name: true, enableStock: true, alertQuantity: true },
     });
     if (!row) return null;
-    return { id: row.id, name: row.name, enableStock: row.enableStock, alertQuantity: Number(row.alertQuantity) };
+    return {
+      id: row.id,
+      name: row.name,
+      enableStock: row.enableStock,
+      alertQuantity: Number(row.alertQuantity),
+    };
   }
 
   async findEntry(entryId: number, businessId: number): Promise<StockEntry | null> {

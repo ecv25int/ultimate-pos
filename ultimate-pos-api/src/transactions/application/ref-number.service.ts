@@ -14,9 +14,7 @@ export class RefNumberService {
     const prefix = `${type.toUpperCase()}-${this.period()}-`;
     const refs = await this.repo.findRefNos(type, businessId, prefix);
     const next =
-      refs
-        .map((ref) => this.extractSeq(ref, prefix))
-        .reduce((max, n) => Math.max(max, n), 0) + 1;
+      refs.map((ref) => this.extractSeq(ref, prefix)).reduce((max, n) => Math.max(max, n), 0) + 1;
     return `${prefix}${String(next).padStart(4, '0')}`;
   }
 

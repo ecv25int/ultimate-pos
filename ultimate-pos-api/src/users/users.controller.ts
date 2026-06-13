@@ -13,11 +13,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UsersService } from './users.service';
-import {
-  ChangeUserPasswordDto,
-  CreateUserDto,
-  UpdateUserDto,
-} from './dto/user.dto';
+import { ChangeUserPasswordDto, CreateUserDto, UpdateUserDto } from './dto/user.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -61,11 +57,7 @@ export class UsersController {
 
   /** PATCH /api/users/:id */
   @Patch(':id')
-  update(
-    @Req() req: any,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateUserDto,
-  ) {
+  update(@Req() req: any, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
     return this.usersService.update(req.user.businessId, id, dto);
   }
 
@@ -82,11 +74,7 @@ export class UsersController {
   /** POST /api/users/:id/toggle-active */
   @Post(':id/toggle-active')
   toggleActive(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
-    return this.usersService.toggleActive(
-      req.user.businessId,
-      id,
-      req.user.id,
-    );
+    return this.usersService.toggleActive(req.user.businessId, id, req.user.id);
   }
 
   /** DELETE /api/users/:id */

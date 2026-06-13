@@ -73,14 +73,16 @@ import { HealthController } from './common/controllers/health.controller';
       serveRoot: '/static',
       serveStaticOptions: { index: false },
     }),
-    ThrottlerModule.forRoot([{
-      name: 'default',
-      ttl: 60000,  // 1 minute window
-      limit: 120,  // 120 requests per minute (generous for API consumers)
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60000, // 1 minute window
+        limit: 120, // 120 requests per minute (generous for API consumers)
+      },
+    ]),
     CacheModule.register({
       isGlobal: true,
-      ttl: 60,  // default TTL: 60 s (overridden per-call)
+      ttl: 60, // default TTL: 60 s (overridden per-call)
     }),
     PrismaModule,
     AuthModule,

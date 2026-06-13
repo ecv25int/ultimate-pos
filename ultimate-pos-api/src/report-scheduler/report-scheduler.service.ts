@@ -113,23 +113,28 @@ export class ReportSchedulerService {
     const recipients: string[] = Array.isArray(report.recipients) ? report.recipients : [];
     if (!recipients.length) return;
 
-    await this.sendReportEmail(
-      recipients,
-      `[Ultimate POS] Scheduled Report: ${report.name}`,
-      html,
+    await this.sendReportEmail(recipients, `[Ultimate POS] Scheduled Report: ${report.name}`, html);
+    this.logger.log(
+      `Sent scheduled report "${report.name}" (id=${report.id}) to ${recipients.join(', ')}`,
     );
-    this.logger.log(`Sent scheduled report "${report.name}" (id=${report.id}) to ${recipients.join(', ')}`);
   }
 
-  private async buildReportHtml(businessId: number, reportType: string, frequency: string): Promise<string> {
+  private async buildReportHtml(
+    businessId: number,
+    reportType: string,
+    frequency: string,
+  ): Promise<string> {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
       select: { name: true, currency: true },
     });
 
-    const periodLabel = frequency === 'daily' ? 'Yesterday' : frequency === 'weekly' ? 'Last 7 days' : 'Last 30 days';
+    const periodLabel =
+      frequency === 'daily' ? 'Yesterday' : frequency === 'weekly' ? 'Last 7 days' : 'Last 30 days';
     const since = new Date();
-    since.setDate(since.getDate() - (frequency === 'monthly' ? 30 : frequency === 'weekly' ? 7 : 1));
+    since.setDate(
+      since.getDate() - (frequency === 'monthly' ? 30 : frequency === 'weekly' ? 7 : 1),
+    );
 
     let bodyHtml = '';
 
@@ -140,7 +145,9 @@ export class ReportSchedulerService {
           _sum: { totalAmount: true },
           _count: { id: true },
         }),
-        this.prisma.sale.count({ where: { businessId, status: 'completed', createdAt: { gte: since } } }),
+        this.prisma.sale.count({
+          where: { businessId, status: 'completed', createdAt: { gte: since } },
+        }),
       ]);
       const total = Number(totalResult._sum.totalAmount ?? 0).toFixed(2);
       bodyHtml = `
@@ -193,7 +200,8 @@ export class ReportSchedulerService {
   private async sendReportEmail(to: string[], subject: string, html: string): Promise<void> {
     const host = this.config.get<string>('MAIL_HOST');
     const user = this.config.get<string>('MAIL_USER');
-    const pass = this.config.get<string>('MAIL_PASS') || this.config.get<string>('SENDGRID_API_KEY');
+    const pass =
+      this.config.get<string>('MAIL_PASS') || this.config.get<string>('SENDGRID_API_KEY');
     const port = Number(this.config.get<string>('MAIL_PORT', '587'));
     const from = this.config.get<string>('MAIL_FROM', user ?? 'noreply@example.com');
 

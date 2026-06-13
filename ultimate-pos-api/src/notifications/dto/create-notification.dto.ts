@@ -2,12 +2,12 @@ import { IsString, IsOptional, IsInt, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum NotificationType {
-  LOW_STOCK  = 'low_stock',
-  SALE       = 'sale',
-  PURCHASE   = 'purchase',
-  INFO       = 'info',
-  WARNING    = 'warning',
-  ERROR      = 'error',
+  LOW_STOCK = 'low_stock',
+  SALE = 'sale',
+  PURCHASE = 'purchase',
+  INFO = 'info',
+  WARNING = 'warning',
+  ERROR = 'error',
 }
 
 export class CreateNotificationDto {

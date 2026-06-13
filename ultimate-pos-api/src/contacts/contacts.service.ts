@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
@@ -54,12 +50,7 @@ export class ContactsService {
     });
   }
 
-  async findAll(
-    businessId: number,
-    type?: string,
-    status?: string,
-    search?: string,
-  ) {
+  async findAll(businessId: number, type?: string, status?: string, search?: string) {
     const where: any = {
       businessId,
       deletedAt: null,
@@ -137,9 +128,7 @@ export class ContactsService {
       });
 
       if (duplicate) {
-        throw new BadRequestException(
-          'Another contact with this mobile number already exists',
-        );
+        throw new BadRequestException('Another contact with this mobile number already exists');
       }
     }
 
@@ -222,13 +211,29 @@ export class ContactsService {
         where: { contactId: id, businessId, deletedAt: null, type: 'sale' },
         orderBy: { transactionDate: 'desc' },
         take: 10,
-        select: { id: true, invoiceNo: true, transactionDate: true, totalAmount: true, paidAmount: true, paymentStatus: true, status: true },
+        select: {
+          id: true,
+          invoiceNo: true,
+          transactionDate: true,
+          totalAmount: true,
+          paidAmount: true,
+          paymentStatus: true,
+          status: true,
+        },
       }),
       this.prisma.purchase.findMany({
         where: { contactId: id, businessId, deletedAt: null, type: 'purchase' },
         orderBy: { purchaseDate: 'desc' },
         take: 10,
-        select: { id: true, refNo: true, purchaseDate: true, totalAmount: true, paidAmount: true, paymentStatus: true, status: true },
+        select: {
+          id: true,
+          refNo: true,
+          purchaseDate: true,
+          totalAmount: true,
+          paidAmount: true,
+          paymentStatus: true,
+          status: true,
+        },
       }),
     ]);
 
@@ -303,8 +308,14 @@ export class ContactsService {
       }),
     ]);
 
-    const totalSalesOwed = sales.reduce((sum, s) => sum + (Number(s.totalAmount) - Number(s.paidAmount)), 0);
-    const totalPurchasesOwed = purchases.reduce((sum, p) => sum + (Number(p.totalAmount) - Number(p.paidAmount)), 0);
+    const totalSalesOwed = sales.reduce(
+      (sum, s) => sum + (Number(s.totalAmount) - Number(s.paidAmount)),
+      0,
+    );
+    const totalPurchasesOwed = purchases.reduce(
+      (sum, p) => sum + (Number(p.totalAmount) - Number(p.paidAmount)),
+      0,
+    );
 
     return {
       overdueSales: sales,
@@ -336,12 +347,18 @@ export class ContactsService {
     let skipped = 0;
 
     for (const row of rows) {
-      if (!row.name || !row.mobile) { skipped++; continue; }
+      if (!row.name || !row.mobile) {
+        skipped++;
+        continue;
+      }
       const type = ['customer', 'supplier', 'both'].includes(row.type) ? row.type : 'customer';
       const existing = await this.prisma.contact.findFirst({
         where: { businessId, mobile: row.mobile, deletedAt: null },
       });
-      if (existing) { skipped++; continue; }
+      if (existing) {
+        skipped++;
+        continue;
+      }
       await this.prisma.contact.create({
         data: {
           businessId,
@@ -372,10 +389,21 @@ export class ContactsService {
     });
 
     const headers = [
-      'id', 'type', 'name', 'supplier_business_name',
-      'email', 'mobile', 'landline', 'alternate_number',
-      'tax_number', 'city', 'state', 'country',
-      'credit_limit', 'balance', 'contact_status',
+      'id',
+      'type',
+      'name',
+      'supplier_business_name',
+      'email',
+      'mobile',
+      'landline',
+      'alternate_number',
+      'tax_number',
+      'city',
+      'state',
+      'country',
+      'credit_limit',
+      'balance',
+      'contact_status',
     ];
 
     const escape = (v: unknown) => {
@@ -385,12 +413,27 @@ export class ContactsService {
         : s;
     };
 
-    const rows = contacts.map((c) => [
-      c.id, c.type, c.name, c.supplierBusinessName ?? '',
-      c.email ?? '', c.mobile, c.landline ?? '', c.alternateNumber ?? '',
-      c.taxNumber ?? '', c.city ?? '', c.state ?? '', c.country ?? '',
-      Number(c.creditLimit ?? 0), Number(c.balance), c.contactStatus,
-    ].map(escape).join(','));
+    const rows = contacts.map((c) =>
+      [
+        c.id,
+        c.type,
+        c.name,
+        c.supplierBusinessName ?? '',
+        c.email ?? '',
+        c.mobile,
+        c.landline ?? '',
+        c.alternateNumber ?? '',
+        c.taxNumber ?? '',
+        c.city ?? '',
+        c.state ?? '',
+        c.country ?? '',
+        Number(c.creditLimit ?? 0),
+        Number(c.balance),
+        c.contactStatus,
+      ]
+        .map(escape)
+        .join(','),
+    );
 
     return [headers.join(','), ...rows].join('\n');
   }

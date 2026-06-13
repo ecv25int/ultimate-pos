@@ -17,15 +17,8 @@ export class LandedCostService {
    * Allocates freight and duty proportionally across lines by base cost weight,
    * producing the final unitCostAfter per line.
    */
-  allocate(
-    lines: LineInput[],
-    freightTotal: number,
-    dutyTotal: number,
-  ): LineWithLandedCost[] {
-    const baseCostTotal = lines.reduce(
-      (sum, l) => sum + l.quantity * l.unitCostBefore,
-      0,
-    );
+  allocate(lines: LineInput[], freightTotal: number, dutyTotal: number): LineWithLandedCost[] {
+    const baseCostTotal = lines.reduce((sum, l) => sum + l.quantity * l.unitCostBefore, 0);
     const overhead = freightTotal + dutyTotal;
 
     return lines.map((line) => {
@@ -37,8 +30,9 @@ export class LandedCostService {
 
       const discountAmount = line.discountAmount ?? 0;
       const taxAmount = line.taxAmount ?? 0;
-      const lineTotal =
-        Number((line.quantity * unitCostAfter - discountAmount + taxAmount).toFixed(4));
+      const lineTotal = Number(
+        (line.quantity * unitCostAfter - discountAmount + taxAmount).toFixed(4),
+      );
 
       return { ...line, unitCostAfter: Number(unitCostAfter.toFixed(6)), lineTotal };
     });

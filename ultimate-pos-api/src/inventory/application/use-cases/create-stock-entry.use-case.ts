@@ -13,7 +13,8 @@ export class CreateStockEntryUseCase {
 
   async execute(businessId: number, userId: number, dto: CreateStockEntryDto): Promise<StockEntry> {
     const product = await this.repo.findProduct(dto.productId, businessId);
-    if (!product) throw new NotFoundException(`Product #${dto.productId} not found in your business`);
+    if (!product)
+      throw new NotFoundException(`Product #${dto.productId} not found in your business`);
     if (!product.enableStock) {
       throw new BadRequestException(`Stock tracking is not enabled for product #${dto.productId}`);
     }

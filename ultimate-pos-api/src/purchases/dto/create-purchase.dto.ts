@@ -33,6 +33,10 @@ export class CreatePurchaseLineDto {
   @IsInt()
   productId: number;
 
+  @IsOptional()
+  @IsInt()
+  variationId?: number;
+
   @IsNumber()
   @IsPositive()
   quantity: number;
@@ -58,6 +62,14 @@ export class CreatePurchaseLineDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @IsOptional()
+  @IsString()
+  batchNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  expiryDate?: string;
 }
 
 export class CreatePurchaseDto {

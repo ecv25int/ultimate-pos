@@ -27,11 +27,7 @@ export class CategoriesController {
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   create(@Request() req: any, @Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoriesService.create(
-      req.user.id,
-      req.user.businessId,
-      createCategoryDto,
-    );
+    return this.categoriesService.create(req.user.id, req.user.businessId, createCategoryDto);
   }
 
   @Get()
@@ -54,12 +50,7 @@ export class CategoriesController {
     @Request() req: any,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ) {
-    return this.categoriesService.update(
-      id,
-      req.user.id,
-      req.user.businessId,
-      updateCategoryDto,
-    );
+    return this.categoriesService.update(id, req.user.id, req.user.businessId, updateCategoryDto);
   }
 
   @Delete(':id')

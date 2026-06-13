@@ -26,10 +26,7 @@ export class PosService {
 
     const where: any = { businessId, enableStock: true };
     if (query) {
-      where.OR = [
-        { name: { contains: query } },
-        { sku: { contains: query } },
-      ];
+      where.OR = [{ name: { contains: query } }, { sku: { contains: query } }];
     }
     const products = await this.prisma.product.findMany({
       where,

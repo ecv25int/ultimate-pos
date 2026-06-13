@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
@@ -28,12 +24,16 @@ export class UnitsService {
 
       // Base unit should not have its own base unit (only one level of conversion)
       if (baseUnit.baseUnitId) {
-        throw new BadRequestException('Base unit cannot itself have a base unit. Please select a primary unit.');
+        throw new BadRequestException(
+          'Base unit cannot itself have a base unit. Please select a primary unit.',
+        );
       }
 
       // Multiplier is required when baseUnitId is provided
       if (!createUnitDto.baseUnitMultiplier) {
-        throw new BadRequestException('Base unit multiplier is required when base unit is specified');
+        throw new BadRequestException(
+          'Base unit multiplier is required when base unit is specified',
+        );
       }
     }
 
@@ -98,10 +98,7 @@ export class UnitsService {
           },
         },
       },
-      orderBy: [
-        { baseUnitId: 'asc' },
-        { actualName: 'asc' },
-      ],
+      orderBy: [{ baseUnitId: 'asc' }, { actualName: 'asc' }],
     });
 
     return units;
@@ -177,7 +174,9 @@ export class UnitsService {
 
         // Base unit should not have its own base unit
         if (baseUnit.baseUnitId) {
-          throw new BadRequestException('Base unit cannot itself have a base unit. Please select a primary unit.');
+          throw new BadRequestException(
+            'Base unit cannot itself have a base unit. Please select a primary unit.',
+          );
         }
 
         // If this unit has sub-units, prevent changing it to have a base unit
@@ -189,7 +188,9 @@ export class UnitsService {
         });
 
         if (hasSubUnits > 0) {
-          throw new BadRequestException('Cannot set a base unit for this unit because it has sub-units');
+          throw new BadRequestException(
+            'Cannot set a base unit for this unit because it has sub-units',
+          );
         }
       }
     }
@@ -245,7 +246,9 @@ export class UnitsService {
 
     // Check if unit has sub-units
     if (unit.subUnits.length > 0) {
-      throw new BadRequestException('Cannot delete unit with sub-units. Delete or update sub-units first.');
+      throw new BadRequestException(
+        'Cannot delete unit with sub-units. Delete or update sub-units first.',
+      );
     }
 
     // Soft delete

@@ -11,7 +11,7 @@
 |---|---|---|
 | Week 1 | Auth, Users, DB Schema, API Foundation | ✅ Complete |
 | Week 2 | Transactions, Sales, Purchases, Inventory, Payments | ✅ Complete — all 5 days clean arch, 133 tests passing |
-| Week 3 | Products, Pricing, Inventory Management | 🔲 Not started |
+| Week 3 | Products, Pricing, Inventory Management | 🔲 In progress — Day 1 complete, 16 tests passing |
 | Week 4 | Accounting, GL, Financial Statements | 🔲 Not started |
 | Week 5 | Reporting, Dashboard, Alerts | 🔲 Not started |
 | Week 6 | Data Migration, QA, Performance, Go-live | 🔲 Not started |
@@ -66,7 +66,7 @@
 
 | Day | Task | Status |
 |---|---|---|
-| Day 1 | Product catalog & variations | 🔲 |
+| Day 1 | Product catalog & variations | ✅ |
 | Day 2 | Pricing with customer group overrides | 🔲 |
 | Day 3 | Advanced inventory tracking (locations, valuation) | 🔲 |
 | Day 4 | Physical inventory counts & inter-location transfers | 🔲 |

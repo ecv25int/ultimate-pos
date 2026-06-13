@@ -1,6 +1,4 @@
-import {
-  IsString, IsNotEmpty, MaxLength, IsInt, IsOptional, IsNumber, IsDecimal,
-} from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, IsInt, IsOptional, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateVariationDto {

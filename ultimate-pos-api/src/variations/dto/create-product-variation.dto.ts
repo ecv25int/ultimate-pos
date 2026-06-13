@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, MaxLength, IsInt, IsBoolean, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, IsInt, IsBoolean, IsOptional } from 'class-validator';
 
 export class CreateProductVariationDto {
   @IsInt()

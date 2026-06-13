@@ -1,20 +1,25 @@
-import {
-  IsString, IsNotEmpty, MaxLength, IsOptional, IsBoolean,
-} from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateNotificationTemplateDto {
-  @IsString() @IsNotEmpty() @MaxLength(100)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
   templateFor: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   emailBody?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   smsBody?: string;
 
-  @IsOptional() @IsString() @MaxLength(255)
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
   subject?: string;
 
-  @IsOptional() @IsBoolean()
+  @IsOptional()
+  @IsBoolean()
   autoSend?: boolean;
 }

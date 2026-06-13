@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { OriginalSale, SaleReturn } from '../domain/sale-return.entity';
-import type {
-  CreateSaleReturnData,
-  ISaleReturnRepository,
-} from '../domain/sale-return.repository';
+import type { CreateSaleReturnData, ISaleReturnRepository } from '../domain/sale-return.repository';
 import { SaleReturnMapper } from './sale-return.mapper';
 
 const RETURN_LINE_INCLUDE = {

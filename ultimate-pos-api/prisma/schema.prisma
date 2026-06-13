@@ -142,6 +142,7 @@ model Business {
   auditLogs             AuditLog[]
   pushSubscriptions     PushSubscription[]
   scheduledReports      ScheduledReport[]
+  stockMovements        StockMovement[]
 
   @@map("business")
   @@index([name])
@@ -418,6 +419,7 @@ model SaleLine {
   product         Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
   variation       Variation?       @relation(fields: [variationId], references: [id], onDelete: SetNull)
   warranties      SellLineWarranty[]
+  sellLinesPurchaseLines TransactionSellLinesPurchaseLines[]
 
   @@map("sale_lines")
   @@index([variationId])
@@ -477,6 +479,7 @@ model PurchaseLine {
   id              Int       @id @default(autoincrement())
   purchaseId      Int       @map("purchase_id")
   productId       Int       @map("product_id")
+  variationId     Int?      @map("variation_id")
   quantity        Decimal   @db.Decimal(22, 4)
   unitCostBefore  Decimal   @default(0) @map("unit_cost_before") @db.Decimal(22, 4)
   unitCostAfter   Decimal   @default(0) @map("unit_cost_after") @db.Decimal(22, 4)
@@ -484,15 +487,24 @@ model PurchaseLine {
   taxAmount       Decimal   @default(0) @map("tax_amount") @db.Decimal(22, 4)
   lineTotal       Decimal   @default(0) @map("line_total") @db.Decimal(22, 4)
   note            String?   @db.VarChar(255)
+  batchNumber     String?   @map("batch_number") @db.VarChar(50)
+  expiryDate      DateTime? @map("expiry_date")
+  quantitySold    Decimal   @default(0) @map("quantity_sold") @db.Decimal(22, 4)
+  quantityAdjusted Decimal  @default(0) @map("quantity_adjusted") @db.Decimal(22, 4)
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
   purchase        Purchase  @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
   product         Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variation       Variation? @relation(fields: [variationId], references: [id], onDelete: SetNull)
+  sellLinesPurchaseLines TransactionSellLinesPurchaseLines[]
 
   @@map("purchase_lines")
   @@index([purchaseId])
   @@index([productId])
+  @@index([variationId])
+  @@index([batchNumber])
+  @@index([expiryDate])
 }
 
 // ============================================
@@ -1535,6 +1547,7 @@ model BusinessLocation {
   discounts Discount[]
   variationLocationDetails VariationLocationDetails[]
   stockAdjustments StockAdjustment[]
+  stockMovements   StockMovement[]
 
   @@map("business_locations")
   @@index([businessId])
@@ -1694,9 +1707,11 @@ model Variation {
   locationDetails  VariationLocationDetails[]
   groupPrices      VariationGroupPrice[]
   saleLines        SaleLine[]
+  purchaseLines    PurchaseLine[]
   mfgRecipes       MfgRecipe[]              @relation("MfgRecipeVariation")
   mfgIngredients   MfgRecipeIngredient[]    @relation("MfgIngredientVariation")
   adjustmentLines  StockAdjustmentLine[]
+  stockMovements   StockMovement[]
 
   @@map("variations")
   @@index([productId])
@@ -1889,11 +1904,14 @@ model StockAdjustment {
 }
 
 model StockAdjustmentLine {
-  id           Int     @id @default(autoincrement())
-  adjustmentId Int     @map("adjustment_id")
-  variationId  Int?    @map("variation_id")
-  quantity     Decimal @db.Decimal(22, 4)
-  unitPrice    Decimal @default(0) @map("unit_price") @db.Decimal(22, 4)
+  id           Int      @id @default(autoincrement())
+  adjustmentId Int      @map("adjustment_id")
+  variationId  Int?     @map("variation_id")
+  quantity     Decimal  @db.Decimal(22, 4)
+  unitPrice    Decimal  @default(0) @map("unit_price") @db.Decimal(22, 4)
+  reason       String?  @db.VarChar(50)
+  actualQty    Decimal? @map("actual_qty") @db.Decimal(22, 4)
+  systemQty    Decimal? @map("system_qty") @db.Decimal(22, 4)
 
   adjustment StockAdjustment @relation(fields: [adjustmentId], references: [id], onDelete: Cascade)
   variation  Variation?      @relation(fields: [variationId], references: [id])
@@ -1991,3 +2009,42 @@ model ScheduledReport {
   @@index([businessId])
   @@index([businessId, isActive])
 }
+
+model StockMovement {
+  id           Int      @id @default(autoincrement())
+  businessId   Int      @map("business_id")
+  variationId  Int      @map("variation_id")
+  locationId   Int      @map("location_id")
+  type         String   @db.VarChar(30) // 'sale' | 'purchase' | 'adjustment' | 'transfer' | 'return'
+  quantity     Decimal  @db.Decimal(22, 4) // positive = stock in, negative = stock out
+  referenceNo  String?  @map("reference_no") @db.VarChar(100)
+  note         String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  business  Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  variation Variation        @relation(fields: [variationId], references: [id], onDelete: Cascade)
+  location  BusinessLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@map("stock_movements")
+  @@index([businessId])
+  @@index([variationId])
+  @@index([locationId])
+  @@index([createdAt])
+}
+
+model TransactionSellLinesPurchaseLines {
+  id              Int          @id @default(autoincrement())
+  sellLineId      Int          @map("sell_line_id")
+  purchaseLineId  Int          @map("purchase_line_id")
+  quantity        Decimal      @db.Decimal(22, 4)
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  sellLine        SaleLine     @relation(fields: [sellLineId], references: [id], onDelete: Cascade)
+  purchaseLine    PurchaseLine @relation(fields: [purchaseLineId], references: [id], onDelete: Cascade)
+
+  @@map("transaction_sell_lines_purchase_lines")
+  @@index([sellLineId])
+  @@index([purchaseLineId])
+}
+

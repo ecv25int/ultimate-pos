@@ -27,11 +27,7 @@ export class UnitsController {
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   create(@Request() req: any, @Body() createUnitDto: CreateUnitDto) {
-    return this.unitsService.create(
-      req.user.id,
-      req.user.businessId,
-      createUnitDto,
-    );
+    return this.unitsService.create(req.user.id, req.user.businessId, createUnitDto);
   }
 
   @Get()

@@ -51,8 +51,8 @@ export class DiscountsService {
       where: { id },
       data: {
         ...rest,
-        ...(startsAt !== undefined && { startsAt: new Date(startsAt!) }),
-        ...(endsAt !== undefined && { endsAt: new Date(endsAt!) }),
+        ...(startsAt !== undefined && { startsAt: new Date(startsAt) }),
+        ...(endsAt !== undefined && { endsAt: new Date(endsAt) }),
       },
     });
   }
