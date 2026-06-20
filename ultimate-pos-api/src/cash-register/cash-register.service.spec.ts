@@ -22,10 +22,7 @@ describe('CashRegisterService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CashRegisterService,
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
+      providers: [CashRegisterService, { provide: PrismaService, useValue: mockPrismaService }],
     }).compile();
 
     service = module.get<CashRegisterService>(CashRegisterService);
@@ -53,9 +50,9 @@ describe('CashRegisterService', () => {
     it('should throw BadRequestException if user already has an active register', async () => {
       mockPrismaService.cashRegister.findFirst.mockResolvedValueOnce({ id: 1, status: 'open' });
 
-      await expect(
-        service.openRegister(1, 2, { openingAmount: 100 }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.openRegister(1, 2, { openingAmount: 100 })).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -134,9 +131,7 @@ describe('CashRegisterService', () => {
         id: 1,
         status: 'open',
         openingAmount: new Decimal(100),
-        transactions: [
-          { transactionType: 'opening', amount: new Decimal(100) },
-        ],
+        transactions: [{ transactionType: 'opening', amount: new Decimal(100) }],
       };
       mockPrismaService.cashRegister.findFirst.mockResolvedValueOnce(mockRegister);
       mockPrismaService.cashRegister.findFirst.mockResolvedValueOnce(mockRegister);

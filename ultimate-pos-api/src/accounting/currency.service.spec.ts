@@ -17,10 +17,7 @@ describe('CurrencyService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CurrencyService,
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
+      providers: [CurrencyService, { provide: PrismaService, useValue: mockPrismaService }],
     }).compile();
 
     service = module.get<CurrencyService>(CurrencyService);
@@ -36,7 +33,7 @@ describe('CurrencyService', () => {
     it('should calculate deterministic fluctuating rates based on date', () => {
       // Day 15: (15 - 15) * 0.005 = 0. Baseline is 1.10
       const rateDay15 = service.getExchangeRate('EUR', 'USD', '2026-06-15');
-      expect(rateDay15).toBeCloseTo(1.10);
+      expect(rateDay15).toBeCloseTo(1.1);
 
       // Day 1: (1 - 15) * 0.005 = -0.07. Baseline is 1.10 -> 1.03
       const rateDay1 = service.getExchangeRate('EUR', 'USD', '2026-06-01');

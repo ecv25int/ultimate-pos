@@ -85,11 +85,7 @@ export class CashRegisterController {
 
   /** POST /api/cash-register/:id/cash-in */
   @Post(':id/cash-in')
-  addCashIn(
-    @Req() req: any,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: CashInOutDto,
-  ) {
+  addCashIn(@Req() req: any, @Param('id', ParseIntPipe) id: number, @Body() dto: CashInOutDto) {
     return this.cashRegisterService.addCashIn(
       req.user.businessId,
       id,
@@ -101,11 +97,7 @@ export class CashRegisterController {
 
   /** POST /api/cash-register/:id/cash-out */
   @Post(':id/cash-out')
-  addCashOut(
-    @Req() req: any,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: CashInOutDto,
-  ) {
+  addCashOut(@Req() req: any, @Param('id', ParseIntPipe) id: number, @Body() dto: CashInOutDto) {
     return this.cashRegisterService.addCashOut(
       req.user.businessId,
       id,

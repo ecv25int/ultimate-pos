@@ -35,12 +35,14 @@ describe('PostingService', () => {
 
   const mockCurrencyService = {
     getExchangeRate: jest.fn().mockReturnValue(1.1),
-    buildTransactionNote: jest.fn().mockImplementation((desc, cur, amt, rate) => JSON.stringify({
-      foreignCurrency: cur,
-      foreignAmount: amt,
-      exchangeRate: rate,
-      description: desc,
-    })),
+    buildTransactionNote: jest.fn().mockImplementation((desc, cur, amt, rate) =>
+      JSON.stringify({
+        foreignCurrency: cur,
+        foreignAmount: amt,
+        exchangeRate: rate,
+        description: desc,
+      }),
+    ),
   };
 
   beforeEach(async () => {

@@ -171,9 +171,9 @@ describe('DeletePaymentUseCase', () => {
 
   it('throws NotFoundException when payment not found', async () => {
     const repo: any = { findById: jest.fn().mockResolvedValue(null) };
-    await expect(new DeletePaymentUseCase(repo, statusSvc, mockPostingService).execute(99, 10)).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      new DeletePaymentUseCase(repo, statusSvc, mockPostingService).execute(99, 10),
+    ).rejects.toThrow(NotFoundException);
   });
 });
 

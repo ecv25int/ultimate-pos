@@ -196,9 +196,9 @@ describe('FinalizePurchaseUseCase', () => {
   it('rejects finalization of already-finalized purchase', async () => {
     const purchase = makePurchase({ status: 'received' });
     const repo: any = { findById: jest.fn().mockResolvedValue(purchase) };
-    await expect(new FinalizePurchaseUseCase(repo, mockPostingService).execute(1, 10)).rejects.toThrow(
-      BadRequestException,
-    );
+    await expect(
+      new FinalizePurchaseUseCase(repo, mockPostingService).execute(1, 10),
+    ).rejects.toThrow(BadRequestException);
   });
 });
 
