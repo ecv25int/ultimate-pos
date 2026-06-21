@@ -4,6 +4,8 @@ import { CreateNotificationDto, NotificationType } from './dto/create-notificati
 import { SmsService } from './sms.service';
 import { WebPushService } from '../push/web-push.service';
 import * as nodemailer from 'nodemailer';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class NotificationsService {
@@ -62,24 +64,349 @@ export class NotificationsService {
   /**
    * Count unread notifications for a user
    */
-  async getUnreadCount(userId: number, businessId: number): Promise<number> {
-    return this.prisma.notification.count({
-      where: { userId, businessId, isRead: false },
-    });
+  async getUnreadCount(userId: number, businessId?: number): Promise<number> {
+    const where: { userId: number; isRead: boolean; businessId?: number } = {
+      userId,
+      isRead: false,
+    };
+    if (businessId !== undefined) {
+      where.businessId = businessId;
+    }
+    return this.prisma.notification.count({ where });
   }
 
   /**
    * Mark a single notification as read
    */
-  async markAsRead(id: number, userId: number, businessId: number) {
-    const notification = await this.prisma.notification.findFirst({
-      where: { id, userId, businessId },
-    });
+  async markAsRead(id: number, userId?: number, businessId?: number) {
+    const where: { id: number; userId?: number; businessId?: number } = { id };
+    if (userId !== undefined) {
+      where.userId = userId;
+    }
+    if (businessId !== undefined) {
+      where.businessId = businessId;
+    }
+
+    const notification = await this.prisma.notification.findFirst({ where });
     if (!notification) throw new NotFoundException('Notification not found');
     return this.prisma.notification.update({
       where: { id },
       data: { isRead: true },
     });
+  }
+
+  /**
+   * Send a notification to a specific user using multiple channels and templates
+   */
+  async sendNotification(
+    userId: number,
+    type: string,
+    message: string,
+    businessId?: number,
+    context: Record<string, any> = {},
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, username: true, businessId: true },
+    });
+    if (!user) return;
+
+    const resolvedBusinessId = businessId ?? user.businessId;
+    if (!resolvedBusinessId) return;
+
+    const template = await this.prisma.notificationTemplate.findFirst({
+      where: {
+        businessId: resolvedBusinessId,
+        templateFor: type,
+      },
+    });
+
+    const placeholders: Record<string, string> = {
+      username: user.username || 'User',
+      message: message,
+      sku: typeof context.sku === 'string' ? context.sku : '',
+      amount: context.amount !== undefined ? String(context.amount) : '',
+    };
+    for (const [key, value] of Object.entries(context)) {
+      if (value !== undefined && value !== null) {
+        placeholders[key] = String(value);
+      }
+    }
+
+    const replacePlaceholders = (text: string) => {
+      let result = text;
+      for (const [key, value] of Object.entries(placeholders)) {
+        result = result.replace(new RegExp(`{${key}}`, 'g'), String(value));
+      }
+      return result;
+    };
+
+    let title = 'System Alert';
+    if (type === 'low_stock' || type === 'stock_low') {
+      title = 'Low Stock Alert';
+    } else if (type === 'expiry_alert') {
+      title = 'Expiry Alert';
+    } else if (type === 'payment_due') {
+      title = 'Payment Due Alert';
+    } else if (type === 'warning') {
+      title = 'Warning Alert';
+    } else if (type === 'info') {
+      title = 'Info Notification';
+    }
+
+    const emailSubject = template?.subject ? replacePlaceholders(template.subject) : title;
+    let emailHtml = '';
+    let smsBodyText = '';
+
+    if (template) {
+      if (template.emailBody) {
+        emailHtml = replacePlaceholders(template.emailBody);
+      }
+      if (template.smsBody) {
+        smsBodyText = replacePlaceholders(template.smsBody);
+      }
+    }
+
+    if (!emailHtml) {
+      emailHtml = `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+          <h2 style="color:#1d4ed8">${title}</h2>
+          <p>Hi <strong>${placeholders.username}</strong>,</p>
+          <p>${message}</p>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0">
+          <p style="color:#6b7280;font-size:12px">Ultimate POS Notification System</p>
+        </div>`;
+    }
+
+    if (!smsBodyText) {
+      smsBodyText = message;
+    }
+
+    const created = await this.create(resolvedBusinessId, {
+      userId,
+      type: type as NotificationType,
+      title: emailSubject,
+      message: message,
+      link: typeof context.link === 'string' ? context.link : undefined,
+    });
+
+    const shouldSendEmail = template ? template.autoSend && !!template.emailBody : true;
+    if (shouldSendEmail && user.email && this.isEmailConfigured()) {
+      await this.sendEmail(user.email, emailSubject, emailHtml);
+    }
+
+    const recipientMobile = typeof context.mobile === 'string' ? context.mobile : null;
+    const shouldSendSms = template ? template.autoSend && !!template.smsBody : true;
+    if (shouldSendSms && recipientMobile && this.isSmsConfigured) {
+      this.sms.sendAsync({
+        to: recipientMobile,
+        body: smsBodyText,
+      });
+    }
+
+    try {
+      void this.webPush.sendToUser(userId, {
+        title: emailSubject,
+        body: message,
+        icon: '/icons/icon-192x192.png',
+        url: typeof context.link === 'string' ? context.link : '/',
+        tag: `${type}-${Date.now()}`,
+      });
+    } catch {
+      // ignore web push errors
+    }
+
+    return created;
+  }
+
+  /**
+   * Run stock-low, payment-due, and expiry alerts for a business
+   */
+  async runAlertChecks(businessId: number) {
+    const now = new Date();
+    const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 3600_000);
+    const thresholdDate = new Date(Date.now() - 30 * 24 * 3600_000);
+
+    const admins = await this.prisma.user.findMany({
+      where: {
+        businessId,
+        isActive: true,
+        userType: { in: ['admin', 'manager'] },
+      },
+      select: { id: true, email: true, username: true },
+    });
+
+    if (!admins.length) return;
+
+    // 1. Stock level checks
+    const stockEntries = await this.prisma.stockEntry.groupBy({
+      by: ['productId'],
+      where: { businessId },
+      _sum: { quantity: true },
+    });
+
+    const products = await this.prisma.product.findMany({
+      where: { businessId, enableStock: true },
+      select: { id: true, name: true, sku: true, alertQuantity: true },
+    });
+
+    for (const product of products) {
+      const entry = stockEntries.find((e) => e.productId === product.id);
+      const currentStock = Number(entry?._sum?.quantity ?? 0);
+      const alertQty = Number(product.alertQuantity || 0);
+
+      if (currentStock <= alertQty) {
+        for (const admin of admins) {
+          const recent = await this.prisma.notification.findFirst({
+            where: {
+              businessId,
+              userId: admin.id,
+              type: 'stock_low',
+              message: { contains: product.sku },
+              createdAt: { gte: new Date(Date.now() - 3600_000) },
+            },
+          });
+          if (!recent) {
+            await this.sendNotification(
+              admin.id,
+              'stock_low',
+              `${product.name} (${product.sku}) has only ${currentStock} units remaining (threshold: ${alertQty})`,
+              businessId,
+              { sku: product.sku, amount: currentStock, link: '/inventory' },
+            );
+          }
+        }
+      }
+    }
+
+    // 2. Payment overdue checks
+    const dueSales = await this.prisma.sale.findMany({
+      where: {
+        businessId,
+        paymentStatus: { in: ['due', 'partial'] },
+        status: 'final',
+        transactionDate: { lt: thresholdDate },
+        deletedAt: null,
+      },
+      select: { id: true, invoiceNo: true, totalAmount: true, paidAmount: true },
+    });
+
+    const duePurchases = await this.prisma.purchase.findMany({
+      where: {
+        businessId,
+        paymentStatus: { in: ['due', 'partial'] },
+        purchaseDate: { lt: thresholdDate },
+        deletedAt: null,
+      },
+      select: { id: true, refNo: true, totalAmount: true, paidAmount: true },
+    });
+
+    for (const sale of dueSales) {
+      const dueAmount = Number(sale.totalAmount) - Number(sale.paidAmount);
+      for (const admin of admins) {
+        const recent = await this.prisma.notification.findFirst({
+          where: {
+            businessId,
+            userId: admin.id,
+            type: 'payment_due',
+            message: { contains: sale.invoiceNo },
+            createdAt: { gte: new Date(Date.now() - 3600_000) },
+          },
+        });
+        if (!recent) {
+          await this.sendNotification(
+            admin.id,
+            'payment_due',
+            `Payment of ${dueAmount.toFixed(2)} is overdue for Sale Invoice #${sale.invoiceNo} (Total: ${sale.totalAmount.toString()})`,
+            businessId,
+            { amount: dueAmount, invoiceNo: sale.invoiceNo, link: `/sales/${sale.id}` },
+          );
+        }
+      }
+    }
+
+    for (const purchase of duePurchases) {
+      const dueAmount = Number(purchase.totalAmount) - Number(purchase.paidAmount);
+      const refNo = purchase.refNo || String(purchase.id);
+      for (const admin of admins) {
+        const recent = await this.prisma.notification.findFirst({
+          where: {
+            businessId,
+            userId: admin.id,
+            type: 'payment_due',
+            message: { contains: refNo },
+            createdAt: { gte: new Date(Date.now() - 3600_000) },
+          },
+        });
+        if (!recent) {
+          await this.sendNotification(
+            admin.id,
+            'payment_due',
+            `Payment of ${dueAmount.toFixed(2)} is overdue for Purchase Reference #${refNo} (Total: ${purchase.totalAmount.toString()})`,
+            businessId,
+            { amount: dueAmount, refNo, link: `/purchases/${purchase.id}` },
+          );
+        }
+      }
+    }
+
+    // 3. Expiry approaching checks
+    const expiringLines = await this.prisma.purchaseLine.findMany({
+      where: {
+        purchase: { businessId },
+        expiryDate: { lte: sevenDaysFromNow, gt: now },
+      },
+      include: {
+        product: { select: { name: true, sku: true } },
+        purchase: { select: { refNo: true } },
+      },
+    });
+
+    for (const line of expiringLines) {
+      const qty = new Decimal(line.quantity);
+      const sold = new Decimal(line.quantitySold || 0);
+      const adj = new Decimal(line.quantityAdjusted || 0);
+      const remaining = qty.minus(sold).minus(adj);
+
+      if (remaining.greaterThan(0)) {
+        const batchInfo = line.batchNumber ? `Batch ${line.batchNumber}` : 'Stock line';
+        const dateStr = line.expiryDate ? line.expiryDate.toISOString().split('T')[0] : '';
+        const msg = `${line.product.name} (${line.product.sku}) - ${batchInfo} is expiring on ${dateStr} (${remaining.toString()} units remaining)`;
+
+        for (const admin of admins) {
+          const recent = await this.prisma.notification.findFirst({
+            where: {
+              businessId,
+              userId: admin.id,
+              type: 'expiry_alert',
+              message: { contains: line.product.sku },
+              createdAt: { gte: new Date(Date.now() - 3600_000) },
+            },
+          });
+          if (!recent) {
+            await this.sendNotification(admin.id, 'expiry_alert', msg, businessId, {
+              sku: line.product.sku,
+              amount: remaining.toNumber(),
+              link: '/inventory',
+            });
+          }
+        }
+      }
+    }
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async handleScheduledAlerts() {
+    const businesses = await this.prisma.business.findMany({
+      select: { id: true },
+    });
+    for (const bus of businesses) {
+      try {
+        await this.runAlertChecks(bus.id);
+      } catch {
+        // Ignore single business failures
+      }
+    }
   }
 
   /**
@@ -206,7 +533,7 @@ export class NotificationsService {
             }
 
             // Web push
-            this.webPush.sendToUser(admin.id, {
+            void this.webPush.sendToUser(admin.id, {
               title: 'Low Stock Alert',
               body: `${product.name} (${product.sku}) has only ${currentStock} units left`,
               icon: '/icons/icon-192x192.png',

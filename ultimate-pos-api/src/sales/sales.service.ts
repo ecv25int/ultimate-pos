@@ -284,6 +284,44 @@ export class SalesService {
       tag: `sale-${sale.id}`,
     });
 
+    // Check if the discount rate exceeds 20% to trigger warning notification
+    let isHighDiscount = false;
+    if (sale.discountType === 'percentage') {
+      if (Number(sale.discountAmount ?? 0) > 20) {
+        isHighDiscount = true;
+      }
+    } else {
+      const discountVal = Number(sale.discountAmount ?? 0);
+      const totalVal = Number(sale.totalAmount ?? 0);
+      if (totalVal > 0 && discountVal / totalVal > 0.2) {
+        isHighDiscount = true;
+      }
+    }
+
+    if (isHighDiscount) {
+      // Find all admin and manager users in the business to notify
+      const admins = await this.prisma.user.findMany({
+        where: {
+          businessId,
+          isActive: true,
+          userType: { in: ['admin', 'manager'] },
+        },
+        select: { id: true },
+      });
+      const discountPercent =
+        sale.discountType === 'percentage'
+          ? Number(sale.discountAmount).toFixed(1)
+          : ((Number(sale.discountAmount) / Number(sale.totalAmount)) * 100).toFixed(1);
+
+      const message = `Warning: Sale ${sale.invoiceNo} was created with a high discount rate of ${discountPercent}% (Discount: ${sale.discountAmount}, Total: ${sale.totalAmount})`;
+      for (const admin of admins) {
+        // Send a warning notification to all managers/admins
+        await this.notifications.sendNotification(admin.id, 'warning', message, businessId, {
+          link: `/sales/${sale.id}`,
+        });
+      }
+    }
+
     return sale;
   }
 

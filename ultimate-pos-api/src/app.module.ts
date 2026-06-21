@@ -41,6 +41,7 @@ import { VariationsModule } from './variations/variations.module';
 import { CustomerGroupsModule } from './customer-groups/customer-groups.module';
 import { SellingPriceGroupsModule } from './selling-price-groups/selling-price-groups.module';
 import { DiscountsModule } from './discounts/discounts.module';
+import { CommissionModule } from './commission/commission.module';
 import { WarrantiesModule } from './warranties/warranties.module';
 import { NotificationTemplatesModule } from './notification-templates/notification-templates.module';
 import { StockAdjustmentsModule } from './stock-adjustments/stock-adjustments.module';
@@ -121,6 +122,7 @@ import { HealthController } from './common/controllers/health.controller';
     CustomerGroupsModule,
     SellingPriceGroupsModule,
     DiscountsModule,
+    CommissionModule,
     WarrantiesModule,
     NotificationTemplatesModule,
     StockAdjustmentsModule,

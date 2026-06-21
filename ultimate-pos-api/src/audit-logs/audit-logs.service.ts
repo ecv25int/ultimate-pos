@@ -34,6 +34,31 @@ export class AuditLogsService {
       });
   }
 
+  logActivity(
+    businessId: number,
+    userId: number | null,
+    action: AuditAction,
+    entity: string,
+    entityId?: number | null,
+    changes?: Record<string, any> | null,
+    ip?: string | null,
+  ): void {
+    this.log(businessId, userId, action, entity, entityId, changes, ip);
+  }
+
+  async getActivityLog(
+    businessId: number,
+    filters: {
+      entity?: string;
+      action?: string;
+      userId?: number;
+      page?: number;
+      limit?: number;
+    } = {},
+  ) {
+    return this.findAll(businessId, filters);
+  }
+
   async findAll(
     businessId: number,
     opts: {
@@ -47,7 +72,12 @@ export class AuditLogsService {
     const { entity, action, userId, page = 1, limit = 30 } = opts;
     const skip = (page - 1) * limit;
 
-    const where: any = { businessId };
+    const where: {
+      businessId: number;
+      entity?: string;
+      action?: string;
+      userId?: number;
+    } = { businessId };
     if (entity) where.entity = entity;
     if (action) where.action = action;
     if (userId) where.userId = userId;

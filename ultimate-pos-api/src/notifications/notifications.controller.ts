@@ -88,6 +88,13 @@ export class NotificationsController {
     return { message: 'Low stock check complete' };
   }
 
+  @Post('run-alerts')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  async runAlerts(@Request() req: { user: { businessId: number } }) {
+    await this.notificationsService.runAlertChecks(req.user.businessId);
+    return { message: 'Alert checks completed' };
+  }
+
   /**
    * GET /api/notifications/email-status
    * Check whether SMTP email delivery is configured on the server

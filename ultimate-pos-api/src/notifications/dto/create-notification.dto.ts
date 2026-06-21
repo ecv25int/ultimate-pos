@@ -8,6 +8,10 @@ export enum NotificationType {
   INFO = 'info',
   WARNING = 'warning',
   ERROR = 'error',
+  EXPIRY_ALERT = 'expiry_alert',
+  STOCK_LOW = 'stock_low',
+  PAYMENT_DUE = 'payment_due',
+  ORDER_READY = 'order_ready',
 }
 
 export class CreateNotificationDto {
