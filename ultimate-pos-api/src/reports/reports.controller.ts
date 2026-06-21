@@ -14,6 +14,7 @@ import {
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ReportsService } from './reports.service';
+import { AgingService } from './aging.service';
 import { ExportReportDto, ReportType, ExportFormat } from './dto/export-report.dto';
 import {
   ApiTags,
@@ -30,7 +31,10 @@ import {
 @UseGuards(JwtAuthGuard)
 @Controller('reports')
 export class ReportsController {
-  constructor(private readonly reportsService: ReportsService) {}
+  constructor(
+    private readonly reportsService: ReportsService,
+    private readonly agingService: AgingService,
+  ) {}
 
   /** GET /api/reports/dashboard */
   @Get('dashboard')
@@ -396,5 +400,86 @@ export class ReportsController {
       'Content-Length': String(buffer.length),
     });
     res.end(buffer);
+  }
+
+  /** GET /api/reports/ap-aging?asOfDate= */
+  @Get('ap-aging')
+  @ApiOperation({
+    summary: 'Accounts Payable Aging Report',
+    description: 'Get aging report of outstanding purchases/accounts payable.',
+  })
+  @ApiQuery({ name: 'asOfDate', required: false, description: 'ISO date, e.g. 2026-06-21' })
+  @ApiResponse({ status: 200, description: 'AP aging summary and contacts breakdown.' })
+  getAPAging(
+    @Request() req: { user: { businessId: number } },
+    @Query('asOfDate') asOfDate?: string,
+  ) {
+    return this.agingService.getAPAging(req.user.businessId, asOfDate);
+  }
+
+  /** GET /api/reports/ar-aging?asOfDate= */
+  @Get('ar-aging')
+  @ApiOperation({
+    summary: 'Accounts Receivable Aging Report',
+    description: 'Get aging report of outstanding sales/accounts receivable.',
+  })
+  @ApiQuery({ name: 'asOfDate', required: false, description: 'ISO date, e.g. 2026-06-21' })
+  @ApiResponse({ status: 200, description: 'AR aging summary and contacts breakdown.' })
+  getARAging(
+    @Request() req: { user: { businessId: number } },
+    @Query('asOfDate') asOfDate?: string,
+  ) {
+    return this.agingService.getARAging(req.user.businessId, asOfDate);
+  }
+
+  /** GET /api/reports/expense-breakdown?from=&to= */
+  @Get('expense-breakdown')
+  @ApiOperation({
+    summary: 'Expense Breakdown Report',
+    description: 'Get expenses grouped by category with their percentage share.',
+  })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  @ApiResponse({ status: 200, description: 'Expense breakdown details.' })
+  getExpenseBreakdown(
+    @Request() req: { user: { businessId: number } },
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.reportsService.getExpenseBreakdown(req.user.businessId, from, to);
+  }
+
+  /** GET /api/reports/cash-flow?from=&to= */
+  @Get('cash-flow')
+  @ApiOperation({
+    summary: 'Cash Flow Statement',
+    description: 'Direct cash flow statement from operating activities.',
+  })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  @ApiResponse({ status: 200, description: 'Cash flow summary and details.' })
+  getCashFlow(
+    @Request() req: { user: { businessId: number } },
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.reportsService.getCashFlowStatement(req.user.businessId, from, to);
+  }
+
+  /** GET /api/reports/gst?from=&to= */
+  @Get('gst')
+  @ApiOperation({
+    summary: 'GST Report',
+    description: 'GST collected on sales vs GST paid on purchases and expenses.',
+  })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  @ApiResponse({ status: 200, description: 'GST collected, paid, and net liability.' })
+  getGST(
+    @Request() req: { user: { businessId: number } },
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.reportsService.getGSTReport(req.user.businessId, from, to);
   }
 }

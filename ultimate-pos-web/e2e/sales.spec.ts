@@ -23,13 +23,19 @@ test.describe('Sales & Stock — full flow', () => {
     // 1. Get a token for direct API calls
     accessToken = await getAdminToken(page);
 
-    // 2. Create a unit (needed for product)
+    // 1b. Seed standard accounts
+    await page.request.post(`${API}/accounts/seed`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    // 2. Get a unit (needed for product)
     const unitRes = await page.request.get(`${API}/units`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
-    const units = await unitRes.json();
+    const unitBody = await unitRes.json();
+    const units = unitBody.data || unitBody;
     const unitId = (units[0] as any)?.id;
-    if (!unitId) throw new Error('No units in seed — run prisma/seed.ts first');
+    if (!unitId) throw new Error(`No units in seed — run prisma/seed.ts first. Response was: ${JSON.stringify(unitBody)}`);
 
     // 3. Create a test product
     const sku = `E2E-SALE-${Date.now()}`;
@@ -39,21 +45,46 @@ test.describe('Sales & Stock — full flow', () => {
       data: { name: `E2E Sale Product ${sku}`, sku, unitId, enableStock: true },
     });
     expect(productRes.ok()).toBeTruthy();
-    productId = (await productRes.json()).id;
+    const productBody = await productRes.json();
+    productId = productBody.data?.id || productBody.id;
+
+    // 3b. Create Product Variation
+    const pvRes = await page.request.post(`${API}/variations/product-variations`, {
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      data: { productId, name: 'DUMMY' }
+    });
+    expect(pvRes.ok()).toBeTruthy();
+    const pvBody = await pvRes.json();
+    const productVariation = pvBody.data || pvBody;
+    const productVariationId = productVariation.id;
+
+    // 3c. Create Variation
+    const vRes = await page.request.post(`${API}/variations`, {
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      data: {
+        productId,
+        productVariationId,
+        name: 'DUMMY_VALUE',
+        subSku: sku,
+        defaultPurchasePrice: 10.00,
+        defaultSellPrice: 15.00,
+      }
+    });
+    expect(vRes.ok()).toBeTruthy();
+    const vBody = await vRes.json();
+    const variation = vBody.data || vBody;
+    const variationId = variation.id;
 
     // 4. Add initial stock via stock-adjustment
     const adjRes = await page.request.post(`${API}/stock-adjustments`, {
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       data: {
-        adjustmentDate: new Date().toISOString().slice(0, 10),
+        locationId: 1,
         referenceNo: `E2E-ADJ-${Date.now()}`,
-        lines: [{ productId, quantity: INITIAL_STOCK, unitCost: 10.00 }],
+        lines: [{ variationId, quantity: INITIAL_STOCK, unitPrice: 10.00, reason: 'found' }],
       },
     });
-    // Stock adjustment may 404 if not implemented; skip gracefully
-    if (!adjRes.ok()) {
-      console.warn('[E2E] Stock adjustment endpoint unavailable; stock may be 0');
-    }
+    expect(adjRes.ok()).toBeTruthy();
 
     await page.close();
   });
@@ -99,9 +130,14 @@ test.describe('Sales & Stock — full flow', () => {
     const beforeRes = await page.request.get(`${API}/inventory/stock`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
-    const beforeStock = beforeRes.ok()
-      ? ((await beforeRes.json()) as any[]).find((s: any) => s.productId === productId)?.currentStock ?? null
-      : null;
+    let beforeStock: number | null = null;
+    if (beforeRes.ok()) {
+      const beforeBody = await beforeRes.json();
+      const beforeList = beforeBody.data || beforeBody;
+      beforeStock = Array.isArray(beforeList)
+        ? beforeList.find((s: any) => s.id === productId)?.currentStock ?? null
+        : null;
+    }
 
     // Add product to cart via barcode scan
     const barcodeInput = page.locator('.barcode-input');
@@ -130,10 +166,12 @@ test.describe('Sales & Stock — full flow', () => {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         if (afterRes.ok()) {
-          const afterStock = ((await afterRes.json()) as any[]).find(
-            (s: any) => s.productId === productId,
-          )?.currentStock;
-          if (afterStock !== undefined) {
+          const afterBody = await afterRes.json();
+          const afterList = afterBody.data || afterBody;
+          const afterStock = Array.isArray(afterList)
+            ? afterList.find((s: any) => s.id === productId)?.currentStock ?? null
+            : null;
+          if (afterStock !== null) {
             expect(Number(afterStock)).toBeLessThan(Number(beforeStock));
           }
         }

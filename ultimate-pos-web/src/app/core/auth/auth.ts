@@ -29,12 +29,7 @@ export class Auth {
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor() {
-    // Check if token is valid on service initialization
-    if (this.getToken()) {
-      this.validateToken().subscribe({
-        error: () => this.logout(),
-      });
-    }
+    // Rely on router guards to validate token on navigation to avoid circular dependency
   }
 
   /**
@@ -110,7 +105,11 @@ export class Auth {
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
-    return !!this.getToken() && !!this.getRefreshToken() && !!this.getCurrentUser();
+    const hasToken = !!this.getToken();
+    const hasRefresh = !!this.getRefreshToken();
+    const hasUser = !!this.getCurrentUser();
+    console.log('[Auth Service] isAuthenticated check:', { hasToken, hasRefresh, hasUser });
+    return hasToken && hasRefresh && hasUser;
   }
 
   /**

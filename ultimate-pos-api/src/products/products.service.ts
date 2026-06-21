@@ -208,7 +208,7 @@ export class ProductsService {
       },
     });
 
-    await this.cacheManager.set(cacheKey, result, 60_000); // 1 min
+    await this.cacheManager.set(cacheKey, result, 300_000); // 5 min
     return result;
   }
 

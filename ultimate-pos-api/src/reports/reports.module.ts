@@ -7,6 +7,7 @@ import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
 import { ExportService } from './export.service';
 import { ScheduledReportService } from './scheduled-report.service';
+import { AgingService } from './aging.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AccountingModule } from '../accounting/accounting.module';
 
@@ -19,6 +20,7 @@ import { AccountingModule } from '../accounting/accounting.module';
     DashboardService,
     ExportService,
     ScheduledReportService,
+    AgingService,
   ],
   exports: [
     ReportsService,
@@ -26,6 +28,7 @@ import { AccountingModule } from '../accounting/accounting.module';
     DashboardService,
     ExportService,
     ScheduledReportService,
+    AgingService,
   ],
 })
 export class ReportsModule {}

@@ -20,6 +20,7 @@ const mockUser = {
   userType: 'user',
   businessId: 1,
   isActive: true,
+  currentSessionId: 'some-session-id',
 };
 
 const mockPrismaService = {
@@ -209,7 +210,7 @@ describe('AuthService', () => {
 
   describe('refreshToken', () => {
     it('issues a new accessToken for a valid refresh token', async () => {
-      mockJwtService.verify.mockReturnValue({ sub: 1 });
+      mockJwtService.verify.mockReturnValue({ sub: 1, sessionId: 'some-session-id' });
       const { password: _, ...safe } = mockUser;
       mockPrismaService.user.findUnique.mockResolvedValue(safe);
       mockJwtService.signAsync.mockResolvedValue('new-access-token');
@@ -228,10 +229,42 @@ describe('AuthService', () => {
     });
 
     it('throws UnauthorizedException when user is inactive post-verify', async () => {
-      mockJwtService.verify.mockReturnValue({ sub: 1 });
+      mockJwtService.verify.mockReturnValue({ sub: 1, sessionId: 'some-session-id' });
       mockPrismaService.user.findUnique.mockResolvedValue({ ...mockUser, isActive: false });
 
       await expect(service.refreshToken('valid-token')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('throws UnauthorizedException when sessionId is missing in payload', async () => {
+      mockJwtService.verify.mockReturnValue({ sub: 1 });
+      const { password: _, ...safe } = mockUser;
+      mockPrismaService.user.findUnique.mockResolvedValue(safe);
+
+      await expect(service.refreshToken('valid-token')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('throws UnauthorizedException when sessionId does not match db', async () => {
+      mockJwtService.verify.mockReturnValue({ sub: 1, sessionId: 'different-session-id' });
+      const { password: _, ...safe } = mockUser;
+      mockPrismaService.user.findUnique.mockResolvedValue(safe);
+
+      await expect(service.refreshToken('valid-token')).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  // ─── logout ───────────────────────────────────────────────────────────────────
+
+  describe('logout', () => {
+    it('clears the currentSessionId in database', async () => {
+      mockPrismaService.user.update.mockResolvedValue({ ...mockUser, currentSessionId: null });
+
+      const result = await service.logout(1);
+
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { currentSessionId: null },
+      });
+      expect(result.message).toBe('Logged out successfully');
     });
   });
 });

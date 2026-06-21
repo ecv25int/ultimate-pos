@@ -41,7 +41,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Throttle({ default: { limit: 100, ttl: 60_000 } })
   @ApiOperation({ summary: 'Login with username/password — returns JWT tokens' })
   @ApiResponse({
     status: 200,
@@ -151,5 +151,15 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async resendVerification(@Request() req: any) {
     return this.authService.resendVerificationEmail(req.user.id);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Logout and invalidate current session' })
+  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  async logout(@Request() req: any) {
+    return this.authService.logout(req.user.id);
   }
 }

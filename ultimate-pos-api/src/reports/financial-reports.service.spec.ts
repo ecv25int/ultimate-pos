@@ -91,6 +91,23 @@ const mockPrismaService = {
   accountTransaction: {
     findMany: jest.fn().mockResolvedValue(mockTransactions),
   },
+  expense: {
+    findMany: jest.fn(),
+    aggregate: jest.fn(),
+    groupBy: jest.fn(),
+  },
+  expenseCategory: {
+    findMany: jest.fn(),
+  },
+  payment: {
+    aggregate: jest.fn(),
+  },
+  sale: {
+    aggregate: jest.fn(),
+  },
+  purchase: {
+    aggregate: jest.fn(),
+  },
 };
 
 describe('Financial Reports - ReportsService', () => {
@@ -150,5 +167,96 @@ describe('Financial Reports - ReportsService', () => {
     expect(result.summary.totalRevenue).toBe(500);
     expect(result.summary.totalExpenses).toBe(400);
     expect(result.summary.netIncome).toBe(100);
+  });
+
+  describe('getExpenseBreakdown', () => {
+    it('should calculate expense breakdown correctly', async () => {
+      mockPrismaService.expense.findMany.mockResolvedValueOnce([
+        { id: 1, amount: 100, taxAmount: 10, totalAmount: 110, expenseCategoryId: 1 },
+        { id: 2, amount: 200, taxAmount: 20, totalAmount: 220, expenseCategoryId: 2 },
+      ]);
+      mockPrismaService.expense.aggregate.mockResolvedValueOnce({
+        _sum: { amount: 300, taxAmount: 30, totalAmount: 330 },
+        _count: { id: 2 },
+      });
+      mockPrismaService.expense.groupBy.mockResolvedValueOnce([
+        { expenseCategoryId: 1, _sum: { totalAmount: 110 }, _count: { id: 1 } },
+        { expenseCategoryId: 2, _sum: { totalAmount: 220 }, _count: { id: 1 } },
+      ]);
+      mockPrismaService.expenseCategory.findMany.mockResolvedValueOnce([
+        { id: 1, name: 'Office Utilities' },
+        { id: 2, name: 'Marketing' },
+      ]);
+
+      const result = await service.getExpenseBreakdown(1);
+
+      expect(result.summary.total).toBe(330);
+      expect(result.summary.count).toBe(2);
+      expect(result.byCategory).toHaveLength(2);
+      expect(result.byCategory[0].categoryName).toBe('Office Utilities');
+      expect(result.byCategory[0].total).toBe(110);
+      expect(result.byCategory[0].percentage).toBe(33.33); // (110 / 330) * 100
+      expect(result.byCategory[1].categoryName).toBe('Marketing');
+      expect(result.byCategory[1].total).toBe(220);
+      expect(result.byCategory[1].percentage).toBe(66.67); // (220 / 330) * 100
+    });
+  });
+
+  describe('getCashFlowStatement', () => {
+    it('should calculate cash flow statement correctly', async () => {
+      // Mock sales payments (inflow)
+      mockPrismaService.payment.aggregate.mockResolvedValueOnce({
+        _sum: { amount: 5000 },
+        _count: { id: 15 },
+      });
+      // Mock purchases payments (outflow)
+      mockPrismaService.payment.aggregate.mockResolvedValueOnce({
+        _sum: { amount: 2500 },
+        _count: { id: 10 },
+      });
+      // Mock direct expenses (outflow)
+      mockPrismaService.expense.aggregate.mockResolvedValueOnce({
+        _sum: { totalAmount: 800 },
+        _count: { id: 5 },
+      });
+
+      const result = await service.getCashFlowStatement(1);
+
+      expect(result.summary.totalInflow).toBe(5000);
+      expect(result.summary.totalOutflow).toBe(3300); // 2500 + 800
+      expect(result.summary.netCashFlow).toBe(1700); // 5000 - 3300
+      expect(result.operatingActivities.inflows.receiptsFromCustomers).toBe(5000);
+      expect(result.operatingActivities.outflows.paymentsToSuppliers).toBe(2500);
+      expect(result.operatingActivities.outflows.paymentsForExpenses).toBe(800);
+    });
+  });
+
+  describe('getGSTReport', () => {
+    it('should calculate GST report correctly', async () => {
+      // Mock sales GST
+      mockPrismaService.sale.aggregate.mockResolvedValueOnce({
+        _sum: { taxAmount: 150, totalAmount: 1650 },
+        _count: { id: 12 },
+      });
+      // Mock purchases GST
+      mockPrismaService.purchase.aggregate.mockResolvedValueOnce({
+        _sum: { taxAmount: 80, totalAmount: 880 },
+        _count: { id: 6 },
+      });
+      // Mock expenses GST
+      mockPrismaService.expense.aggregate.mockResolvedValueOnce({
+        _sum: { taxAmount: 20, amount: 200 },
+        _count: { id: 3 },
+      });
+
+      const result = await service.getGSTReport(1);
+
+      expect(result.outputGst.gstCollected).toBe(150);
+      expect(result.outputGst.taxableSales).toBe(1500); // 1650 - 150
+      expect(result.inputGst.gstPaidOnPurchases).toBe(80);
+      expect(result.inputGst.gstPaidOnExpenses).toBe(20);
+      expect(result.inputGst.gstTotalPaid).toBe(100); // 80 + 20
+      expect(result.netGstLiability).toBe(50); // 150 - 100
+    });
   });
 });

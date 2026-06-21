@@ -51,6 +51,7 @@ model User {
   passwordResetToken    String?   @map("password_reset_token") @db.VarChar(255)
   passwordResetExpires  DateTime? @map("password_reset_expires")
   locale                String    @default("en") @db.VarChar(10)
+  currentSessionId      String?   @map("current_session_id") @db.VarChar(255)
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
   

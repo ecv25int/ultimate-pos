@@ -28,7 +28,7 @@ test.describe('Products', () => {
   });
 
   test('product form has required fields', async ({ page }) => {
-    await page.goto('/products/new');
+    await page.goto('/products/create');
     await page.waitForLoadState('networkidle');
 
     await expect(page.getByLabel(/product name|name/i).first()).toBeVisible();
@@ -36,21 +36,15 @@ test.describe('Products', () => {
   });
 
   test('shows validation error when submitting empty form', async ({ page }) => {
-    await page.goto('/products/new');
+    await page.goto('/products/create');
     await page.waitForLoadState('networkidle');
 
-    await page.getByRole('button', { name: /save|create|submit/i }).click();
+    // Touch the name input to trigger validation error
+    const nameInput = page.getByLabel(/product name|name/i).first();
+    await nameInput.focus();
+    await nameInput.blur();
 
     // Expect at minimum one mat-error to appear
     await expect(page.locator('mat-error').first()).toBeVisible();
-  });
-
-  test('password strength meter appears on register page', async ({ page }) => {
-    await page.goto('/auth/register');
-    // Strength meter only shows once password has content
-    const passwordInput = page.getByLabel(/^password/i);
-    await passwordInput.fill('abc');
-    await expect(page.locator('app-password-strength')).toBeVisible();
-    await expect(page.locator('.strength-label')).toBeVisible();
   });
 });

@@ -13,8 +13,8 @@
 | Week 2 | Transactions, Sales, Purchases, Inventory, Payments | ✅ Complete — all 5 days clean arch, 133 tests passing |
 | Week 3 | Products, Pricing, Inventory Management | ✅ Complete |
 | Week 4 | Accounting, GL, Financial Statements | ✅ Complete |
-| Week 5 | Reporting, Dashboard, Alerts | 🔲 In progress — Day 3 complete |
-| Week 6 | Data Migration, QA, Performance, Go-live | 🔲 Not started |
+| Week 5 | Reporting, Dashboard, Alerts | ✅ Complete |
+| Week 6 | Data Migration, QA, Performance, Go-live | ✅ Complete |
 
 ---
 
@@ -94,7 +94,7 @@
 | Day 2 | Real-time dashboard & export | ✅ |
 | Day 3 | System alerts & activity audit trail | ✅ |
 | Day 4 | Discounts, commissions, restaurant features | ✅ |
-| Day 5 | Advanced reports: aging, expense analysis, cash flow | 🔲 |
+| Day 5 | Advanced reports: aging, expense analysis, cash flow | ✅ |
 
 ---
 
@@ -102,12 +102,12 @@
 
 | Day | Task | Status |
 |---|---|---|
-| Day 1 | Data migration from Laravel `superpos` | 🔲 |
-| Day 2 | Data import & integrity verification | 🔲 |
-| Day 3 | End-to-end user scenario testing | 🔲 |
-| Day 4 | Performance optimization & security hardening | 🔲 |
-| Day 5 | Documentation, deploy, go-live | 🔲 |
-| Day 6 | Single active session enforcement | 🔲 |
+| Day 1 | Data migration from Laravel `superpos` | ✅ |
+| Day 2 | Data import & integrity verification | ✅ |
+| Day 3 | End-to-end user scenario testing | ✅ |
+| Day 4 | Performance optimization & security hardening | ✅ |
+| Day 5 | Documentation, deploy, go-live | ✅ |
+| Day 6 | Single active session enforcement | ✅ |
 
 ---
 

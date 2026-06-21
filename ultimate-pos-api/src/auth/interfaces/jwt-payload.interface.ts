@@ -4,4 +4,5 @@ export interface JwtPayload {
   email?: string;
   businessId?: number;
   userType: string;
+  sessionId?: string;
 }

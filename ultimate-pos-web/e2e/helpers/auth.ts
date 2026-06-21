@@ -11,7 +11,7 @@ export async function loginAs(page: Page, username: string, password: string) {
   await page.waitForSelector('form');
 
   await page.getByLabel(/username/i).fill(username);
-  await page.getByLabel(/password/i).fill(password);
+  await page.locator('input[type="password"]').fill(password);
   await page.getByRole('button', { name: /sign in|log in/i }).click();
 
   // Wait for redirect away from login page
@@ -31,5 +31,5 @@ export async function getAdminToken(page: Page): Promise<string> {
     data: { username: 'admin', password: 'admin123' },
   });
   const body = await res.json();
-  return body.accessToken as string;
+  return (body.data?.accessToken || body.accessToken) as string;
 }

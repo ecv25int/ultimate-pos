@@ -9,31 +9,31 @@ Update Plans/Plan-Checklist.md  file when finish, with all the plans implemented
 For the current week, update also the progress in Plans/Week-X/Day-X.md for the days already done. 
 
 ## Tasks
-- [ ] Create `aging.service.ts`:
+- [x] Create `aging.service.ts`:
   - getAPAging(asOfDate) — AP by age buckets
   - getARaging(asOfDate) — AR by age buckets
   - (current, 30+, 60+, 90+ days)
-- [ ] Financial Reports:
+- [x] Financial Reports:
   - getExpenseBreakdown()
   - getCashFlowStatement()
   - getTaxReport()
   - getGSTReport()
-- [ ] Create aging report endpoints:
+- [x] Create aging report endpoints:
   - GET /api/reports/ap-aging
   - GET /api/reports/ar-aging
-- [ ] Week 5 verification:
+- [x] Week 5 verification:
   - All 30+ report types working
   - Dashboard real-time updates
   - Export functionality complete
   - Alerts triggering correctly
   - Audit trail complete
-- [ ] Create `Week-5-SUMMARY.md`
+- [x] Create `Week-5-SUMMARY.md`
 
 ## Verification
-- [ ] All reporting endpoints functional
-- [ ] Aging reports accurate
-- [ ] Export and dashboard complete
-- [ ] No regressions from earlier weeks
+- [x] All reporting endpoints functional
+- [x] Aging reports accurate
+- [x] Export and dashboard complete
+- [x] No regressions from earlier weeks
 
 ## Success Criteria
 ✅ Advanced reporting complete

@@ -52,6 +52,8 @@ export class AuthService {
     // Generate email verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
+    const sessionId = crypto.randomUUID();
+
     const user = await this.prisma.user.create({
       data: {
         username: registerDto.username,
@@ -63,6 +65,7 @@ export class AuthService {
         businessId: registerDto.businessId,
         emailVerificationToken: registerDto.email ? verificationToken : null,
         isEmailVerified: !registerDto.email, // mark verified if no email provided
+        currentSessionId: sessionId,
       },
       select: {
         id: true,
@@ -73,6 +76,7 @@ export class AuthService {
         userType: true,
         businessId: true,
         isEmailVerified: true,
+        currentSessionId: true,
       },
     });
 
@@ -150,18 +154,23 @@ export class AuthService {
       );
     }
 
-    // Successful login — reset failed attempts
+    const sessionId = crypto.randomUUID();
+
+    // Successful login — reset failed attempts, generate new session ID
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { failedAttempts: 0, lockedUntil: null },
+      data: { failedAttempts: 0, lockedUntil: null, currentSessionId: sessionId },
     });
 
     const { password, failedAttempts, lockedUntil, ...userWithoutPassword } = user;
-    const tokens = await this.generateTokens(userWithoutPassword, loginDto.rememberMe ?? false);
+    const tokens = await this.generateTokens(
+      { ...userWithoutPassword, currentSessionId: sessionId },
+      loginDto.rememberMe ?? false,
+    );
 
     return {
       ...tokens,
-      user: userWithoutPassword,
+      user: { ...userWithoutPassword, currentSessionId: sessionId },
     };
   }
 
@@ -182,6 +191,7 @@ export class AuthService {
           userType: true,
           businessId: true,
           isActive: true,
+          currentSessionId: true,
         },
       });
 
@@ -189,10 +199,17 @@ export class AuthService {
         throw new UnauthorizedException('User not found or inactive');
       }
 
+      if (!payload.sessionId || payload.sessionId !== user.currentSessionId) {
+        throw new UnauthorizedException('Session expired or invalidated by a new login');
+      }
+
       const accessToken = await this.generateAccessToken(user);
 
       return { accessToken };
     } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
@@ -204,6 +221,7 @@ export class AuthService {
       email?: string | null;
       userType: string;
       businessId?: number | null;
+      currentSessionId?: string | null;
     },
     rememberMe = false,
   ): Promise<{ accessToken: string; refreshToken: string }> {
@@ -213,6 +231,7 @@ export class AuthService {
       email: user.email || undefined,
       businessId: user.businessId || undefined,
       userType: user.userType,
+      sessionId: user.currentSessionId || undefined,
     };
 
     const jwtRefreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
@@ -240,6 +259,7 @@ export class AuthService {
     email?: string | null;
     userType: string;
     businessId?: number | null;
+    currentSessionId?: string | null;
   }): Promise<string> {
     const payload: any = {
       sub: user.id,
@@ -247,6 +267,7 @@ export class AuthService {
       email: user.email || undefined,
       businessId: user.businessId || undefined,
       userType: user.userType,
+      sessionId: user.currentSessionId || undefined,
     };
 
     return this.jwtService.signAsync(payload);
@@ -453,6 +474,17 @@ export class AuthService {
 
     return {
       message: 'Password changed successfully',
+    };
+  }
+
+  async logout(userId: number): Promise<{ message: string }> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { currentSessionId: null },
+    });
+
+    return {
+      message: 'Logged out successfully',
     };
   }
 }

@@ -1,0 +1,99 @@
+{
+    "accounts": [
+        {
+            "id": 1,
+            "business_id": 1,
+            "name": "Cash Account",
+            "account_number": "CA001",
+            "account_details": "Main cash drawer",
+            "account_type_id": 2,
+            "note": "Primary cash account for transactions",
+            "created_by": 1,
+            "is_closed": 0,
+            "deleted_at": null,
+            "created_at": "2025-07-27 18:54:25",
+            "updated_at": "2025-07-27 18:54:25"
+        },
+        {
+            "id": 2,
+            "business_id": 1,
+            "name": "Bank of America",
+            "account_number": "BOFA12345",
+            "account_details": "Checking account for business operations",
+            "account_type_id": 3,
+            "note": "Main bank account",
+            "created_by": 1,
+            "is_closed": 0,
+            "deleted_at": null,
+            "created_at": "2025-07-27 18:54:25",
+            "updated_at": "2025-07-27 18:54:25"
+        },
+        {
+            "id": 3,
+            "business_id": 2,
+            "name": "Petty Cash B2",
+            "account_number": "PC001B2",
+            "account_details": "Small cash for daily expenses",
+            "account_type_id": 2,
+            "note": null,
+            "created_by": 1,
+            "is_closed": 0,
+            "deleted_at": null,
+            "created_at": "2025-07-27 18:54:25",
+            "updated_at": "2025-07-27 18:54:25"
+        }
+    ],
+    "account_transactions": [
+        {
+            "id": 1,
+            "account_id": 1,
+            "type": "credit",
+            "sub_type": "opening_balance",
+            "amount": "1000.0000",
+            "reff_no": "OB-001",
+            "operation_date": "2025-07-27 18:54:25",
+            "created_by": 1,
+            "transaction_id": null,
+            "transaction_payment_id": null,
+            "transfer_transaction_id": null,
+            "note": "Initial cash balance",
+            "deleted_at": null,
+            "created_at": "2025-07-27 18:54:25",
+            "updated_at": "2025-07-27 18:54:25"
+        },
+        {
+            "id": 2,
+            "account_id": 2,
+            "type": "credit",
+            "sub_type": "deposit",
+            "amount": "50000.0000",
+            "reff_no": "DEP-001",
+            "operation_date": "2025-07-27 18:54:25",
+            "created_by": 1,
+            "transaction_id": null,
+            "transaction_payment_id": null,
+            "transfer_transaction_id": null,
+            "note": "Initial bank deposit",
+            "deleted_at": null,
+            "created_at": "2025-07-27 18:54:25",
+            "updated_at": "2025-07-27 18:54:25"
+        },
+        {
+            "id": 3,
+            "account_id": 1,
+            "type": "debit",
+            "sub_type": "fund_transfer",
+            "amount": "200.0000",
+            "reff_no": "FT-001",
+            "operation_date": "2025-07-27 18:54:25",
+            "created_by": 1,
+            "transaction_id": null,
+            "transaction_payment_id": null,
+            "transfer_transaction_id": null,
+            "note": "Transfer to petty cash",
+            "deleted_at": null,
+            "created_at": "2025-07-27 18:54:25",
+            "updated_at": "2025-07-27 18:54:25"
+        }
+    ]
+}

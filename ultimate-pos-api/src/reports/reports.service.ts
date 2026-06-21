@@ -1399,6 +1399,160 @@ export class ReportsService {
       summaryLines,
     );
   }
+
+  /** Expense analysis: total expenses grouped by category and their percentage share */
+  async getExpenseBreakdown(businessId: number, from?: string, to?: string) {
+    const report = await this.getExpenseReport(businessId, from, to);
+    const total = report.summary.total;
+    const byCategory = report.byCategory.map((c) => ({
+      ...c,
+      percentage: total > 0 ? Number(((c.total / total) * 100).toFixed(2)) : 0,
+    }));
+    return {
+      summary: report.summary,
+      byCategory,
+    };
+  }
+
+  /** Cash Flow Statement: direct cash flows from operating activities */
+  async getCashFlowStatement(businessId: number, from?: string, to?: string) {
+    const range: any = {};
+    if (from) range.gte = new Date(from);
+    if (to) range.lte = new Date(to);
+
+    const paymentWhere: any = { businessId };
+    if (from || to) {
+      paymentWhere.paymentDate = range;
+    }
+
+    const expenseWhere: any = { businessId, deletedAt: null };
+    if (from || to) {
+      expenseWhere.expenseDate = range;
+    }
+
+    const [salesPayments, purchasesPayments, expensePayments] = await Promise.all([
+      this.prisma.payment.aggregate({
+        where: {
+          ...paymentWhere,
+          saleId: { not: null },
+        },
+        _sum: { amount: true },
+        _count: { id: true },
+      }),
+      this.prisma.payment.aggregate({
+        where: {
+          ...paymentWhere,
+          purchaseId: { not: null },
+        },
+        _sum: { amount: true },
+        _count: { id: true },
+      }),
+      this.prisma.expense.aggregate({
+        where: expenseWhere,
+        _sum: { totalAmount: true },
+        _count: { id: true },
+      }),
+    ]);
+
+    const receiptsFromCustomers = Number(salesPayments._sum.amount ?? 0);
+    const paymentsToSuppliers = Number(purchasesPayments._sum.amount ?? 0);
+    const paymentsForExpenses = Number(expensePayments._sum.totalAmount ?? 0);
+
+    const totalInflow = receiptsFromCustomers;
+    const totalOutflow = paymentsToSuppliers + paymentsForExpenses;
+    const netCashFlow = totalInflow - totalOutflow;
+
+    return {
+      operatingActivities: {
+        inflows: {
+          receiptsFromCustomers: Number(receiptsFromCustomers.toFixed(2)),
+          count: salesPayments._count.id,
+        },
+        outflows: {
+          paymentsToSuppliers: Number(paymentsToSuppliers.toFixed(2)),
+          paymentsToSuppliersCount: purchasesPayments._count.id,
+          paymentsForExpenses: Number(paymentsForExpenses.toFixed(2)),
+          paymentsForExpensesCount: expensePayments._count.id,
+        },
+      },
+      summary: {
+        totalInflow: Number(totalInflow.toFixed(2)),
+        totalOutflow: Number(totalOutflow.toFixed(2)),
+        netCashFlow: Number(netCashFlow.toFixed(2)),
+      },
+    };
+  }
+
+  /** GST Tax Report: output tax collected vs input tax paid */
+  async getGSTReport(businessId: number, from?: string, to?: string) {
+    const saleWhere: any = { businessId, deletedAt: null };
+    const purchaseWhere: any = { businessId, deletedAt: null };
+    const expenseWhere: any = { businessId, deletedAt: null };
+
+    if (from || to) {
+      const range: any = {};
+      if (from) range.gte = new Date(from);
+      if (to) range.lte = new Date(to);
+      saleWhere.transactionDate = range;
+      purchaseWhere.purchaseDate = range;
+      expenseWhere.expenseDate = range;
+    }
+
+    const [salesGst, purchasesGst, expensesGst] = await Promise.all([
+      this.prisma.sale.aggregate({
+        where: {
+          ...saleWhere,
+          taxAmount: { gt: 0 },
+        },
+        _sum: { taxAmount: true, totalAmount: true },
+        _count: { id: true },
+      }),
+      this.prisma.purchase.aggregate({
+        where: {
+          ...purchaseWhere,
+          taxAmount: { gt: 0 },
+        },
+        _sum: { taxAmount: true, totalAmount: true },
+        _count: { id: true },
+      }),
+      this.prisma.expense.aggregate({
+        where: {
+          ...expenseWhere,
+          taxAmount: { gt: 0 },
+        },
+        _sum: { taxAmount: true, amount: true },
+        _count: { id: true },
+      }),
+    ]);
+
+    const outputGstCollected = Number(salesGst._sum.taxAmount ?? 0);
+    const inputGstPaidPurchases = Number(purchasesGst._sum.taxAmount ?? 0);
+    const inputGstPaidExpenses = Number(expensesGst._sum.taxAmount ?? 0);
+    const inputGstTotalPaid = inputGstPaidPurchases + inputGstPaidExpenses;
+    const netGstLiability = outputGstCollected - inputGstTotalPaid;
+
+    const totalSales = Number(salesGst._sum.totalAmount ?? 0);
+    const totalPurchases = Number(purchasesGst._sum.totalAmount ?? 0);
+    const totalExpenses = Number(expensesGst._sum.amount ?? 0);
+
+    return {
+      outputGst: {
+        gstCollected: Number(outputGstCollected.toFixed(2)),
+        taxableSales: Number((totalSales - outputGstCollected).toFixed(2)),
+        salesCount: salesGst._count.id,
+      },
+      inputGst: {
+        gstPaidOnPurchases: Number(inputGstPaidPurchases.toFixed(2)),
+        gstPaidOnExpenses: Number(inputGstPaidExpenses.toFixed(2)),
+        gstTotalPaid: Number(inputGstTotalPaid.toFixed(2)),
+        taxablePurchases: Number((totalPurchases - inputGstPaidPurchases).toFixed(2)),
+        taxableExpenses: Number((totalExpenses - inputGstPaidExpenses).toFixed(2)),
+        purchasesCount: purchasesGst._count.id,
+        expensesCount: expensesGst._count.id,
+      },
+      netGstLiability: Number(netGstLiability.toFixed(2)),
+    };
+  }
 }
 
 export interface AccountNode {

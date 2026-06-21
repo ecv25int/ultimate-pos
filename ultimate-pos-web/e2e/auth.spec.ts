@@ -6,14 +6,14 @@ test.describe('Authentication', () => {
     await page.goto('/auth/login');
     await expect(page).toHaveTitle(/Ultimate POS/i);
     await expect(page.getByLabel(/username/i)).toBeVisible();
-    await expect(page.getByLabel(/password/i)).toBeVisible();
+    await expect(page.locator('input[type="password"]')).toBeVisible();
     await expect(page.getByRole('button', { name: /sign in|log in/i })).toBeVisible();
   });
 
   test('shows error with wrong credentials', async ({ page }) => {
     await page.goto('/auth/login');
     await page.getByLabel(/username/i).fill('nobody');
-    await page.getByLabel(/password/i).fill('wrongpass');
+    await page.locator('input[type="password"]').fill('wrongpass');
     await page.getByRole('button', { name: /sign in|log in/i }).click();
 
     // Should stay on login page and show an error snackbar or inline error
@@ -61,7 +61,16 @@ test.describe('Authentication', () => {
 
   test('forgot password link navigates to forgot-password page', async ({ page }) => {
     await page.goto('/auth/login');
-    await page.getByRole('link', { name: /forgot.*password/i }).click();
+    await page.getByRole('link', { name: /forgot.*password/i }).first().click();
     await expect(page).toHaveURL(/\/auth\/forgot-password/);
+  });
+
+  test('password strength meter appears on register page', async ({ page }) => {
+    await page.goto('/auth/register');
+    // Strength meter only shows once password has content
+    const passwordInput = page.locator('input[type="password"]').first();
+    await passwordInput.fill('abc');
+    await expect(page.locator('app-password-strength')).toBeVisible();
+    await expect(page.locator('.strength-label')).toBeVisible();
   });
 });

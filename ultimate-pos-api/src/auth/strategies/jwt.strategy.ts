@@ -34,11 +34,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         userType: true,
         businessId: true,
         isActive: true,
+        currentSessionId: true,
       },
     });
 
     if (!user || !user.isActive) {
       throw new UnauthorizedException('User not found or inactive');
+    }
+
+    if (!payload.sessionId || payload.sessionId !== user.currentSessionId) {
+      throw new UnauthorizedException('Session expired or invalidated by a new login');
     }
 
     return user;

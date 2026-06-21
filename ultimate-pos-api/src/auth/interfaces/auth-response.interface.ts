@@ -9,5 +9,6 @@ export interface AuthResponse {
     lastName?: string | null;
     userType: string;
     businessId?: number | null;
+    currentSessionId?: string | null;
   };
 }

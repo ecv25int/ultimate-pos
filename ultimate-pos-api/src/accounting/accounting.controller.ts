@@ -10,7 +10,10 @@ import {
   Query,
   Req,
   UseGuards,
+  Inject,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -27,6 +30,7 @@ export class AccountingController {
   constructor(
     private readonly accountingService: AccountingService,
     private readonly currencyService: CurrencyService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   // ─── Account Types ────────────────────────────────────────────────
@@ -154,12 +158,18 @@ export class AccountingController {
 
   /** GET /api/accounting/currencies/exchange-rate?from=&to=&date= */
   @Get('currencies/exchange-rate')
-  getExchangeRate(
+  async getExchangeRate(
     @Query('from') from: string,
     @Query('to') to: string,
     @Query('date') date?: string,
   ) {
-    return this.currencyService.getExchangeRate(from, to, date);
+    const cacheKey = `exchange_rate_${from}_${to}_${date ?? 'today'}`;
+    const cached = await this.cacheManager.get<number>(cacheKey);
+    if (cached !== undefined && cached !== null) return cached;
+
+    const rate = this.currencyService.getExchangeRate(from, to, date);
+    await this.cacheManager.set(cacheKey, rate, 86_400_000); // 1 day
+    return rate;
   }
 
   /** GET /api/accounting/currencies/unrealized-gains?asOfDate= */
