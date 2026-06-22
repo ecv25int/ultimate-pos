@@ -1,7 +1,4 @@
 services:
-  # -------------------------------------------------------------
-  # 1. NestJS API Backend
-  # -------------------------------------------------------------
   - type: web
     name: ultimate-pos-api
     env: node
@@ -17,58 +14,29 @@ services:
         fromDatabase:
           name: ultimate-pos-db
           property: connectionString
-      - key: REDIS_HOST
-        fromService:
-          type: redis
-          name: ultimate-pos-redis
-          property: host
-      - key: REDIS_PORT
-        fromService:
-          type: redis
-          name: ultimate-pos-redis
-          property: port
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true
-      - key: JWT_EXPIRATION
-        value: 15m
-      - key: JWT_REFRESH_EXPIRATION
-        value: 7d
 
-  # -------------------------------------------------------------
-  # 2. Angular Frontend
-  # -------------------------------------------------------------
-  - type: static
+  - type: web
     name: ultimate-pos-web
     env: static
     rootDir: ultimate-pos-web
     buildCommand: npm install --legacy-peer-deps && npm run build
-    publishPath: dist/ultimate-pos-web/browser
-    headers:
-      - key: Cache-Control
-        value: public, max-age=31536000, immutable
+    staticPublishPath: dist/ultimate-pos-web/browser
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
-    envVars:
-      - key: NG_APP_API_URL
-        fromService:
-          type: web
-          name: ultimate-pos-api
-          property: host
 
-  # -------------------------------------------------------------
-  # 3. Redis Cache
-  # -------------------------------------------------------------
   - type: redis
     name: ultimate-pos-redis
     plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: allow all (render internal services)
 
-# -------------------------------------------------------------
-# 4. MySQL Database Resource
-# -------------------------------------------------------------
 databases:
   - name: ultimate-pos-db
     databaseName: ultimate_pos
